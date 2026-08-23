@@ -40,7 +40,7 @@ MTR 是一款以香港 MTR、伦敦地铁和纽约地铁为灵感的 Minecraft �
 在仓库根目录运行：
 
 ```powershell
-.\gradlew.bat build -PbuildVersion=1.21.1 --console=plain --stacktrace
+.\gradlew.bat build
 ```
 
 构建完成后的发布 JAR 位于：

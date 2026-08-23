@@ -8,13 +8,16 @@ plugins {
 	id "de.undercouch.download" version "4.1.2"
 	// Loom 1.11 supports Gradle 8.14 and Java 21; newer Loom 1.17 requires Gradle 9.4+.
 	id "dev.architectury.loom" version "1.11.458" apply false
-	id "com.github.johnrengelman.shadow" version "7.1.0" apply false
+	// Shadow 8.3 supports Java 21 class files and Gradle 8.3+.
+	id "com.gradleup.shadow" version "8.3.0" apply false
 }
 
 def default_minecraft_version = "1.21.1"
-// Read the command-line property directly. Accessing it through the project
-// property APIs may coerce a dotted value such as 1.21.1 to a number.
-def minecraft_version = gradle.startParameter.projectProperties.get("buildVersion") ?: default_minecraft_version
+// Some Gradle/property combinations coerce a dotted command-line value such
+// as 1.21.1 to "1". Only accept a complete Minecraft version; this port's
+// default is 1.21.1 when no valid override is supplied.
+def requested_minecraft_version = gradle.startParameter.projectProperties.get("buildVersion")?.toString()
+def minecraft_version = requested_minecraft_version?.matches("\\d+\\.\\d+\\.\\d+") ? requested_minecraft_version : default_minecraft_version
 def minecraft_main_version = minecraft_version.split("\\.")[1] as int
 def patreon_api_key = rootProject.properties.containsKey("patreonApiKey") ? rootProject.getProperties().get("patreonApiKey").toString() : ""
 def is_1_19_3 = minecraft_version == "1.19.3" || minecraft_version == "1.19.4"
@@ -38,7 +41,7 @@ architectury {
 
 subprojects {
 	apply plugin: "dev.architectury.loom"
-	apply plugin: "com.github.johnrengelman.shadow"
+	apply plugin: "com.gradleup.shadow"
 
 	loom {
 		silentMojangMappingsLicense()
