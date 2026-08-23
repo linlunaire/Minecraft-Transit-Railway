@@ -11,7 +11,9 @@ configurations {
 	shadowCommon
 	compileClasspath.extendsFrom common
 	runtimeClasspath.extendsFrom common
-	developmentNeoForge.extendsFrom common
+	// The final NeoForge JAR embeds the libraries in shadowCommon.  Make them
+	// available to Loom's NeoForge development runtime as well.
+	developmentNeoForge.extendsFrom common, shadowCommon
 }
 
 dependencies {
