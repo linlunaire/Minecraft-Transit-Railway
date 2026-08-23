@@ -95,7 +95,7 @@ public abstract class BlockPIDSBaseHorizontal extends BlockDirectionalMapper imp
 
 	@Override
 	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {
-		final BlockEntity blockEntity = createBlockEntity(new BlockPos(0, 0, 0), null);
+		final BlockEntity blockEntity = createBlockEntity(new BlockPos(0, 0, 0), defaultBlockState());
 		if (blockEntity instanceof TileEntityPIDS) {
 			tooltip.add(Text.translatable("tooltip.mtr.arrivals", ((TileEntityPIDS) blockEntity).getMaxArrivals()).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
 		}
