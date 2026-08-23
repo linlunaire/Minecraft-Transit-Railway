@@ -1,4 +1,4 @@
-# Minecraft Transit Railway — 1.21.1 Port
+# Minecraft Transit Railway 3.x — 1.21.1 Port
 
 这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植版本。
 
@@ -19,19 +19,15 @@ MTR 是一款以香港 MTR、伦敦地铁和纽约地铁为灵感的 Minecraft �
 
 ### Fabric
 
-需要安装：
+前置Mod：
 
-- [Fabric Loader](https://fabricmc.net/use/installer/)
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - [Architectury API](https://modrinth.com/mod/architectury-api)
 
-[Mod Menu](https://modrinth.com/mod/modmenu) 为可选依赖，用于提供模组配置界面。
-
 ### NeoForge
 
-需要安装：
+前置：
 
-- [NeoForge](https://neoforged.net/)（Minecraft 1.21.1）
 - [Architectury API](https://modrinth.com/mod/architectury-api)
 
 ## 从源码构建
@@ -39,7 +35,7 @@ MTR 是一款以香港 MTR、伦敦地铁和纽约地铁为灵感的 Minecraft �
 构建环境：
 
 - JDK 21
-- 项目自带的 Gradle Wrapper（Gradle 8.14.5）
+- Gradle Wrapper（Gradle 8.14.5）
 
 在仓库根目录运行：
 
@@ -53,21 +49,9 @@ MTR 是一款以香港 MTR、伦敦地铁和纽约地铁为灵感的 Minecraft �
 build/release/
 ```
 
-开发环境可分别编译：
-
-```powershell
-.\gradlew.bat :common:compileJava --console=plain --stacktrace
-.\gradlew.bat :fabric:compileJava --console=plain --stacktrace
-.\gradlew.bat :forge:compileJava --console=plain --stacktrace
-```
-
-项目目录仍沿用 `forge` 名称，但 1.21.1 平台实现为 NeoForge。
-
 ## 开发说明
 
 - 映射兼容层来自 [Minecraft-Mappings 1.21.1 分支](https://github.com/Jhesterccj/Minecraft-Mappings/tree/1.21.1)。
-- `fabric/run`、`forge/run`、`build` 和 `.gradle` 是本地生成目录，已被 Git 忽略，不应提交。
-- 请将问题报告在本仓库的 Issues 中，并附上完整崩溃报告、加载器版本和复现步骤。
 
 ## 上游与许可证
 
