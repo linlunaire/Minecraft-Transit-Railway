@@ -12,9 +12,9 @@ plugins {
 }
 
 def default_minecraft_version = "1.21.1"
-// `getProperties()` coerces dotted command-line values such as 1.21.1 under
-// newer Gradle versions. `findProperty()` preserves the supplied text.
-def minecraft_version = rootProject.findProperty("buildVersion")?.toString() ?: default_minecraft_version
+// Read the command-line property directly. Accessing it through the project
+// property APIs may coerce a dotted value such as 1.21.1 to a number.
+def minecraft_version = gradle.startParameter.projectProperties.get("buildVersion") ?: default_minecraft_version
 def minecraft_main_version = minecraft_version.split("\\.")[1] as int
 def patreon_api_key = rootProject.properties.containsKey("patreonApiKey") ? rootProject.getProperties().get("patreonApiKey").toString() : ""
 def is_1_19_3 = minecraft_version == "1.19.3" || minecraft_version == "1.19.4"
