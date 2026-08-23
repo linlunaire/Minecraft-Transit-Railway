@@ -21,25 +21,27 @@ dependencies {
 	modApi "${rootProject.architectury_id}:architectury-neoforge:${rootProject.architectury_data[0].split("\\+")[0]}"
 	// The common module starts MTR's embedded web server during initialization.
 	// NeoForge's development runtime does not inherit the root shadow configuration.
-	runtimeOnly "org.eclipse.jetty:jetty-http:9.+"
-	runtimeOnly "org.eclipse.jetty:jetty-io:9.+"
-	runtimeOnly "org.eclipse.jetty:jetty-security:9.+"
-	runtimeOnly "org.eclipse.jetty:jetty-server:9.+"
-	runtimeOnly "org.eclipse.jetty:jetty-servlet:9.+"
-	runtimeOnly "org.eclipse.jetty:jetty-util:9.+"
-	runtimeOnly "org.eclipse.jetty:jetty-util-ajax:9.+"
-	runtimeOnly "javax.servlet:javax.servlet-api:+"
-	runtimeOnly "org.msgpack:msgpack-core:+"
+	forgeRuntimeLibrary "org.eclipse.jetty:jetty-http:${rootProject.jetty_version}"
+	forgeRuntimeLibrary "org.eclipse.jetty:jetty-io:${rootProject.jetty_version}"
+	forgeRuntimeLibrary "org.eclipse.jetty:jetty-security:${rootProject.jetty_version}"
+	forgeRuntimeLibrary "org.eclipse.jetty:jetty-server:${rootProject.jetty_version}"
+	forgeRuntimeLibrary "org.eclipse.jetty:jetty-servlet:${rootProject.jetty_version}"
+	forgeRuntimeLibrary "org.eclipse.jetty:jetty-util:${rootProject.jetty_version}"
+	forgeRuntimeLibrary "org.eclipse.jetty:jetty-util-ajax:${rootProject.jetty_version}"
+	forgeRuntimeLibrary "javax.servlet:javax.servlet-api:${rootProject.servlet_version}"
+	forgeRuntimeLibrary "org.msgpack:msgpack-core:${rootProject.msgpack_version}"
 
-	common(project(path: ":common", configuration: "namedElements")) { transitive false }
+	common(project(path: ":common", configuration: "namedElements")) { transitive = false }
 	shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive = false }
 }
 
+def modVersionForResources = project.version
+
 processResources {
-	inputs.property "version", project.version
+	inputs.property "version", modVersionForResources
 
 	filesMatching("META-INF/neoforge.mods.toml") {
-		expand "version": project.version
+		expand "version": modVersionForResources
 	}
 }
 
@@ -50,11 +52,13 @@ shadowJar {
 	archiveClassifier.set("dev-shadow")
 	relocate "javax.servlet", "mtr.libraries.javax.servlet"
 	relocate "org.eclipse", "mtr.libraries.org.eclipse"
+	mergeServiceFiles()
 }
 
 remapJar {
 	input.set shadowJar.archiveFile
 	dependsOn shadowJar
+	archiveBaseName.set("neoforge")
 	archiveClassifier.set("")
 }
 
@@ -64,20 +68,24 @@ components.java {
 	}
 }
 
-task moveForgeBuilds() {
+tasks.register("moveNeoForgeBuilds") {
 	doLast {
 		delete fileTree("../build/release").matching {
-			include "**/${rootProject.variation_header}-forge*"
+			include "${rootProject.variation_header}-forge*"
+			include "${rootProject.variation_header}-neoforge*"
 		}
 		delete fileTree("../build/libs").matching {
-			include "**/${rootProject.variation_header}-forge*"
+			include "${rootProject.variation_header}-forge*"
+			include "${rootProject.variation_header}-neoforge*"
 		}
 		delete fileTree("../build/latest").matching {
-			include "**/${rootProject.variation_header}-forge*"
+			include "${rootProject.variation_header}-forge*"
+			include "${rootProject.variation_header}-neoforge*"
 		}
 		copy {
 			from "build/libs"
-			include "*${rootProject.mod_version}.jar"
+			include "neoforge-*.jar"
+			exclude "*-dev-shadow.jar"
 			into "../build/release"
 			rename "(.+)", "${rootProject.variation_header}-\$1"
 		}
@@ -97,7 +105,7 @@ task moveForgeBuilds() {
 	}
 }
 
-task testServer {
+tasks.register("testServer") {
 	doLast {
 		if (rootProject.variation == "normal") {
 			copy {
@@ -112,7 +120,7 @@ task testServer {
 			copy {
 				from "../build/latest"
 				into "server/mods"
-				include "MTR-forge-*-latest.jar"
+				include "MTR-neoforge-*-latest.jar"
 				rename "(.+)", "MTR.jar"
 			}
 			download {
@@ -144,10 +152,6 @@ task testServer {
 	}
 }
 
-afterEvaluate {
-	for (def task in it.tasks) {
-		if (task == tasks.build) {
-			task.finalizedBy tasks.moveForgeBuilds
-		}
-	}
+tasks.named("build") {
+	finalizedBy tasks.named("moveNeoForgeBuilds")
 }

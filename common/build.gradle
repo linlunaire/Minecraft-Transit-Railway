@@ -17,7 +17,7 @@ sourceSets {
 	}
 }
 
-task moveCommonBuilds() {
+tasks.register("moveCommonBuilds") {
 	doLast {
 		delete fileTree("../build/libs").matching {
 			include "**/MTR-common*"
@@ -42,10 +42,6 @@ task moveCommonBuilds() {
 	}
 }
 
-afterEvaluate {
-	for (def task in it.tasks) {
-		if (task == tasks.build) {
-			task.finalizedBy tasks.moveCommonBuilds
-		}
-	}
+tasks.named("build") {
+	finalizedBy tasks.named("moveCommonBuilds")
 }

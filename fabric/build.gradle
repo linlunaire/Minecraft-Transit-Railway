@@ -19,8 +19,8 @@ dependencies {
 	modApi "dev.architectury:architectury-fabric:${rootProject.architectury_data[0].split("\\+")[0]}"
 	modApi "com.terraformersmc:modmenu:${rootProject.mod_menu_data[0]}"
 
-	common(project(path: ":common", configuration: "namedElements")) { transitive false }
-	shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+	common(project(path: ":common", configuration: "namedElements")) { transitive = false }
+	shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive = false }
 }
 
 processResources {
@@ -50,7 +50,7 @@ components.java {
 	}
 }
 
-task moveFabricBuilds() {
+tasks.register("moveFabricBuilds") {
 	doLast {
 		delete fileTree("../build/release").matching {
 			include "**/${rootProject.variation_header}-fabric*"
@@ -83,7 +83,7 @@ task moveFabricBuilds() {
 	}
 }
 
-task testServer {
+tasks.register("testServer") {
 	doLast {
 		if (rootProject.variation == "normal") {
 			copy {
@@ -123,10 +123,6 @@ task testServer {
 	}
 }
 
-afterEvaluate {
-	for (def task in it.tasks) {
-		if (task == tasks.build) {
-			task.finalizedBy tasks.moveFabricBuilds
-		}
-	}
+tasks.named("build") {
+	finalizedBy tasks.named("moveFabricBuilds")
 }
