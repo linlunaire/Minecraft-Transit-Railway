@@ -1,64 +1,76 @@
-# Minecraft Transit Railway 3.0
+# Minecraft Transit Railway — 1.21.1 Port
 
-_Minecraft Transit Railway_ is a [Minecraft mod](https://minecraft.gamepedia.com/Mods) based on Hong Kong's MTR, the London Underground, and the New York Subway. It adds trains into the game along with other miscellaneous blocks and items. With this mod, it is possible to build a fully functional railway system in your world!
+这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植版本。
 
-[![Video Trailer](https://github.com/jonafanho/Minecraft-Transit-Railway/blob/master/images/footer/video-preview.png)](https://www.youtube.com/watch?v=1cZfU7t4cAk)
+MTR 是一款以香港 MTR、伦敦地铁和纽约地铁为灵感的 Minecraft 模组，提供自动列车、轨道、车站、PIDS、缆车、船只和飞机等内容，用于建设可实际运行的交通网络。
 
-Please report any issues or bugs that you find; that would be greatly appreciated! Refer to the [todo list](https://github.com/jonafanho/Minecraft-Transit-Railway/projects/2) to see currently known issues.
+> 本仓库处于移植与测试阶段，并非上游官方发布渠道。请在存档或服务器使用前自行备份。
 
-## Downloads and Installation
+## 支持的平台
 
-Head over to the [CurseForge page](https://www.curseforge.com/minecraft/mc-mods/minecraft-transit-railway) to download
-the mod or to see the project information.
+| 游戏版本 | 加载器 | 状态 |
+| --- | --- | --- |
+| Minecraft 1.21.1 | Fabric | 支持 |
+| Minecraft 1.21.1 | NeoForge | 支持 |
 
-## Guide
+## 安装
 
-There is a [new wiki](https://github.com/jonafanho/Minecraft-Transit-Railway/wiki) for the mod, right here on GitHub!
-Take a look.
+请只选择与自己加载器对应的 MTR JAR，不要同时安装 Fabric 与 NeoForge 版本。
 
-## Contributing
+### Fabric
 
-### Help Translate the Mod!
+需要安装：
 
-The [Crowdin site for the Minecraft Transit Railway mod](https://crwd.in/minecraft-transit-railway) is available!
+- [Fabric Loader](https://fabricmc.net/use/installer/)
+- [Fabric API](https://modrinth.com/mod/fabric-api)
+- [Architectury API](https://modrinth.com/mod/architectury-api)
 
-Crowdin is a cloud-based platform for translators to contribute to a project. With your help, we can translate the mod to many different languages. You may create a free account to start translating.
+[Mod Menu](https://modrinth.com/mod/modmenu) 为可选依赖，用于提供模组配置界面。
 
-[![Crowdin](https://badges.crowdin.net/minecraft-transit-railway/localized.svg)](https://crowdin.com/project/minecraft-transit-railway)
+### NeoForge
 
-### Adding Features
+需要安装：
 
-1. Fork this project
-1. On your fork, create a new branch based on the development version branch
-1. Commit your changes to the new branch
-1. Make a Pull Request to merge your branch into the development version of this repository
+- [NeoForge](https://neoforged.net/)（Minecraft 1.21.1）
+- [Architectury API](https://modrinth.com/mod/architectury-api)
 
-### Building
+## 从源码构建
 
-To build the mod, run the following command in the root directory of the project:
+构建环境：
 
+- JDK 21
+- 项目自带的 Gradle Wrapper（Gradle 8.14.5）
+
+在仓库根目录运行：
+
+```powershell
+.\gradlew.bat build -PbuildVersion=1.21.1 --console=plain --stacktrace
 ```
-gradlew build -PbuildVersion=<minecraft version>
+
+构建完成后的发布 JAR 位于：
+
+```text
+build/release/
 ```
 
-The mod jar file should be generated in the following directory:
+开发环境可分别编译：
 
+```powershell
+.\gradlew.bat :common:compileJava --console=plain --stacktrace
+.\gradlew.bat :fabric:compileJava --console=plain --stacktrace
+.\gradlew.bat :forge:compileJava --console=plain --stacktrace
 ```
-<root>/build/release/MTR-<fabric|forge>-<minecraft version>-<mod version>.jar
-```
 
-## License
+项目目录仍沿用 `forge` 名称，但 1.21.1 平台实现为 NeoForge。
 
-This project is licensed with the [MIT License](https://opensource.org/licenses/MIT). All [Noto fonts](http://www.google.com/get/noto/), bundled with this mod, are licensed with the [Open Font License](http://scripts.sil.org/OFL).
+## 开发说明
 
-## Questions? Comments? Complaints?
+- 映射兼容层来自 [Minecraft-Mappings 1.21.1 分支](https://github.com/Jhesterccj/Minecraft-Mappings/tree/1.21.1)。
+- `fabric/run`、`forge/run`、`build` 和 `.gradle` 是本地生成目录，已被 Git 忽略，不应提交。
+- 请将问题报告在本仓库的 Issues 中，并附上完整崩溃报告、加载器版本和复现步骤。
 
-Let's connect.
+## 上游与许可证
 
-<a href="https://discord.gg/PVZ2nfUaTW" target="_blank"><img src="https://github.com/jonafanho/Minecraft-Transit-Railway/blob/master/images/footer/discord.png" alt="Discord" width=64></a>
-&nbsp;
-<a href="https://www.linkedin.com/in/jonathanho33" target="_blank"><img src="https://github.com/jonafanho/Minecraft-Transit-Railway/blob/master/images/footer/linked_in.png" alt="LinkedIn" width=64></a>
-&nbsp;
-<a href="mailto:jonho.minecraft@gmail.com" target="_blank"><img src="https://github.com/jonafanho/Minecraft-Transit-Railway/blob/master/images/footer/email.png" alt="Email" width=64></a>
-&nbsp;
-<a href="https://www.patreon.com/minecraft_transit_railway" target="_blank"><img src="https://github.com/jonafanho/Minecraft-Transit-Railway/blob/master/images/footer/patreon.png" alt="Patreon" width=64></a>
+本项目基于上游 [Minecraft-Transit-Railway/Minecraft-Transit-Railway](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway)。原作者与贡献者信息保留在源码及模组元数据中。
+
+项目遵循 [MIT License](LICENSE)。随模组分发的 Noto 字体遵循 [SIL Open Font License](https://openfontlicense.org/)。
