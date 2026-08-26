@@ -34,7 +34,9 @@ bin/
 run/
 latest.log
 Keys.java
-mappings
+# Downloaded by setupFiles. Keep the Java compatibility layers in Git so a
+# clean CI checkout has the same sources as the local development environment.
+common/src/main/java/mtr/mappings/mappings.zip
 BlockEntityExtension.java
 RandomSource.java
 UnknownPacketMixin.java
