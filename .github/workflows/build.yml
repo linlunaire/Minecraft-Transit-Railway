@@ -1,4 +1,4 @@
-name: Build 1.21.1
+name: Build
 
 on:
   push:
@@ -21,16 +21,13 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Make Gradle Wrapper executable
         run: chmod +x ./gradlew
-
-      - name: Prepare generated sources and resources
-        run: ./gradlew setupFiles
 
       - name: Build Fabric and NeoForge JARs
         run: ./gradlew build --stacktrace
