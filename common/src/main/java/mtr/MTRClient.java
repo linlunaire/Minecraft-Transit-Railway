@@ -299,7 +299,6 @@ public class MTRClient implements IPacket {
 			RegistryClient.registerKeyBinding(KeyMappings.DEBUG_ROTATE_CATEGORY_POSITIVE);
 		}
 
-		Patreon.getPatreonList(Config.PATREON_LIST);
 		Config.refreshProperties();
 
 		RegistryClient.registerPlayerJoinEvent(player -> {
