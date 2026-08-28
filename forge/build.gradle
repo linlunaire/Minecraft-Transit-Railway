@@ -11,9 +11,10 @@ configurations {
 	shadowCommon
 	compileClasspath.extendsFrom common
 	runtimeClasspath.extendsFrom common
-	// The final NeoForge JAR embeds the libraries in shadowCommon.  Make them
-	// available to Loom's NeoForge development runtime as well.
-	developmentNeoForge.extendsFrom common, shadowCommon
+	// shadowCommon is only for producing the final shaded JAR.  Adding it to
+	// the NeoForge development runtime duplicates the ForgeRuntimeLibrary
+	// copies of Jetty and causes a Java module-package conflict.
+	developmentNeoForge.extendsFrom common
 }
 
 dependencies {

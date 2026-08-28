@@ -1,0 +1,15 @@
+plugins {
+	id "architectury-plugin" version "3.4.164"
+	id "dev.architectury.loom" version "1.11.458" apply false
+	id "com.gradleup.shadow" version "8.3.0" apply false
+}
+
+def minecraftVersion = providers.gradleProperty("minecraft_version").get()
+def mtrProject = file("../Minecraft-Transit-Railway-3.x.x")
+
+ext.minecraftVersion = minecraftVersion
+ext.mtrProject = mtrProject
+
+architectury {
+	minecraft = minecraftVersion
+}

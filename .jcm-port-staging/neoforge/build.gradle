@@ -1,0 +1,30 @@
+plugins {
+	id "java"
+	id "architectury-plugin" version "3.4.164"
+	id "dev.architectury.loom" version "1.11.458"
+	id "com.gradleup.shadow" version "8.3.0"
+}
+
+apply from: rootProject.file("gradle/platform.gradle")
+
+project.architectury {
+	platformSetupLoomIde()
+	neoForge()
+}
+
+// Architectury's NeoForge configuration is normally created when production
+// sources are wired in. Keep the empty recovery project importable as well.
+configurations.maybeCreate("neoForge")
+
+dependencies {
+	neoForge "net.neoforged:neoforge:21.1.248"
+	modImplementation "dev.architectury:architectury-neoforge:13.0.11"
+	modCompileOnly files(rootProject.mtrProject.toPath().resolve("build/release/MTR-neoforge-1.21.1-3.3.0-beta-1.jar").toFile())
+
+	implementation project(":common")
+}
+
+remapJar {
+	archiveBaseName.set("JCM-neoforge")
+	archiveClassifier.set("")
+}

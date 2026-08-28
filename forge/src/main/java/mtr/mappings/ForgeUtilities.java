@@ -29,13 +29,13 @@ import net.neoforged.neoforge.client.event.TextureAtlasStitchedEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class ForgeUtilities {
 
-	private static Runnable renderTickAction = () -> {
-	};
+	private static final List<Runnable> RENDER_TICK_ACTIONS = new CopyOnWriteArrayList<>();
 	private static Consumer<Object> renderGameOverlayAction = matrices -> {
 	};
 	private static Consumer<Object> textureStitchEvent = atlas -> {
@@ -106,7 +106,7 @@ public class ForgeUtilities {
 	}
 
 	public static void renderTickAction(Runnable runnable) {
-		renderTickAction = runnable;
+		RENDER_TICK_ACTIONS.add(runnable);
 	}
 
 	public static void renderGameOverlayAction(Consumer<Object> consumer) {
@@ -126,7 +126,7 @@ public class ForgeUtilities {
 		@SubscribeEvent
 		public static void onRenderTickEvent(RenderLevelStageEvent event) {
 			if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
-				renderTickAction.run();
+				RENDER_TICK_ACTIONS.forEach(Runnable::run);
 			}
 		}
 
