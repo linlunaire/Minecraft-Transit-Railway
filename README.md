@@ -1,4 +1,4 @@
-# Minecraft Transit Railway 3.3.0-beta.1（Minecraft 1.21.1）
+# Minecraft Transit Railway beta（Minecraft 1.21.1）
 
 这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植测试版。
 
@@ -8,10 +8,10 @@ MTR 以香港 MTR、伦敦地铁和纽约地铁为灵感，提供自动列车、
 
 ## 支持版本
 
-| Minecraft | 加载器 | 构建版本 |
-| --- | --- | --- |
-| 1.21.1 | Fabric | 3.3.0-beta.1 |
-| 1.21.1 | NeoForge | 3.3.0-beta.1 |
+| Minecraft | 加载器 | 构建版本   |
+| --- | --- |------------|
+| 1.21.1 | Fabric | beta |
+| 1.21.1 | NeoForge | beta |
 
 ### Fabric
 
@@ -20,15 +20,11 @@ MTR 以香港 MTR、伦敦地铁和纽约地铁为灵感，提供自动列车、
 - [Fabric API](https://modrinth.com/mod/fabric-api)
 - [Architectury API](https://modrinth.com/mod/architectury-api)
 
-使用 `MTR-fabric-1.21.1-3.3.0-beta-1.jar`。
-
 ### NeoForge
 
 需要：
 
 - [Architectury API](https://modrinth.com/mod/architectury-api)
-
-使用 `MTR-neoforge-1.21.1-3.3.0-beta-1.jar`。
 
 ## 从源码构建
 
@@ -43,12 +39,12 @@ Windows：
 .\gradlew.bat build
 ```
 
-成功后，发布 JAR 位于 `build/release/`
+成功后，JAR 位于 `build/release/`
 
 ## 当前移植状态
 
 - 本地开发客户端已完成启动与资源加载验证。
-- 建议在发布前测试既有存档、多人联机、PIDS、列车、轨道和资源包工作流。
+- 建议在使用前测试既有存档、多人联机、PIDS、列车、轨道和资源包工作流。
 
 ## 上游与许可证
 

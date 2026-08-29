@@ -72,27 +72,27 @@ components.java {
 tasks.register("moveNeoForgeBuilds") {
 	doLast {
 		delete fileTree("../build/release").matching {
-			include "${rootProject.variation_header}-forge*"
-			include "${rootProject.variation_header}-neoforge*"
+			include "**/${rootProject.variation_header}-forge*"
+			include "**/${rootProject.variation_header}-neoforge*"
 		}
 		delete fileTree("../build/libs").matching {
-			include "${rootProject.variation_header}-forge*"
-			include "${rootProject.variation_header}-neoforge*"
+			include "**/${rootProject.variation_header}-forge*"
+			include "**/${rootProject.variation_header}-neoforge*"
 		}
 		delete fileTree("../build/latest").matching {
-			include "${rootProject.variation_header}-forge*"
-			include "${rootProject.variation_header}-neoforge*"
+			include "**/${rootProject.variation_header}-forge*"
+			include "**/${rootProject.variation_header}-neoforge*"
 		}
 		copy {
 			from "build/libs"
-			include "neoforge-*.jar"
-			exclude "*-dev-shadow.jar"
+			include "neoforge-*${rootProject.mod_version}.jar"
 			into "../build/release"
 			rename "(.+)", "${rootProject.variation_header}-\$1"
 		}
 		if (rootProject.variation == "normal") {
 			copy {
 				from "build/libs"
+				include "neoforge-*${rootProject.mod_version}.jar"
 				into "../build/latest"
 				rename { fileName -> "MTR-${fileName.replace(rootProject.mod_version, "latest")}" }
 			}

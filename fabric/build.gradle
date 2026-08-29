@@ -63,13 +63,14 @@ tasks.register("moveFabricBuilds") {
 		}
 		copy {
 			from "build/libs"
-			include "*${rootProject.mod_version}.jar"
+			include "fabric-*${rootProject.mod_version}.jar"
 			into "../build/release"
 			rename "(.+)", "${rootProject.variation_header}-\$1"
 		}
 		if (rootProject.variation == "normal") {
 			copy {
 				from "build/libs"
+				include "fabric-*${rootProject.mod_version}.jar"
 				into "../build/latest"
 				rename { fileName -> "MTR-${fileName.replace(rootProject.mod_version, "latest")}" }
 			}
