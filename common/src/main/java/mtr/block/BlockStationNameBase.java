@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
 import java.util.List;
 
-public abstract class BlockStationNameBase extends BlockDirectionalMapper implements EntityBlockMapper {
+public abstract class BlockStationNameBase extends BlockDirectionalMapper implements EntityBlockMapper, mtr.mappings.BlockTooltip {
 
 	public static final IntegerProperty COLOR = IntegerProperty.create("color", 0, 2);
 

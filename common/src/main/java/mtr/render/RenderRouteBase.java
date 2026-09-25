@@ -8,11 +8,11 @@ import mtr.client.IDrawing;
 import mtr.data.IGui;
 import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.UtilitiesClient;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -40,7 +40,7 @@ public abstract class RenderRouteBase<T extends BlockPSDTop.TileEntityRouteBase>
 	}
 
 	@Override
-	public final void render(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+	public final void render(T entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
 		final Level world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -78,7 +78,7 @@ public abstract class RenderRouteBase<T extends BlockPSDTop.TileEntityRouteBase>
 					final float height = 1 - topPadding - bottomPadding;
 					final int arrowDirection = IBlock.getStatePropertySafe(state, arrowDirectionProperty);
 
-					final ResourceLocation resourceLocation;
+					final Identifier resourceLocation;
 					if (renderType == RenderType.ARROW) {
 						resourceLocation = ClientData.DATA_CACHE.getDirectionArrow(platformId, (arrowDirection & 0b01) > 0, (arrowDirection & 0b10) > 0, HorizontalAlignment.CENTER, true, 0.25F, width / height, ARGB_WHITE, ARGB_BLACK, transparentWhite ? ARGB_WHITE : 0).resourceLocation;
 					} else {
@@ -98,7 +98,7 @@ public abstract class RenderRouteBase<T extends BlockPSDTop.TileEntityRouteBase>
 	}
 
 	@Override
-	public boolean shouldRenderOffScreen(T blockEntity) {
+	public boolean shouldRenderOffScreen() {
 		return true;
 	}
 

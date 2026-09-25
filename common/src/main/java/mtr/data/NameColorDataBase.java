@@ -52,10 +52,10 @@ public abstract class NameColorDataBase extends SerializedDataBase implements Co
 
 	@Deprecated
 	public NameColorDataBase(CompoundTag compoundTag) {
-		id = compoundTag.getLong(KEY_ID);
-		transportMode = EnumHelper.valueOf(TransportMode.TRAIN, compoundTag.getString(KEY_TRANSPORT_MODE));
-		name = compoundTag.getString(KEY_NAME);
-		color = compoundTag.getInt(KEY_COLOR);
+		id = mtr.mappings.CompoundTagMapper.getLong(compoundTag, KEY_ID);
+		transportMode = EnumHelper.valueOf(TransportMode.TRAIN, mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_TRANSPORT_MODE));
+		name = mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_NAME);
+		color = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_COLOR);
 	}
 
 	public NameColorDataBase(FriendlyByteBuf packet) {

@@ -13,11 +13,11 @@ import mtr.mappings.BlockEntityMapper;
 import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.UtilitiesClient;
 import mtr.path.PathData;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class RenderSignalBase<T extends BlockEntityMapper> extends BlockEntityRendererMapper<T> implements IBlock, IGui {
-	private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.parse("mtr:textures/block/white.png");
+	private static final Identifier WHITE_TEXTURE = Identifier.parse("mtr:textures/block/white.png");
 	private static final int[] CHECK_DISTANCES = {0, 1, -1, 2, -2, 3, -3, 4, -4};
 
 	protected final boolean isSingleSided;
@@ -47,7 +47,7 @@ public abstract class RenderSignalBase<T extends BlockEntityMapper> extends Bloc
 	}
 
 	@Override
-	public final void render(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+	public final void render(T entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
 		final BlockGetter world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -95,11 +95,11 @@ public abstract class RenderSignalBase<T extends BlockEntityMapper> extends Bloc
 	}
 
 	// TODO make abstract later
-	protected void render(PoseStack matrices, MultiBufferSource vertexConsumers, VertexConsumer vertexConsumer, T entity, float tickDelta, Direction facing, int occupiedAspect, boolean isBackSide) {
+	protected void render(PoseStack matrices, RenderBufferSource vertexConsumers, VertexConsumer vertexConsumer, T entity, float tickDelta, Direction facing, int occupiedAspect, boolean isBackSide) {
 	}
 
 	// TODO temporary code
-	protected void render(PoseStack matrices, MultiBufferSource vertexConsumers, VertexConsumer vertexConsumer, T entity, float tickDelta, Direction facing, boolean isOccupied, boolean isBackSide) {
+	protected void render(PoseStack matrices, RenderBufferSource vertexConsumers, VertexConsumer vertexConsumer, T entity, float tickDelta, Direction facing, boolean isOccupied, boolean isBackSide) {
 	}
 	// TODO temporary code end
 

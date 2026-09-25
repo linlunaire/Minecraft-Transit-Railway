@@ -5,15 +5,13 @@ import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.ColorHandlerRegistry;
-import dev.architectury.registry.client.rendering.RenderTypeRegistry;
-import dev.architectury.registry.item.ItemPropertiesRegistry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.color.block.BlockColor;
+import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.entity.Entity;
@@ -27,10 +25,6 @@ import java.util.function.Function;
 
 public interface RegistryUtilitiesClient {
 
-	static void registerItemModelPredicate(String id, Item item, String tag) {
-		ItemPropertiesRegistry.register(item, ResourceLocation.parse(id), (itemStack, clientWorld, livingEntity, i) -> itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().contains(tag) ? 1 : 0);
-	}
-
 	static <T extends BlockEntityMapper> void registerTileEntityRenderer(BlockEntityType<T> type, Function<BlockEntityRenderDispatcher, BlockEntityRendererMapper<T>> factory) {
 		BlockEntityRendererRegistry.register(type, context -> factory.apply(null));
 	}
@@ -38,11 +32,7 @@ public interface RegistryUtilitiesClient {
 	static <T extends Entity> void registerEntityRenderer(EntityType<T> type, Function<EntityRendererProvider.Context, EntityRendererMapper<T>> factory) {
 	}
 
-	static void registerRenderType(RenderType renderType, Block block) {
-		RenderTypeRegistry.register(renderType, block);
-	}
-
-	static void registerBlockColors(BlockColor blockColor, Block block) {
+	static void registerBlockColors(BlockTintSource blockColor, Block block) {
 		ColorHandlerRegistry.registerBlockColors(blockColor, block);
 	}
 

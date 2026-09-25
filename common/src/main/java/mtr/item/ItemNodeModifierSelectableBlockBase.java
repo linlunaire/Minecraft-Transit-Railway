@@ -46,7 +46,7 @@ public abstract class ItemNodeModifierSelectableBlockBase extends ItemNodeModifi
 	public InteractionResult useOn(UseOnContext context) {
 		if (canSaveBlock) {
 			final Level world = context.getLevel();
-			if (!world.isClientSide) {
+			if (!world.isClientSide()) {
 				final Player player = context.getPlayer();
 				if (player != null && player.isShiftKeyDown()) {
 					final BlockState state = world.getBlockState(context.getClickedPos());
@@ -56,7 +56,7 @@ public abstract class ItemNodeModifierSelectableBlockBase extends ItemNodeModifi
 					} else {
 						newState = state;
 					}
-					player.displayClientMessage(Text.translatable("tooltip.mtr.selected_material", Text.translatable(newState.getBlock().getDescriptionId())), true);
+					mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("tooltip.mtr.selected_material", Text.translatable(newState.getBlock().getDescriptionId())), true);
 					final ItemStack itemStack = context.getItemInHand();
 					final CompoundTag compoundTag = ItemStackUtilities.getCustomData(itemStack);
 					compoundTag.putInt(TAG_BLOCK_ID, Block.getId(newState));
@@ -70,28 +70,28 @@ public abstract class ItemNodeModifierSelectableBlockBase extends ItemNodeModifi
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
 		if (height > 0) {
-			tooltip.add(Text.translatable("tooltip.mtr.rail_action_height", height).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
+			tooltip.accept(Text.translatable("tooltip.mtr.rail_action_height", height).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
 		}
-		tooltip.add(Text.translatable("tooltip.mtr.rail_action_width", width).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
+		tooltip.accept(Text.translatable("tooltip.mtr.rail_action_width", width).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
 
 		if (canSaveBlock) {
 			final BlockState state = getSavedState(stack);
 			final String[] textSplit = Text.translatable(state.isAir() ? "tooltip.mtr.shift_right_click_to_select_material" : "tooltip.mtr.shift_right_click_to_clear", Minecraft.getInstance().options.keyShift.getTranslatedKeyMessage(), Text.translatable(mtr.Blocks.RAIL_NODE.get().getDescriptionId())).getString().split("\\|");
 			for (String text : textSplit) {
-				tooltip.add(Text.literal(text).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY).applyFormat(ChatFormatting.ITALIC)));
+				tooltip.accept(Text.literal(text).setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY).applyFormat(ChatFormatting.ITALIC)));
 			}
-			tooltip.add(Text.translatable("tooltip.mtr.selected_material", Text.translatable(state.getBlock().getDescriptionId())).setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
+			tooltip.accept(Text.translatable("tooltip.mtr.selected_material", Text.translatable(state.getBlock().getDescriptionId())).setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
 		}
 
-		super.appendHoverText(stack, tooltipContext, tooltip, tooltipFlag);
+		super.appendHoverText(stack, tooltipContext, tooltipDisplay, tooltip, tooltipFlag);
 	}
 
 	@Override
 	protected final void onConnect(Level world, ItemStack stack, TransportMode transportMode, BlockState stateStart, BlockState stateEnd, BlockPos posStart, BlockPos posEnd, RailAngle facingStart, RailAngle facingEnd, Player player, RailwayData railwayData) {
 		if (player != null && !onConnect(player, stack, railwayData, posStart, posEnd, radius, height)) {
-			player.displayClientMessage(Text.translatable("gui.mtr.rail_not_found_action"), true);
+			mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.rail_not_found_action"), true);
 		}
 	}
 
@@ -102,7 +102,7 @@ public abstract class ItemNodeModifierSelectableBlockBase extends ItemNodeModifi
 	protected BlockState getSavedState(ItemStack stack) {
 		final CompoundTag tag = ItemStackUtilities.getCustomData(stack);
 		if (tag.contains(TAG_BLOCK_ID)) {
-			return Block.stateById(tag.getInt(TAG_BLOCK_ID));
+			return Block.stateById(mtr.mappings.CompoundTagMapper.getInt(tag, TAG_BLOCK_ID));
 		} else {
 			return Blocks.AIR.defaultBlockState();
 		}

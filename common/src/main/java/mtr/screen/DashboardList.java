@@ -7,12 +7,12 @@ import mtr.data.NameColorDataBase;
 import mtr.mappings.Text;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import java.util.*;
@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 public class DashboardList implements IGui {
 
-	private static ImageButton newImageButton(ResourceLocation texture, ImageButton.OnPress onPress) {
+	private static ImageButton newImageButton(Identifier texture, ImageButton.OnPress onPress) {
 		return new ImageButton(0, 0, 0, SQUARE_SIZE, new WidgetSprites(texture, texture), onPress);
 	}
 
@@ -76,21 +76,21 @@ public class DashboardList implements IGui {
 		this.getSearch = getSearch;
 		this.setSearch = setSearch;
 		textFieldSearch = new WidgetBetterTextField(Text.translatable("gui.mtr.search").getString());
-		buttonPrevPage = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_left.png"), button -> setPage(page - 1));
-		buttonNextPage = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_right.png"), button -> setPage(page + 1));
-		buttonFind = new WidgetSilentImageButton(0, 0, 0, SQUARE_SIZE, 0, 0, 20, ResourceLocation.parse("mtr:textures/gui/icon_find.png"), 20, 40, button -> onClick(onFind), playSound);
-		buttonDrawArea = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_draw_area.png"), button -> onClick(onDrawArea));
-		buttonEdit = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_edit.png"), button -> onClick(onEdit));
-		buttonUp = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_up.png"), button -> {
+		buttonPrevPage = newImageButton(Identifier.parse("mtr:textures/gui/icon_left.png"), button -> setPage(page - 1));
+		buttonNextPage = newImageButton(Identifier.parse("mtr:textures/gui/icon_right.png"), button -> setPage(page + 1));
+		buttonFind = new WidgetSilentImageButton(0, 0, 0, SQUARE_SIZE, 0, 0, 20, Identifier.parse("mtr:textures/gui/icon_find.png"), 20, 40, button -> onClick(onFind), playSound);
+		buttonDrawArea = newImageButton(Identifier.parse("mtr:textures/gui/icon_draw_area.png"), button -> onClick(onDrawArea));
+		buttonEdit = newImageButton(Identifier.parse("mtr:textures/gui/icon_edit.png"), button -> onClick(onEdit));
+		buttonUp = newImageButton(Identifier.parse("mtr:textures/gui/icon_up.png"), button -> {
 			onUp(getList);
 			onSort.run();
 		});
-		buttonDown = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_down.png"), button -> {
+		buttonDown = newImageButton(Identifier.parse("mtr:textures/gui/icon_down.png"), button -> {
 			onDown(getList);
 			onSort.run();
 		});
-		buttonAdd = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_add.png"), button -> onClick(onAdd));
-		buttonDelete = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_delete.png"), button -> onClick(onDelete));
+		buttonAdd = newImageButton(Identifier.parse("mtr:textures/gui/icon_add.png"), button -> onClick(onAdd));
+		buttonDelete = newImageButton(Identifier.parse("mtr:textures/gui/icon_delete.png"), button -> onClick(onDelete));
 	}
 
 	public void init(Consumer<AbstractWidget> addDrawableChild) {
@@ -218,8 +218,8 @@ public class DashboardList implements IGui {
 		this.hasDelete = hasPermission && hasDelete;
 	}
 
-	public void render(GuiGraphics guiGraphics, Font textRenderer) {
-		guiGraphics.drawCenteredString(textRenderer, pageText, x + SQUARE_SIZE * 2, y + TEXT_PADDING + TEXT_FIELD_PADDING / 2, ARGB_WHITE);
+	public void render(GuiGraphicsExtractor guiGraphics, Font textRenderer) {
+		guiGraphics.centeredText(textRenderer, pageText, x + SQUARE_SIZE * 2, y + TEXT_PADDING + TEXT_FIELD_PADDING / 2, ARGB_WHITE);
 		final int itemsToShow = itemsToShow();
 		final int firstItem = itemsToShow * page;
 		final int endItem = Math.min(firstItem + itemsToShow, dataFiltered.size());
@@ -234,13 +234,13 @@ public class DashboardList implements IGui {
 				final int textStart = TEXT_PADDING * 2 + TEXT_HEIGHT;
 				final int textWidth = textRenderer.width(drawString);
 				final int availableSpace = width - textStart;
-				guiGraphics.pose().pushPose();
-				guiGraphics.pose().translate(x + textStart, 0, 0);
+				guiGraphics.pose().pushMatrix();
+				guiGraphics.pose().translate(x + textStart, 0);
 				if (textWidth > availableSpace) {
-					guiGraphics.pose().scale((float) availableSpace / textWidth, 1, 1);
+					guiGraphics.pose().scale((float) availableSpace / textWidth, 1);
 				}
-				guiGraphics.drawString(textRenderer, drawString, 0, y + drawY, ARGB_WHITE);
-				guiGraphics.pose().popPose();
+				guiGraphics.text(textRenderer, drawString, 0, y + drawY, ARGB_WHITE);
+				guiGraphics.pose().popMatrix();
 		}
 	}
 
@@ -319,7 +319,7 @@ public class DashboardList implements IGui {
 		if (textFieldSearch.getValue().isEmpty()) {
 			final int index = hoverIndex + itemsToShow() * page;
 			final List<T> list = getList.get();
-			if (Screen.hasShiftDown()) {
+			if (net.minecraft.client.Minecraft.getInstance().hasShiftDown()) {
 				list.add(0, list.remove(index));
 			} else {
 				final T aboveItem = list.get(index - 1);
@@ -334,7 +334,7 @@ public class DashboardList implements IGui {
 		if (textFieldSearch.getValue().isEmpty()) {
 			final int index = hoverIndex + itemsToShow() * page;
 			final List<T> list = getList.get();
-			if (Screen.hasShiftDown()) {
+			if (net.minecraft.client.Minecraft.getInstance().hasShiftDown()) {
 				list.add(list.remove(index));
 			} else {
 				final T thisItem = list.get(index);

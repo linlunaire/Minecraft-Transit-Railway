@@ -8,20 +8,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.model.BoatModel;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.MinecartModel;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.vehicle.Boat;
-import net.minecraft.world.entity.vehicle.Minecart;
 import org.joml.Matrix4f;
 
 import java.io.File;
@@ -30,33 +25,15 @@ import java.util.List;
 
 public interface UtilitiesClient {
 
-	static void beginDrawingRectangle(BufferBuilder buffer) {
-		RenderSystem.setShader(GameRenderer::getPositionColorShader);
-	}
-
-	static void finishDrawingRectangle() {
-	}
-
-	static void beginDrawingTexture(ResourceLocation textureId) {
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderTexture(0, textureId);
-	}
-
-	static int drawInBatch(Font textRenderer, FormattedCharSequence formattedCharSequence, float x, float y, int color, boolean shadow, Matrix4f matrix4f, MultiBufferSource immediate, int overlay, int light) {
-		return textRenderer.drawInBatch(formattedCharSequence, x, y, color, shadow, matrix4f, immediate, Font.DisplayMode.NORMAL, overlay, light);
+	static int drawInBatch(Font textRenderer, FormattedCharSequence formattedCharSequence, float x, float y, int color, boolean shadow, Matrix4f matrix4f, RenderBufferSource immediate, int overlay, int light) {
+		immediate.drawText(formattedCharSequence, x, y, color, shadow, matrix4f, overlay, light);
+		return (int) (x + textRenderer.width(formattedCharSequence)) + (shadow ? 1 : 0);
 	}
 
 	static void setScreen(Minecraft client, ScreenMapper screen) {
-		client.setScreen(screen);
+		client.gui.setScreen(screen);
 	}
 
-	static EntityModel<Minecart> getMinecartModel() {
-		return new MinecartModel<>(MinecartModel.createBodyLayer().bakeRoot());
-	}
-
-	static EntityModel<Boat> getBoatModel() {
-		return new BoatModel(BoatModel.createBodyModel().bakeRoot());
-	}
 
 	static void setPacketCoordinates(Entity entity, double x, double y, double z) {
 		entity.syncPacketPositionCodec(x, y, z);
@@ -70,11 +47,11 @@ public interface UtilitiesClient {
 		return Minecraft.getInstance().options.renderDistance().get();
 	}
 
-	static List<Resource> getResources(ResourceManager resourceManager, ResourceLocation resourceLocation) throws IOException {
+	static List<Resource> getResources(ResourceManager resourceManager, Identifier resourceLocation) throws IOException {
 		return resourceManager.getResourceStack(resourceLocation);
 	}
 
-	static boolean hasResource(ResourceLocation resourceLocation) {
+	static boolean hasResource(Identifier resourceLocation) {
 		return Minecraft.getInstance().getResourceManager().getResource(resourceLocation).isPresent();
 	}
 

@@ -38,7 +38,7 @@ public abstract class BlockStationNameWallBase extends BlockStationNameBase {
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
 		if (direction.getOpposite() == IBlock.getStatePropertySafe(state, FACING).getOpposite() && !state.canSurvive(world, pos)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {

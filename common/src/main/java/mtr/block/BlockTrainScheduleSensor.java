@@ -62,7 +62,7 @@ public class BlockTrainScheduleSensor extends BlockTrainPoweredSensorBase {
 
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
-			seconds = compoundTag.getInt(KEY_SECONDS);
+			seconds = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_SECONDS);
 			super.readCompoundTag(compoundTag);
 		}
 
@@ -83,7 +83,7 @@ public class BlockTrainScheduleSensor extends BlockTrainPoweredSensorBase {
 		}
 
 		public static <T extends BlockEntityMapper> void tick(Level world, BlockPos pos, T blockEntity) {
-			if (world != null && !world.isClientSide) {
+			if (world != null && !world.isClientSide()) {
 				final BlockState state = world.getBlockState(pos);
 				final Block block = state.getBlock();
 				final boolean isActive = IBlock.getStatePropertySafe(state, POWERED) > 1 && world.getBlockTicks().hasScheduledTick(pos, block);

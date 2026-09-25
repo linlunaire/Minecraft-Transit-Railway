@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.client.IDrawing;
@@ -61,16 +61,16 @@ public class TicketMachineScreen extends ScreenMapper implements IGui, IPacket {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
+	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+		final var matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
 			final Component emeraldsText = Text.translatable("gui.mtr.emeralds", getEmeraldCount());
-			guiGraphics.drawString(font, balanceText, TEXT_PADDING, TEXT_PADDING, ARGB_WHITE);
-			guiGraphics.drawString(font, emeraldsText, width - TEXT_PADDING - font.width(emeraldsText), TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.text(font, balanceText, TEXT_PADDING, TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.text(font, emeraldsText, width - TEXT_PADDING - font.width(emeraldsText), TEXT_PADDING, ARGB_WHITE);
 
 			for (int i = 0; i < BUTTON_COUNT; i++) {
-				guiGraphics.drawString(font, Text.translatable("gui.mtr.add_balance_for_emeralds", getAddAmount(i), (int) Math.pow(2, i)), TEXT_PADDING, (i + 1) * SQUARE_SIZE + TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.text(font, Text.translatable("gui.mtr.add_balance_for_emeralds", getAddAmount(i), (int) Math.pow(2, i)), TEXT_PADDING, (i + 1) * SQUARE_SIZE + TEXT_PADDING, ARGB_WHITE);
 			}
 
 			super.render(guiGraphics, mouseX, mouseY, delta);

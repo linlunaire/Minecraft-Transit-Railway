@@ -15,7 +15,7 @@ import mtr.screen.ResourcePackCreatorScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -147,7 +147,7 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 	}
 
 	@Override
-	protected void renderTextDisplays(PoseStack matrices, MultiBufferSource vertexConsumers, Font font, MultiBufferSource.BufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
+	protected void renderTextDisplays(PoseStack matrices, RenderBufferSource vertexConsumers, Font font, RenderBufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
 		final int[] scrollIndex = {0};
 
 		iterateParts(car, totalCars, partObject -> {
@@ -174,7 +174,7 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 				final ResourcePackCreatorProperties.DisplayType displayType = EnumHelper.valueOf(ResourcePackCreatorProperties.DisplayType.DESTINATION, displayObject.get(KEY_PROPERTIES_DISPLAY_TYPE).getAsString());
 
 				final String tempText1;
-				final Screen screen = Minecraft.getInstance().screen;
+				final Screen screen = Minecraft.getInstance().gui.screen();
 
 				if (screen instanceof ResourcePackCreatorScreen) {
 					final String testText = ((ResourcePackCreatorScreen) screen).getTestText();

@@ -62,7 +62,7 @@ public abstract class BlockRouteSignBase extends BlockDirectionalDoubleBlockBase
 
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
-			platformId = compoundTag.getLong(KEY_PLATFORM_ID);
+			platformId = mtr.mappings.CompoundTagMapper.getLong(compoundTag, KEY_PLATFORM_ID);
 		}
 
 		@Override

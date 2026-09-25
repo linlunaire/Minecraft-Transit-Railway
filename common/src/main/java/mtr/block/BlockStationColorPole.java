@@ -16,7 +16,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
 
-public class BlockStationColorPole extends BlockMapper {
+public class BlockStationColorPole extends BlockMapper implements mtr.mappings.BlockTooltip {
 
 	private final boolean showTooltip;
 

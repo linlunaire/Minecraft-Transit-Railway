@@ -1,6 +1,6 @@
 package mtr.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.block.BlockTrainAnnouncer;
 import mtr.data.DataConverter;
@@ -12,9 +12,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Tuple;
+import mtr.mappings.Tuple;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.stream.Collectors;
@@ -33,7 +33,6 @@ public class TrainAnnouncerScreen extends TrainSensorScreenBase {
 				new Tuple<>(new WidgetBetterTextField("", MAX_MESSAGE_LENGTH), Text.translatable("gui.mtr.sound_file"))
 		);
 
-		minecraft = Minecraft.getInstance();
 		final ClientLevel world = minecraft.level;
 		if (world != null) {
 			final BlockEntity entity = world.getBlockEntity(pos);
@@ -52,7 +51,7 @@ public class TrainAnnouncerScreen extends TrainSensorScreenBase {
 		availableSoundsList = new DashboardList((data, color) -> {
 			final String soundIdString = data.name;
 			if (!soundIdString.isEmpty() && world != null && minecraft.player != null) {
-				world.playLocalSound(pos, RegistryUtilities.createSoundEvent(ResourceLocation.parse(soundIdString)), SoundSource.BLOCKS, 1000000, 1, false);
+				world.playLocalSound(pos, RegistryUtilities.createSoundEvent(Identifier.parse(soundIdString)), SoundSource.BLOCKS, 1000000, 1, false);
 			}
 		}, null, null, null, (data, color) -> {
 			textFields[1].setValue(data.name);
@@ -82,7 +81,9 @@ public class TrainAnnouncerScreen extends TrainSensorScreenBase {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+	public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent mc26Event, boolean doubleClick) {
+		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
+		final int button = mc26Event.button();
 		if (button == 0) {
 			if (RailwayData.isBetween(mouseX, UtilitiesClient.getWidgetX(textFields[1]), UtilitiesClient.getWidgetX(textFields[1]) + textFields[1].getWidth()) && RailwayData.isBetween(mouseY, UtilitiesClient.getWidgetY(textFields[1]), UtilitiesClient.getWidgetY(textFields[1]) + textFields[1].getHeight())) {
 				setListVisibility(true);
@@ -90,7 +91,7 @@ public class TrainAnnouncerScreen extends TrainSensorScreenBase {
 				setListVisibility(false);
 			}
 		}
-		return super.mouseClicked(mouseX, mouseY, button);
+		return super.mouseClicked(mc26Event, doubleClick);
 	}
 
 	@Override
@@ -105,7 +106,7 @@ public class TrainAnnouncerScreen extends TrainSensorScreenBase {
 	}
 
 	@Override
-	protected void renderAdditional(GuiGraphics guiGraphics) {
+	protected void renderAdditional(GuiGraphicsExtractor guiGraphics) {
 		guiGraphics.fill(availableSoundsList.x, availableSoundsList.y, availableSoundsList.x + availableSoundsList.width, availableSoundsList.y + availableSoundsList.height, ARGB_BACKGROUND);
 		availableSoundsList.render(guiGraphics, font);
 	}

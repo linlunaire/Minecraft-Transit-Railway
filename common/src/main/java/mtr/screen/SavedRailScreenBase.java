@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.client.IDrawing;
@@ -13,7 +13,7 @@ import mtr.mappings.UtilitiesClient;
 import mtr.packet.IPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public abstract class SavedRailScreenBase<T extends SavedRailBase> extends ScreenMapper implements IGui, IPacket {
 
@@ -38,7 +38,6 @@ public abstract class SavedRailScreenBase<T extends SavedRailBase> extends Scree
 		this.dashboardScreen = dashboardScreen;
 		savedRailNumberText = Text.translatable(getNumberStringKey());
 
-		font = Minecraft.getInstance().font;
 		textFieldSavedRailNumber = new WidgetBetterTextField("1", MAX_SAVED_RAIL_NUMBER_LENGTH);
 
 		int additionalTextWidths = 0;
@@ -91,14 +90,14 @@ public abstract class SavedRailScreenBase<T extends SavedRailBase> extends Scree
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
+	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+		final var matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
 			if (shouldRenderExtra()) {
 				renderExtra(guiGraphics, mouseX, mouseY, delta);
 			} else {
-				guiGraphics.drawString(font, savedRailNumberText, SQUARE_SIZE, (int) (SQUARE_SIZE + TEXT_FIELD_PADDING / 2F + TEXT_PADDING), ARGB_WHITE);
+				guiGraphics.text(font, savedRailNumberText, SQUARE_SIZE, (int) (SQUARE_SIZE + TEXT_FIELD_PADDING / 2F + TEXT_PADDING), ARGB_WHITE);
 			}
 			super.render(guiGraphics, mouseX, mouseY, delta);
 		} catch (Exception e) {
@@ -123,11 +122,11 @@ public abstract class SavedRailScreenBase<T extends SavedRailBase> extends Scree
 		return false;
 	}
 
-	protected void renderExtra(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
+	protected void renderExtra(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+		final var matrices = guiGraphics.pose();
 	}
 
 	protected abstract String getNumberStringKey();
 
-	protected abstract ResourceLocation getPacketIdentifier();
+	protected abstract Identifier getPacketIdentifier();
 }

@@ -23,7 +23,7 @@ public abstract class BlockDirectionalDoubleBlockBase extends BlockDirectionalMa
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
 		final boolean isTop = IBlock.getStatePropertySafe(state, HALF) == DoubleBlockHalf.UPPER;
 		if ((isTop && direction == Direction.DOWN || !isTop && direction == Direction.UP) && !newState.is(this)) {
 			return Blocks.AIR.defaultBlockState();
@@ -34,7 +34,7 @@ public abstract class BlockDirectionalDoubleBlockBase extends BlockDirectionalMa
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity livingEntity, ItemStack itemStack) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			final Direction facing = IBlock.getStatePropertySafe(state, FACING);
 			world.setBlock(pos.above(), getAdditionalState(pos, facing).setValue(FACING, facing).setValue(HALF, DoubleBlockHalf.UPPER), 3);
 			world.updateNeighborsAt(pos, Blocks.AIR);

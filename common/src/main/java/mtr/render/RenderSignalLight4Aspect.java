@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import mtr.client.IDrawing;
 import mtr.mappings.BlockEntityMapper;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.Direction;
 
@@ -15,7 +15,7 @@ public class RenderSignalLight4Aspect<T extends BlockEntityMapper> extends Rende
 	}
 
 	@Override
-	protected void render(PoseStack matrices, MultiBufferSource vertexConsumers, VertexConsumer vertexConsumer, T entity, float tickDelta, Direction facing, int occupiedAspect, boolean isBackSide) {
+	protected void render(PoseStack matrices, RenderBufferSource vertexConsumers, VertexConsumer vertexConsumer, T entity, float tickDelta, Direction facing, int occupiedAspect, boolean isBackSide) {
 		final float y;
 		final int color;
 		switch (occupiedAspect) {

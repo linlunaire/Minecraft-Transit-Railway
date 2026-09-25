@@ -71,9 +71,9 @@ public abstract class EditNameColorScreenBase<T extends NameColorDataBase> exten
 		addDrawableChild(colorSelector);
 	}
 
-	protected void renderTextFields(net.minecraft.client.gui.GuiGraphics guiGraphics) {
-		guiGraphics.drawCenteredString(font, nameText, (nameStart + colorStart) / 2, TEXT_PADDING, ARGB_WHITE);
-		guiGraphics.drawCenteredString(font, colorText, (colorStart + colorEnd) / 2, TEXT_PADDING, ARGB_WHITE);
+	protected void renderTextFields(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics) {
+		guiGraphics.centeredText(font, nameText, (nameStart + colorStart) / 2, TEXT_PADDING, ARGB_WHITE);
+		guiGraphics.centeredText(font, colorText, (colorStart + colorEnd) / 2, TEXT_PADDING, ARGB_WHITE);
 	}
 
 	protected void saveData() {

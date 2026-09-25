@@ -4,8 +4,8 @@
 
 本次范围是 Minecraft 26.2 / NeoForge、MTR + ANTE，目标服务器为独占
 8 个物理核心、64 GB 内存、Windows Server 2022。当前
-[26.2 构建配置](../../versions/26.2/build.gradle)使用 Java 25 toolchain 和
-`release = 25`；[版本配置](../../versions/26.2/gradle.properties)指定 26.2。
+[26.2 构建配置](../../build.gradle)使用 Java 25 toolchain 和
+`release = 25`；[版本配置](../../gradle.properties)指定 26.2。
 这些是源码和构建配置核验，不是 80 人运行测试。
 
 ### Kotlin 能提供什么

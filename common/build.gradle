@@ -1,47 +1,223 @@
-dependencies {
-	modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version[1]}"
-	modApi "${rootProject.architectury_id}:architectury:${rootProject.architectury_data[0].split("\\+")[0]}"
-}
-
 architectury {
-	common("fabric", "neoforge")
+	common('fabric', 'neoforge')
 }
 
-// These are standalone maintenance tools, not mod code. Architectury Transformer's
-// development runtime cannot process classes in the default package.
-sourceSets {
-	main {
-		java {
-			exclude "FileGenerator.java", "ModUpload.java", "UpdateSolder.java"
-		}
-	}
+dependencies {
+	implementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+	api "dev.architectury:architectury:${rootProject.architectury_version}"
 }
 
-tasks.register("moveCommonBuilds") {
-	doLast {
-		delete fileTree("../build/libs").matching {
-			include "MTR-common-${rootProject.minecraft_version}-*.jar"
-		}
-		delete fileTree("../build/latest").matching {
-			include "MTR-common-${rootProject.minecraft_version}-*.jar"
-		}
-		if (rootProject.variation == "server") {
-			copy {
-				from "build/devlibs"
-				include "common-${project.version}-dev.jar"
-				into "../build/libs"
-				rename "(.+)", "MTR-\$1"
-			}
-			copy {
-				from "build/devlibs"
-				include "common-${project.version}-dev.jar"
-				into "../build/latest"
-				rename { fileName -> "MTR-${fileName.replace(rootProject.mod_version, "latest")}" }
-			}
-		}
-	}
+// Independent compatibility checks exercise actual 26.2 classes without a game launch.
+def persistenceClasses = layout.buildDirectory.dir('classes/persistenceCompatibility')
+def compilePersistence = tasks.register('compilePersistenceCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/PersistentStateMapper.java',
+		'src/main/java/mtr/mappings/BlockEntityMapper.java',
+		'src/main/java/mtr/mappings/CompoundTagMapper.java',
+		'../tests/PersistenceCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = persistenceClasses
+}
+tasks.register('checkPersistenceCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks 26.2 persistence compatibility against actual game classes.'
+	dependsOn compilePersistence
+	// These checks bootstrap vanilla classes, not a Fabric/NeoForge game launch.
+	classpath = files(persistenceClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.PersistenceCompatibilityCheck'
 }
 
-tasks.named("build") {
-	finalizedBy tasks.named("moveCommonBuilds")
+def cargoClasses = layout.buildDirectory.dir('classes/cargoCompatibility')
+def compileCargo = tasks.register('compileCargoCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/TrainCargoMapper.java', 'src/main/java/mtr/mappings/SaveFileMapper.java', '../tests/CargoCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = cargoClasses
 }
+tasks.register('checkCargoCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks registry-aware 26.2 cargo and legacy NBT envelopes.'
+	dependsOn compileCargo
+	classpath = files(cargoClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.CargoCompatibilityCheck'
+}
+
+def registrationClasses = layout.buildDirectory.dir('classes/registrationCompatibility')
+def compileRegistration = tasks.register('compileRegistrationCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/RegistryObject.java', 'src/main/java/mtr/mappings/RegistrationContext.java', '../tests/RegistrationCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = registrationClasses
+}
+tasks.register('checkRegistrationCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks legacy registry identifiers and construction context against 26.2.'
+	dependsOn compileRegistration
+	classpath = files(registrationClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.RegistrationCompatibilityCheck'
+	args rootProject.projectDir.absolutePath
+}
+
+def entityClasses = layout.buildDirectory.dir('classes/entityCompatibility')
+def compileEntity = tasks.register('compileEntityCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/EntityPositionInterpolator.java', '../tests/EntityCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = entityClasses
+}
+tasks.register('checkEntityCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks tick-based entity interpolation against the legacy MTR formula.'
+	dependsOn compileEntity
+	classpath = files(entityClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.EntityCompatibilityCheck'
+}
+
+def modelClasses = layout.buildDirectory.dir('classes/modelCompatibility')
+def compileModel = tasks.register('compileModelCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/EntityModelMapper.java', 'src/main/java/mtr/mappings/ModelDataWrapper.java',
+		'src/main/java/mtr/mappings/NativeImageMapper.java', '../tests/ModelCompatibilityCheck.java',
+		'src/main/java/mtr/mappings/ModelMapper.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = modelClasses
+}
+tasks.register('checkModelCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks baked 26.2 model geometry and legacy vertex/color attributes.'
+	dependsOn compileModel
+	classpath = files(modelClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.ModelCompatibilityCheck'
+}
+
+def renderClasses = layout.buildDirectory.dir('classes/renderCompatibility')
+def compileRender = tasks.register('compileRenderCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/RenderSnapshot.java', 'src/main/java/mtr/mappings/CapturedVertices.java',
+		'src/main/java/mtr/mappings/RenderBufferSource.java', 'src/main/java/mtr/mappings/BlockEntityRendererMapper.java',
+		'src/main/java/mtr/mappings/EntityRendererMapper.java', 'src/main/java/mtr/mappings/BlockEntityMapper.java',
+		'src/main/java/mtr/mappings/RenderLayerMapper.java', 'src/main/java/mtr/mappings/VanillaVehicleModels.java',
+		'../tests/RenderCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = renderClasses
+}
+tasks.register('checkRenderCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks immutable geometry/text extraction and actual 26.2 feature submission.'
+	dependsOn compileRender
+	classpath = files(renderClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.RenderCompatibilityCheck'
+}
+
+def clientModelClasses = layout.buildDirectory.dir('classes/clientModelCompatibility')
+def compileClientModels = tasks.register('compileClientModelCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/TerrainRenderLayers.java', 'src/main/java/mtr/mappings/SelectedItemModelProperty.java',
+		'src/main/java/mtr/mixin/TerrainModelsMixin.java', 'src/main/java/mtr/mixin/ItemModelPropertiesMixin.java', '../tests/ClientModelCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = clientModelClasses
+}
+tasks.register('checkClientModelCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks terrain material overrides and native conditional item models against 26.2.'
+	dependsOn compileClientModels, tasks.named('processResources')
+	classpath = files(clientModelClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.ClientModelCompatibilityCheck'
+	args rootProject.projectDir.absolutePath, layout.buildDirectory.dir('resources/main').get().asFile.absolutePath
+}
+
+def compatibilityChecks = tasks.register('checkCompatibility') {
+	group = 'verification'
+	description = 'Runs standalone 26.2 compatibility checks, including persistence, rendering, resources, networking, screens and save queues.'
+	dependsOn 'checkRegistrationCompatibility', 'checkPersistenceCompatibility', 'checkCargoCompatibility', 'checkEntityCompatibility', 'checkModelCompatibility', 'checkRenderCompatibility', 'checkClientModelCompatibility', 'checkDataResourceCompatibility'
+}
+tasks.named('check') { dependsOn compatibilityChecks }
+
+def dataResourceClasses = layout.buildDirectory.dir('classes/dataResourceCompatibility')
+def compileDataResources = tasks.register('compileDataResourceCompatibility', JavaCompile) {
+	source '../tests/DataResourceCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = dataResourceClasses
+}
+tasks.register('checkDataResourceCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks native data-resource reference graphs and vanilla schemas (not MTR registry binding).'
+	dependsOn compileDataResources, tasks.named('processResources')
+	classpath = files(dataResourceClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.DataResourceCompatibilityCheck'
+	args rootProject.projectDir.absolutePath, layout.buildDirectory.dir('resources/main').get().asFile.absolutePath
+}
+
+// This integration check also inspects both compiled loaders.
+def loaderHookClasses = layout.buildDirectory.dir('classes/loaderHookCompatibility')
+def compileLoaderHooks = tasks.register('compileLoaderHookCompatibility', JavaCompile) {
+	source '../tests/LoaderHookCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = loaderHookClasses
+}
+tasks.register('checkLoaderHookCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks loader-configured Mixin targets and callback descriptors against actual 26.2 bytecode (not runtime weaving).'
+	dependsOn compileLoaderHooks, ':fabric:compileJava', ':neoforge:compileJava'
+	classpath = files(loaderHookClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.LoaderHookCompatibilityCheck'
+	args rootProject.projectDir.absolutePath
+}
+tasks.named('check') { dependsOn 'checkLoaderHookCompatibility' }
+
+def assetReferenceClasses = layout.buildDirectory.dir('classes/assetReferenceCompatibility')
+def compileAssetReferences = tasks.register('compileAssetReferenceCompatibility', JavaCompile) {
+	source '../tests/AssetReferenceCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = assetReferenceClasses
+}
+tasks.register('checkAssetReferenceCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks registered item/blockstate model and texture reference graphs against actual 26.2 resources.'
+	dependsOn compileAssetReferences, tasks.named('processResources')
+	classpath = files(assetReferenceClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.AssetReferenceCompatibilityCheck'
+	args rootProject.projectDir.absolutePath, layout.buildDirectory.dir('resources/main').get().asFile.absolutePath
+}
+compatibilityChecks.configure { dependsOn 'checkAssetReferenceCompatibility' }
+
+def networkClasses = layout.buildDirectory.dir('classes/networkCompatibility')
+def networkGroovy = configurations.detachedConfiguration(dependencies.localGroovy())
+def compileNetwork = tasks.register('compileNetworkCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/NetworkUtilities.java', '../tests/NetworkCompatibilityCheck.java', '../tests/NetworkTestAdaptor.java'
+	classpath = configurations.compileClasspath + networkGroovy
+	destinationDirectory = networkClasses
+}
+tasks.register('checkNetworkCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks MTR payload registration and actual Architectury encoding, without launching a loader.'
+	dependsOn compileNetwork
+	classpath = files(networkClasses) + configurations.compileClasspath + networkGroovy
+	mainClass = 'mtr.mappings.NetworkCompatibilityCheck'
+	args rootProject.projectDir.absolutePath
+}
+compatibilityChecks.configure { dependsOn 'checkNetworkCompatibility' }
+
+def screenClasses = layout.buildDirectory.dir('classes/screenCompatibility')
+def compileScreens = tasks.register('compileScreenCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/ScreenMapper.java', '../tests/ScreenCompatibilityCheck.java'
+	classpath = configurations.compileClasspath
+	destinationDirectory = screenClasses
+}
+tasks.register('checkScreenCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks actual 26.2 Screen lifecycle, background ownership and one blur per frame without a window.'
+	dependsOn compileScreens
+	classpath = files(screenClasses) + configurations.compileClasspath
+	mainClass = 'mtr.mappings.ScreenCompatibilityCheck'
+}
+compatibilityChecks.configure { dependsOn 'checkScreenCompatibility' }
+
+def saveQueueClasses = layout.buildDirectory.dir('classes/saveQueueCompatibility')
+def compileSaveQueue = tasks.register('compileSaveQueueCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/SaveQueueCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = saveQueueClasses
+}
+tasks.register('checkSaveQueueCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks save queue ordering, retained files and linear queue bookkeeping against the compiled 26.2 module.'
+	dependsOn compileSaveQueue
+	classpath = files(saveQueueClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.SaveQueueCompatibilityCheck'
+}
+compatibilityChecks.configure { dependsOn 'checkSaveQueueCompatibility' }

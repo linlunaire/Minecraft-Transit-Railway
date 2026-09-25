@@ -6,7 +6,7 @@ import mtr.block.IBlock;
 import mtr.client.ClientData;
 import mtr.client.IDrawing;
 import mtr.data.IGui;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,7 +24,7 @@ public class RenderStationNameTiled<T extends BlockStationNameBase.TileEntitySta
 	}
 
 	@Override
-	protected void drawStationName(BlockGetter world, BlockPos pos, BlockState state, Direction facing, StoredMatrixTransformations storedMatrixTransformations, MultiBufferSource vertexConsumers, String stationName, int stationColor, int color, int light) {
+	protected void drawStationName(BlockGetter world, BlockPos pos, BlockState state, Direction facing, StoredMatrixTransformations storedMatrixTransformations, RenderBufferSource vertexConsumers, String stationName, int stationColor, int color, int light) {
 		final int lengthLeft = getLength(world, pos, false);
 		final int lengthRight = getLength(world, pos, true);
 

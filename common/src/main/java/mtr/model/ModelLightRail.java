@@ -10,7 +10,7 @@ import mtr.mappings.ModelMapper;
 import mtr.mappings.UtilitiesClient;
 import mtr.render.MoreRenderLayers;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 
 import java.util.List;
 
@@ -1003,7 +1003,7 @@ public class ModelLightRail extends ModelSimpleTrainBase<ModelLightRail> {
 	}
 
 	@Override
-	protected void renderTextDisplays(PoseStack matrices, MultiBufferSource vertexConsumers, Font font, MultiBufferSource.BufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
+	protected void renderTextDisplays(PoseStack matrices, RenderBufferSource vertexConsumers, Font font, RenderBufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
 		final String routeNumber = thisRoute == null ? "" : thisRoute.lightRailRouteNumber;
 		final float frontOffset = phase == 3 || phase == 5 || phase == 7 ? 2.75F : phase == 4 || phase == 6 ? 3.02F : 2.87F;
 		final int color = phase == 3 || phase == 7 ? 0xFFA4FE07 : 0xFFFF9900;

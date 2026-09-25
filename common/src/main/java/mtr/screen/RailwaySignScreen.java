@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.block.BlockRailwaySign;
@@ -21,7 +21,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 public class RailwaySignScreen extends ScreenMapper implements IGui {
 
-	private static ImageButton newImageButton(ResourceLocation texture, ImageButton.OnPress onPress) {
+	private static ImageButton newImageButton(Identifier texture, ImageButton.OnPress onPress) {
 		return new ImageButton(0, 0, 0, SQUARE_SIZE, new WidgetSprites(texture, texture), onPress);
 	}
 
@@ -135,8 +135,8 @@ public class RailwaySignScreen extends ScreenMapper implements IGui {
 		}
 
 		buttonClear = UtilitiesClient.newButton(Text.translatable("gui.mtr.reset_sign"), button -> setNewSignId(null));
-		buttonPrevPage = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_left.png"), button -> setPage(page - 1));
-		buttonNextPage = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_right.png"), button -> setPage(page + 1));
+		buttonPrevPage = newImageButton(Identifier.parse("mtr:textures/gui/icon_left.png"), button -> setPage(page - 1));
+		buttonNextPage = newImageButton(Identifier.parse("mtr:textures/gui/icon_right.png"), button -> setPage(page + 1));
 	}
 
 	@Override
@@ -180,8 +180,8 @@ public class RailwaySignScreen extends ScreenMapper implements IGui {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
+	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+		final var matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
 			super.render(guiGraphics, mouseX, mouseY, delta);
@@ -191,9 +191,8 @@ public class RailwaySignScreen extends ScreenMapper implements IGui {
 
 			for (int i = 0; i < signIds.length; i++) {
 				if (signIds[i] != null) {
-					RenderRailwaySign.drawSign(matrices, null, null, font, signPos, signIds[i], (width - SIGN_SIZE * length) / 2F + i * SIGN_SIZE, 0, SIGN_SIZE, RenderRailwaySign.getMaxWidth(signIds, i, false), RenderRailwaySign.getMaxWidth(signIds, i, true), selectedIds, Direction.UP, 0, (textureId, x, y, size, flipTexture) -> {
-						UtilitiesClient.beginDrawingTexture(textureId);
-						guiGraphics.blit(textureId, (int) x, (int) y, 0, 0, (int) size, (int) size, (int) size, (int) size);
+					mtr.mappings.GuiSignDrawing.drawSign(guiGraphics, font, signPos, signIds[i], (width - SIGN_SIZE * length) / 2F + i * SIGN_SIZE, 0, SIGN_SIZE, RenderRailwaySign.getMaxWidth(signIds, i, false), RenderRailwaySign.getMaxWidth(signIds, i, true), (textureId, x, y, size, flipTexture) -> {
+						guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, textureId, (int) x, (int) y, 0, 0, (int) size, (int) size, (int) size, (int) size);
 					});
 				}
 			}
@@ -207,12 +206,11 @@ public class RailwaySignScreen extends ScreenMapper implements IGui {
 					final CustomResources.CustomSign sign = RenderRailwaySign.getSign(signId);
 					if (sign != null) {
 						final boolean moveRight = sign.hasCustomText() && sign.flipCustomText;
-						UtilitiesClient.beginDrawingTexture(sign.textureId);
-						RenderRailwaySign.drawSign(matrices, null, null, font, signPos, signId, (isBig ? xOffsetBig : xOffsetSmall) + x + (moveRight ? SIGN_BUTTON_SIZE * 2 : 0), BUTTON_Y_START + y, SIGN_BUTTON_SIZE, 2, 2, selectedIds, Direction.UP, 0, (textureId, x1, y1, size, flipTexture) -> guiGraphics.blit(textureId, (int) x1, (int) y1, 0, 0, (int) size, (int) size, (int) size, (int) size));
+						mtr.mappings.GuiSignDrawing.drawSign(guiGraphics, font, signPos, signId, (isBig ? xOffsetBig : xOffsetSmall) + x + (moveRight ? SIGN_BUTTON_SIZE * 2 : 0), BUTTON_Y_START + y, SIGN_BUTTON_SIZE, 2, 2, (textureId, x1, y1, size, flipTexture) -> guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, textureId, (int) x1, (int) y1, 0, 0, (int) size, (int) size, (int) size, (int) size));
 					}
 				}, false);
 
-				guiGraphics.drawCenteredString( font, String.format("%s/%s", page + 1, totalPages), (width - PANEL_WIDTH - SQUARE_SIZE * 4) / 2 + PANEL_WIDTH + SQUARE_SIZE * 2, height - SQUARE_SIZE * 2 + TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.centeredText( font, String.format("%s/%s", page + 1, totalPages), (width - PANEL_WIDTH - SQUARE_SIZE * 4) / 2 + PANEL_WIDTH + SQUARE_SIZE * 2, height - SQUARE_SIZE * 2 + TEXT_PADDING, ARGB_WHITE);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

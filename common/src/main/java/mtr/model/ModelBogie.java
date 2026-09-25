@@ -5,15 +5,15 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import mtr.render.MoreRenderLayers;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import mtr.mappings.EntityModelMapper;
+import mtr.mappings.RenderBufferSource;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
-public class ModelBogie extends EntityModel<Entity> {
+public class ModelBogie extends EntityModelMapper<Entity> {
 
 	private final ModelMapper bogie;
-	private final ResourceLocation texture = ResourceLocation.parse("mtr:textures/entity/bogie_1.png");
+	private final Identifier texture = Identifier.parse("mtr:textures/entity/bogie_1.png");
 
 	public ModelBogie() {
 		final int textureWidth = 186;
@@ -32,7 +32,7 @@ public class ModelBogie extends EntityModel<Entity> {
 		bogie.setModelPart();
 	}
 
-	public void render(PoseStack matrices, MultiBufferSource vertexConsumers, int light, int position) {
+	public void render(PoseStack matrices, RenderBufferSource vertexConsumers, int light, int position) {
 		ModelTrainBase.renderMirror(bogie, matrices, vertexConsumers.getBuffer(MoreRenderLayers.getExterior(texture)), light, position);
 	}
 

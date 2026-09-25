@@ -9,7 +9,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -35,7 +35,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.*;
 
-public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBlockMapper, IBlock {
+public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBlockMapper, IBlock, mtr.mappings.BlockTooltip {
 
 	public final int length;
 	public final boolean isOdd;
@@ -43,7 +43,7 @@ public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBl
 	public static final float SMALL_SIGN_PERCENTAGE = 0.75F;
 
 	public BlockRailwaySign(int length, boolean isOdd) {
-		super(Properties.of().mapColor(MapColor.COLOR_GRAY).requiresCorrectToolForDrops().strength(2).lightLevel(state -> 15));
+		super(Properties.of().overrideDescription("block.mtr.railway_sign").mapColor(MapColor.COLOR_GRAY).requiresCorrectToolForDrops().strength(2).lightLevel(state -> 15));
 		this.length = length;
 		this.isOdd = isOdd;
 	}
@@ -63,7 +63,7 @@ public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBl
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
 		final Direction facing = IBlock.getStatePropertySafe(state, FACING);
 		final boolean isNext = direction == facing.getClockWise() || state.is(mtr.Blocks.RAILWAY_SIGN_MIDDLE.get()) && direction == facing.getCounterClockWise();
 		if (isNext && !(newState.getBlock() instanceof BlockRailwaySign)) {
@@ -93,7 +93,7 @@ public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBl
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			final Direction facing = IBlock.getStatePropertySafe(state, FACING);
 			for (int i = 1; i <= getMiddleLength(); i++) {
 				world.setBlock(pos.relative(facing.getClockWise(), i), mtr.Blocks.RAILWAY_SIGN_MIDDLE.get().defaultBlockState().setValue(FACING, facing), 3);
@@ -117,10 +117,6 @@ public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBl
 		}
 	}
 
-	@Override
-	public String getDescriptionId() {
-		return "block.mtr.railway_sign";
-	}
 
 	@Override
 	public void appendHoverText(ItemStack itemStack, net.minecraft.world.item.Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {
@@ -192,16 +188,16 @@ public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBl
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
 			selectedIds.clear();
-			Arrays.stream(compoundTag.getLongArray(KEY_SELECTED_IDS)).forEach(selectedIds::add);
+			Arrays.stream(mtr.mappings.CompoundTagMapper.getLongArray(compoundTag, KEY_SELECTED_IDS)).forEach(selectedIds::add);
 			for (int i = 0; i < signIds.length; i++) {
-				final String signId = compoundTag.getString(KEY_SIGN_LENGTH + i);
+				final String signId = mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_SIGN_LENGTH + i);
 				signIds[i] = signId.isEmpty() ? null : signId;
 			}
 		}
 
 		@Override
 		public void writeCompoundTag(CompoundTag compoundTag) {
-			compoundTag.putLongArray(KEY_SELECTED_IDS, new ArrayList<>(selectedIds));
+			mtr.mappings.CompoundTagMapper.putLongArray(compoundTag, KEY_SELECTED_IDS, new ArrayList<>(selectedIds));
 			for (int i = 0; i < signIds.length; i++) {
 				compoundTag.putString(KEY_SIGN_LENGTH + i, signIds[i] == null ? "" : signIds[i]);
 			}
@@ -381,7 +377,7 @@ public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBl
 		LOGO_TEXT("logo", false, false, true),
 		LOGO_TEXT_FLIPPED("logo", false, true, true);
 
-		public final ResourceLocation textureId;
+		public final Identifier textureId;
 		public final String customText;
 		public final boolean small;
 		public final boolean flipTexture;
@@ -389,7 +385,7 @@ public class BlockRailwaySign extends BlockDirectionalMapper implements EntityBl
 		public final int backgroundColor;
 
 		SignType(String texture, String translation, boolean small, boolean flipTexture, boolean flipCustomText, boolean hasCustomText, int backgroundColor) {
-			textureId = ResourceLocation.parse("mtr:textures/block/sign/" + texture + ".png");
+			textureId = Identifier.parse("mtr:textures/block/sign/" + texture + ".png");
 			customText = hasCustomText ? Text.translatable("sign.mtr." + translation + "_cjk").append("|").append(Text.translatable("sign.mtr." + translation)).getString() : "";
 			this.small = small;
 			this.flipTexture = flipTexture;

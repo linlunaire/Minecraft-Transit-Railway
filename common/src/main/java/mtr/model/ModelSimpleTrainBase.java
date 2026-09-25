@@ -7,7 +7,7 @@ import mtr.client.IDrawing;
 import mtr.data.IGui;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 
 public abstract class ModelSimpleTrainBase<T> extends ModelTrainBase {
 
@@ -41,7 +41,7 @@ public abstract class ModelSimpleTrainBase<T> extends ModelTrainBase {
 	}
 
 	@Override
-	protected void renderExtraDetails(PoseStack matrices, MultiBufferSource vertexConsumers, int light, int lightOnInteriorLevel, boolean lightsOn, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
+	protected void renderExtraDetails(PoseStack matrices, RenderBufferSource vertexConsumers, int light, int lightOnInteriorLevel, boolean lightsOn, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
 		for (final int position : getDoorPositions()) {
 			final ModelDoorOverlay modelDoorOverlay = renderDoorOverlay ? getModelDoorOverlay() : null;
 			if (modelDoorOverlay != null) {
@@ -55,7 +55,7 @@ public abstract class ModelSimpleTrainBase<T> extends ModelTrainBase {
 		}
 	}
 
-	protected void renderFrontDestination(PoseStack matrices, Font font, MultiBufferSource.BufferSource immediate, float x1, float y1, float z1, float x2, float y2, float z2, float rotationX, float rotationY, float maxWidth, float maxHeight, int colorCjk, int color, float fontSizeRatio, String text, boolean padOneLine, int car, int totalCars) {
+	protected void renderFrontDestination(PoseStack matrices, Font font, RenderBufferSource immediate, float x1, float y1, float z1, float x2, float y2, float z2, float rotationX, float rotationY, float maxWidth, float maxHeight, int colorCjk, int color, float fontSizeRatio, String text, boolean padOneLine, int car, int totalCars) {
 		final boolean isEnd1Head = car == 0;
 		final boolean isEnd2Head = car == totalCars - 1;
 

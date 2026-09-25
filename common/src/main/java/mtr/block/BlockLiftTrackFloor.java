@@ -41,7 +41,7 @@ public class BlockLiftTrackFloor extends BlockLiftTrack implements EntityBlockMa
 
 	@Override
 	public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			final RailwayData railwayData = RailwayData.getInstance(world);
 			if (railwayData != null) {
 				railwayData.removeLiftFloorTrack(pos);
@@ -67,9 +67,9 @@ public class BlockLiftTrackFloor extends BlockLiftTrack implements EntityBlockMa
 
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
-			floorNumber = compoundTag.getString(KEY_FLOOR_NUMBER);
-			floorDescription = compoundTag.getString(KEY_FLOOR_DESCRIPTION);
-			shouldDing = compoundTag.getBoolean(KEY_SHOULD_DING);
+			floorNumber = mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_FLOOR_NUMBER);
+			floorDescription = mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_FLOOR_DESCRIPTION);
+			shouldDing = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_SHOULD_DING);
 		}
 
 		@Override

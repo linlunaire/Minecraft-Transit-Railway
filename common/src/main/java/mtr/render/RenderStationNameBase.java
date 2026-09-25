@@ -11,7 +11,7 @@ import mtr.data.Station;
 import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.Text;
 import mtr.mappings.UtilitiesClient;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,7 +25,7 @@ public abstract class RenderStationNameBase<T extends BlockStationNameBase.TileE
 	}
 
 	@Override
-	public void render(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+	public void render(T entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
 		final BlockGetter world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -57,5 +57,5 @@ public abstract class RenderStationNameBase<T extends BlockStationNameBase.TileE
 		}
 	}
 
-	protected abstract void drawStationName(BlockGetter world, BlockPos pos, BlockState state, Direction facing, StoredMatrixTransformations storedMatrixTransformations, MultiBufferSource vertexConsumers, String stationName, int stationColor, int color, int light);
+	protected abstract void drawStationName(BlockGetter world, BlockPos pos, BlockState state, Direction facing, StoredMatrixTransformations storedMatrixTransformations, RenderBufferSource vertexConsumers, String stationName, int stationColor, int color, int light);
 }

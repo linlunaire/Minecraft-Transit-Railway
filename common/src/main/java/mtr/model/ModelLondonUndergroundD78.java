@@ -11,7 +11,7 @@ import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 
 import java.util.List;
 
@@ -1276,7 +1276,7 @@ public class ModelLondonUndergroundD78 extends ModelSimpleTrainBase<ModelLondonU
 	}
 
 	@Override
-	protected void renderTextDisplays(PoseStack matrices, MultiBufferSource vertexConsumers, Font font, MultiBufferSource.BufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
+	protected void renderTextDisplays(PoseStack matrices, RenderBufferSource vertexConsumers, Font font, RenderBufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
 		if (scrollingTexts.isEmpty()) {
 			scrollingTexts.add(new ScrollingText(0.72F, 0.08F, 8, true));
 		}

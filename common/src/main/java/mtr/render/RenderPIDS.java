@@ -12,7 +12,7 @@ import mtr.mappings.Text;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -96,7 +96,7 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 	}
 
 	@Override
-	public void render(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+	public void render(T entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
 		final BlockGetter world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -438,12 +438,12 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 		matrixStackHolder.popAll();
 	}
 
-	private static void drawText(Font font, String text, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int color) {
-		font.drawInBatch(text, 0, 0, color, false, matrices.last().pose(), vertexConsumers, Font.DisplayMode.NORMAL, 0, light);
+	private static void drawText(Font font, String text, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int color) {
+		vertexConsumers.drawText(text, 0, 0, color, false, matrices.last().pose(), 0, light);
 	}
 
-	private static void drawText(Font font, Component text, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int color) {
-		font.drawInBatch(text, 0, 0, color, false, matrices.last().pose(), vertexConsumers, Font.DisplayMode.NORMAL, 0, light);
+	private static void drawText(Font font, Component text, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int color) {
+		vertexConsumers.drawText(text, 0, 0, color, false, matrices.last().pose(), 0, light);
 	}
 
 	public List<ScheduleEntry> getSchedules(T entity, BlockPos pos, final Map<Long, String> platformIdToName) {

@@ -4,7 +4,7 @@ import mtr.MTR;
 import mtr.data.AreaBase;
 import mtr.data.IGui;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Tuple;
+import mtr.mappings.Tuple;
 
 import java.awt.*;
 import java.io.IOException;

@@ -60,7 +60,7 @@ public class BlockNode extends BlockDirectionalMapper {
 
 	@Override
 	public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			final RailwayData railwayData = RailwayData.getInstance(world);
 			if (railwayData != null) {
 				railwayData.removeNode(player, pos, transportMode);
@@ -107,7 +107,7 @@ public class BlockNode extends BlockDirectionalMapper {
 		}
 
 		@Override
-		public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+		public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
 			if (state.canSurvive(world, pos)) {
 				return state;
 			} else {
@@ -134,7 +134,7 @@ public class BlockNode extends BlockDirectionalMapper {
 		}
 	}
 
-	public static class BlockContinuousMovementNode extends BlockNode {
+	public static class BlockContinuousMovementNode extends BlockNode implements mtr.mappings.BlockTooltip {
 
 		public final boolean upper;
 		public final boolean isStation;

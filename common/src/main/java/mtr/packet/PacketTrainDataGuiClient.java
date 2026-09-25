@@ -19,7 +19,7 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -71,7 +71,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 		final TransportMode transportMode = EnumHelper.valueOf(TransportMode.TRAIN, packet.readUtf());
 		final boolean useTimeAndWindSync = packet.readBoolean();
 		minecraftClient.execute(() -> {
-			if (!(minecraftClient.screen instanceof DashboardScreen)) {
+			if (!(minecraftClient.gui.screen() instanceof DashboardScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new DashboardScreen(transportMode, useTimeAndWindSync));
 			}
 		});
@@ -80,7 +80,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 	public static void openRailwaySignScreenS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
 		final BlockPos pos = packet.readBlockPos();
 		minecraftClient.execute(() -> {
-			if (!(minecraftClient.screen instanceof RailwaySignScreen)) {
+			if (!(minecraftClient.gui.screen() instanceof RailwaySignScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new RailwaySignScreen(pos));
 			}
 		});
@@ -89,7 +89,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 	public static void openTrainSensorScreenS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
 		final BlockPos pos = packet.readBlockPos();
 		minecraftClient.execute(() -> {
-			if (minecraftClient.level != null && !(minecraftClient.screen instanceof TrainSensorScreenBase)) {
+			if (minecraftClient.level != null && !(minecraftClient.gui.screen() instanceof TrainSensorScreenBase)) {
 				final BlockEntity entity = minecraftClient.level.getBlockEntity(pos);
 				if (entity instanceof BlockTrainAnnouncer.TileEntityTrainAnnouncer) {
 					UtilitiesClient.setScreen(minecraftClient, new TrainAnnouncerScreen(pos));
@@ -105,7 +105,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 	public static void openLiftTrackFloorS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
 		final BlockPos pos = packet.readBlockPos();
 		minecraftClient.execute(() -> {
-			if (!(minecraftClient.screen instanceof LiftTrackFloorScreen)) {
+			if (!(minecraftClient.gui.screen() instanceof LiftTrackFloorScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new LiftTrackFloorScreen(pos));
 			}
 		});
@@ -115,7 +115,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 		final long id = packet.readLong();
 		minecraftClient.execute(() -> {
 			final LiftClient lift = ClientData.DATA_CACHE.liftsClientIdMap.get(id);
-			if (!(minecraftClient.screen instanceof LiftCustomizationScreen) && lift != null) {
+			if (!(minecraftClient.gui.screen() instanceof LiftCustomizationScreen) && lift != null) {
 				UtilitiesClient.setScreen(minecraftClient, new LiftCustomizationScreen(lift));
 			}
 		});
@@ -124,7 +124,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 	public static void openTicketMachineScreenS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
 		final int balance = packet.readInt();
 		minecraftClient.execute(() -> {
-			if (!(minecraftClient.screen instanceof TicketMachineScreen)) {
+			if (!(minecraftClient.gui.screen() instanceof TicketMachineScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new TicketMachineScreen(balance));
 			}
 		});
@@ -136,7 +136,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 		final int maxArrivals = packet.readInt();
 		final int linesPerArrival = packet.readInt();
 		minecraftClient.execute(() -> {
-			if (!(minecraftClient.screen instanceof PIDSConfigScreen)) {
+			if (!(minecraftClient.gui.screen() instanceof PIDSConfigScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new PIDSConfigScreen(pos1, pos2, maxArrivals, linesPerArrival));
 			}
 		});
@@ -146,7 +146,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 		final BlockPos pos = packet.readBlockPos();
 
 		minecraftClient.execute(() -> {
-			if (!(minecraftClient.screen instanceof ArrivalProjectorConfigScreen)) {
+			if (!(minecraftClient.gui.screen() instanceof ArrivalProjectorConfigScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new ArrivalProjectorConfigScreen(pos));
 			}
 		});
@@ -154,7 +154,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 
 	public static void openResourcePackCreatorScreen(Minecraft minecraftClient) {
 		minecraftClient.execute(() -> {
-			if (!(minecraftClient.screen instanceof ResourcePackCreatorScreen)) {
+			if (!(minecraftClient.gui.screen() instanceof ResourcePackCreatorScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new ResourcePackCreatorScreen());
 			}
 		});
@@ -168,7 +168,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 			final ClientLevel world = minecraftClient.level;
 			final LocalPlayer player = minecraftClient.player;
 			if (!soundIdString.isEmpty() && world != null && player != null) {
-				world.playLocalSound(player.blockPosition(), RegistryUtilities.createSoundEvent(ResourceLocation.parse(soundIdString)), SoundSource.BLOCKS, 1000000, 1, false);
+				world.playLocalSound(player.blockPosition(), RegistryUtilities.createSoundEvent(Identifier.parse(soundIdString)), SoundSource.BLOCKS, 1000000, 1, false);
 			}
 		});
 	}
@@ -289,13 +289,13 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 		});
 	}
 
-	public static void sendUpdate(ResourceLocation packetId, FriendlyByteBuf packet) {
+	public static void sendUpdate(Identifier packetId, FriendlyByteBuf packet) {
 		RegistryClient.sendToServer(packetId, packet);
 		ClientData.DATA_CACHE.sync();
 		ClientData.DATA_CACHE.refreshDynamicResources();
 	}
 
-	public static void sendDeleteData(ResourceLocation packetId, long id) {
+	public static void sendDeleteData(Identifier packetId, long id) {
 		final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
 		packet.writeLong(id);
 		sendUpdate(packetId, packet);

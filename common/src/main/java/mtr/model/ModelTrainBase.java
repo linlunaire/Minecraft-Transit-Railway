@@ -11,18 +11,18 @@ import mtr.render.MoreRenderLayers;
 import mtr.render.RenderTrains;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import mtr.mappings.EntityModelMapper;
+import mtr.mappings.RenderBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public abstract class ModelTrainBase extends EntityModel<Entity> implements IGui {
+public abstract class ModelTrainBase extends EntityModelMapper<Entity> implements IGui {
 
 	public final DoorAnimationType doorAnimationType;
 	public final boolean renderDoorOverlay;
@@ -42,7 +42,7 @@ public abstract class ModelTrainBase extends EntityModel<Entity> implements IGui
 	public final void renderToBuffer(PoseStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
 	}
 
-	public final void render(PoseStack matrices, MultiBufferSource vertexConsumers, NameColorDataBase data, ResourceLocation texture, int light, float doorLeftValue, float doorRightValue, boolean opening, int currentCar, int trainCars, boolean head1IsFront, boolean lightsOn, boolean isTranslucent, boolean renderDetails, boolean atPlatform) {
+	public final void render(PoseStack matrices, RenderBufferSource vertexConsumers, NameColorDataBase data, Identifier texture, int light, float doorLeftValue, float doorRightValue, boolean opening, int currentCar, int trainCars, boolean head1IsFront, boolean lightsOn, boolean isTranslucent, boolean renderDetails, boolean atPlatform) {
 		final float doorLeftX = DoorAnimationType.getDoorAnimationX(doorAnimationType, doorLeftValue);
 		final float doorRightX = DoorAnimationType.getDoorAnimationX(doorAnimationType, doorRightValue);
 		final float doorLeftZ = DoorAnimationType.getDoorAnimationZ(doorAnimationType, getDoorMax(), getDoorDuration(), doorLeftValue, opening);
@@ -74,7 +74,7 @@ public abstract class ModelTrainBase extends EntityModel<Entity> implements IGui
 
 			if (renderDetails) {
 				final TrainClient train = data instanceof TrainClient ? (TrainClient) data : null;
-				final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
+				final RenderBufferSource immediate = RenderTrains.getImmediateBufferSource();
 				try {
 					final Route thisRoute = train == null ? null : train.getThisRoute();
 					final Route nextRoute = train == null ? null : train.getNextRoute();
@@ -91,10 +91,10 @@ public abstract class ModelTrainBase extends EntityModel<Entity> implements IGui
 		matrices.popPose();
 	}
 
-	protected void renderExtraDetails(PoseStack matrices, MultiBufferSource vertexConsumers, int light, int lightOnInteriorLevel, boolean lightsOn, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
+	protected void renderExtraDetails(PoseStack matrices, RenderBufferSource vertexConsumers, int light, int lightOnInteriorLevel, boolean lightsOn, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
 	}
 
-	protected void renderTextDisplays(PoseStack matrices, MultiBufferSource vertexConsumers, Font font, MultiBufferSource.BufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
+	protected void renderTextDisplays(PoseStack matrices, RenderBufferSource vertexConsumers, Font font, RenderBufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
 	}
 
 	protected float getDoorDuration() {

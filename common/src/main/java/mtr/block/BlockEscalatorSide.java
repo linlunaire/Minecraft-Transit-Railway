@@ -18,11 +18,11 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class BlockEscalatorSide extends BlockEscalatorBase {
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
 		if (direction == Direction.DOWN && !(world.getBlockState(pos.below()).getBlock() instanceof BlockEscalatorStep)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {
-			return super.updateShape(state, direction, newState, world, pos, posFrom);
+			return super.updateShape(state, world, scheduledTicks, pos, direction, posFrom, newState, random);
 		}
 	}
 

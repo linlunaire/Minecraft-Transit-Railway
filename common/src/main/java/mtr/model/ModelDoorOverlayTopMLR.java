@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import mtr.render.MoreRenderLayers;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import mtr.mappings.RenderBufferSource;
+import net.minecraft.resources.Identifier;
 
 public class ModelDoorOverlayTopMLR extends ModelDoorOverlayTopBase {
 
@@ -14,10 +14,10 @@ public class ModelDoorOverlayTopMLR extends ModelDoorOverlayTopBase {
 	private final ModelMapper right;
 	private final ModelMapper outer_roof_2_r1;
 
-	private final ResourceLocation texture;
+	private final Identifier texture;
 
 	public ModelDoorOverlayTopMLR(String texture) {
-		this.texture = ResourceLocation.parse(texture);
+		this.texture = Identifier.parse(texture);
 
 		final int textureWidth = 24;
 		final int textureHeight = 3;
@@ -50,7 +50,7 @@ public class ModelDoorOverlayTopMLR extends ModelDoorOverlayTopBase {
 	}
 
 	@Override
-	public void render(PoseStack matrices, MultiBufferSource vertexConsumers, int light, int position, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
+	public void render(PoseStack matrices, RenderBufferSource vertexConsumers, int light, int position, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
 		ModelTrainBase.renderOnce(left, matrices, vertexConsumers.getBuffer(MoreRenderLayers.getExterior(texture)), light, doorRightX, position + doorRightZ);
 		ModelTrainBase.renderOnce(right, matrices, vertexConsumers.getBuffer(MoreRenderLayers.getExterior(texture)), light, doorRightX, position - doorRightZ);
 		ModelTrainBase.renderOnceFlipped(left, matrices, vertexConsumers.getBuffer(MoreRenderLayers.getExterior(texture)), light, doorLeftX, position - doorLeftZ);

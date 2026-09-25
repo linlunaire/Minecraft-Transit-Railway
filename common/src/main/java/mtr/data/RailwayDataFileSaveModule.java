@@ -89,7 +89,7 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 		readMessagePackFromFile(railsPath, RailEntry::new, railEntry -> rails.put(railEntry.pos, railEntry.connections), true);
 		readMessagePackFromFile(signalBlocksPath, SignalBlocks.SignalBlock::new, signalBlocks.signalBlocks::add, true);
 
-		System.out.println("Minecraft Transit Railway data successfully loaded for " + world.dimension().location());
+		System.out.println("Minecraft Transit Railway data successfully loaded for " + world.dimension().identifier());
 		canAutoSave = true;
 		dataLoaded = true;
 	}
@@ -189,7 +189,7 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 				}));
 
 				if (!useReducedHash || filesWritten > 0 || filesDeleted > 0) {
-					System.out.println("Minecraft Transit Railway save complete for " + world.dimension().location() + " in " + (System.currentTimeMillis() - autoSaveStartMillis) / 1000 + " second(s)");
+					System.out.println("Minecraft Transit Railway save complete for " + world.dimension().identifier() + " in " + (System.currentTimeMillis() - autoSaveStartMillis) / 1000 + " second(s)");
 					if (filesWritten > 0) {
 						System.out.println("- Changed: " + filesWritten);
 					}
@@ -264,9 +264,10 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 			final int hash = getHash(data, useReducedHash);
 
 			if (!existingFiles.containsKey(dataPath) || hash != existingFiles.get(dataPath)) {
-				final MessagePacker messagePacker = MessagePack.newDefaultPacker(Files.newOutputStream(dataPath, StandardOpenOption.CREATE));
+				final MessageBufferPacker messagePacker = MessagePack.newDefaultBufferPacker();
 				messagePacker.packMapHeader(data.messagePackLength());
 				data.toMessagePack(messagePacker);
+				mtr.mappings.SaveFileMapper.write(dataPath, messagePacker.toByteArray());
 				messagePacker.close();
 
 				existingFiles.put(dataPath, hash);
@@ -286,9 +287,13 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 			final U id = dirtyData.removeFirst();
 			final T data = getId.apply(id);
 			if (data != null) {
-				final Path newPath = writeMessagePackToFile(data, idToLong.apply(id), path);
+				final long dataId = idToLong.apply(id);
+				final Path newPath = writeMessagePackToFile(data, dataId, path);
 				if (newPath != null) {
 					checkFilesToDelete.remove(newPath);
+				} else {
+					// Retain the previous file if this record could not be encoded or written.
+					checkFilesToDelete.remove(path.resolve(String.valueOf(dataId % 100)).resolve(String.valueOf(dataId)));
 				}
 			}
 			if (System.currentTimeMillis() - millis >= 2) {

@@ -11,11 +11,11 @@ import mtr.data.IGui;
 import mtr.data.TransportMode;
 import mtr.mappings.UtilitiesClient;
 import mtr.model.ModelTrainBase;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -42,7 +42,7 @@ public class ResourcePackCreatorProperties implements IResourcePackCreatorProper
 	private JsonObject propertiesObject = new JsonObject();
 	private String textureFileName = "";
 	private Path textureFilePath;
-	private ResourceLocation texture;
+	private Identifier texture;
 	private final JsonObject customResourcesObject = new JsonObject();
 
 	public ResourcePackCreatorProperties() {
@@ -73,7 +73,17 @@ public class ResourcePackCreatorProperties implements IResourcePackCreatorProper
 		final Minecraft minecraft = Minecraft.getInstance();
 		try {
 			final NativeImage nativeImage = NativeImage.read(Files.newInputStream(path, StandardOpenOption.READ));
-			texture = minecraft.getTextureManager().register(MTR.MOD_ID, new DynamicTexture(nativeImage));
+			final DynamicTexture dynamicTexture;
+			try {
+				dynamicTexture = new DynamicTexture(() -> "MTR creator preview", nativeImage);
+			} catch (RuntimeException | Error failure) {
+				nativeImage.close();
+				throw failure;
+			}
+			// Register replaces and closes the previous preview texture at this stable id.
+			final Identifier previewId = Identifier.fromNamespaceAndPath(MTR.MOD_ID, "dynamic/creator_preview");
+			minecraft.getTextureManager().register(previewId, dynamicTexture);
+			texture = previewId;
 			textureFileName = path.getFileName().toString();
 			textureFilePath = path;
 		} catch (IOException e) {
@@ -303,8 +313,8 @@ public class ResourcePackCreatorProperties implements IResourcePackCreatorProper
 	public void render(PoseStack matrices, int currentCar, int trainCars, boolean head1IsFront, float leftDoorValue, float rightDoorValue, boolean opening, int light) {
 		if (model != null) {
 			final Minecraft minecraft = Minecraft.getInstance();
-			final MultiBufferSource.BufferSource immediate = minecraft.renderBuffers().bufferSource();
-			model.render(matrices, immediate, null, texture == null ? ResourceLocation.parse("mtr:textures/block/white.png") : texture, light, leftDoorValue, rightDoorValue, opening, currentCar, trainCars, head1IsFront, true, false, true, false);
+			final RenderBufferSource immediate = RenderBufferSource.current().immediate();
+			model.render(matrices, immediate, null, texture == null ? Identifier.parse("mtr:textures/block/white.png") : texture, light, leftDoorValue, rightDoorValue, opening, currentCar, trainCars, head1IsFront, true, false, true, false);
 			immediate.endBatch();
 		}
 	}

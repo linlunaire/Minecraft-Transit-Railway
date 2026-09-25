@@ -91,19 +91,19 @@ public class Depot extends AreaBase implements IReducedSaveData {
 	public Depot(CompoundTag compoundTag) {
 		super(compoundTag);
 
-		final long[] routeIdsArray = compoundTag.getLongArray(KEY_ROUTE_IDS);
+		final long[] routeIdsArray = mtr.mappings.CompoundTagMapper.getLongArray(compoundTag, KEY_ROUTE_IDS);
 		for (final long routeId : routeIdsArray) {
 			routeIds.add(routeId);
 		}
 
 		for (int i = 0; i < HOURS_IN_DAY; i++) {
-			frequencies[i] = compoundTag.getInt(KEY_FREQUENCIES + i);
+			frequencies[i] = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_FREQUENCIES + i);
 		}
 
-		lastDeployedMillis = System.currentTimeMillis() - compoundTag.getLong(KEY_LAST_DEPLOYED);
-		deployIndex = compoundTag.getInt(KEY_DEPLOY_INDEX);
-		repeatInfinitely = compoundTag.getBoolean(KEY_REPEAT_INFINITELY);
-		cruisingAltitude = compoundTag.getInt(KEY_CRUISING_ALTITUDE);
+		lastDeployedMillis = System.currentTimeMillis() - mtr.mappings.CompoundTagMapper.getLong(compoundTag, KEY_LAST_DEPLOYED);
+		deployIndex = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_DEPLOY_INDEX);
+		repeatInfinitely = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_REPEAT_INFINITELY);
+		cruisingAltitude = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_CRUISING_ALTITUDE);
 	}
 
 	public Depot(FriendlyByteBuf packet) {
@@ -279,7 +279,7 @@ public class Depot extends AreaBase implements IReducedSaveData {
 			}
 		});
 
-		final boolean useFastSpeed = cruisingAltitude >= world.getMaxBuildHeight() + THRESHOLD_ABOVE_MAX_BUILD_HEIGHT;
+		final boolean useFastSpeed = cruisingAltitude >= (world.getMaxY() + 1) + THRESHOLD_ABOVE_MAX_BUILD_HEIGHT;
 
 		final Thread thread = new Thread(() -> {
 			try {
@@ -395,7 +395,7 @@ public class Depot extends AreaBase implements IReducedSaveData {
 	}
 
 	private static int getHour(Level world, int offsetMillis) {
-		return (int) wrapTime(world.getDayTime() + (float) offsetMillis / MILLIS_PER_TICK) / TICKS_PER_HOUR;
+		return (int) wrapTime(world.getOverworldClockTime() + (float) offsetMillis / MILLIS_PER_TICK) / TICKS_PER_HOUR;
 	}
 
 	private static float wrapTime(float time) {

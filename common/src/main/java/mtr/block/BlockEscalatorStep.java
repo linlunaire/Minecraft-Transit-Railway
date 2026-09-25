@@ -26,11 +26,11 @@ public class BlockEscalatorStep extends BlockEscalatorBase {
 	public static final BooleanProperty STATUS = BooleanProperty.create("status");
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
 		if (direction == Direction.UP && !(world.getBlockState(pos.above()).getBlock() instanceof BlockEscalatorSide)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {
-			return super.updateShape(state, direction, newState, world, pos, posFrom);
+			return super.updateShape(state, world, scheduledTicks, pos, direction, posFrom, newState, random);
 		}
 	}
 
@@ -53,7 +53,7 @@ public class BlockEscalatorStep extends BlockEscalatorBase {
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effects, boolean isPrecise) {
 		final Direction facing = IBlock.getStatePropertySafe(state, FACING);
 		final boolean direction = IBlock.getStatePropertySafe(state, DIRECTION);
 		final float speed = 0.1F;

@@ -15,11 +15,11 @@ import mtr.mappings.Utilities;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -33,7 +33,7 @@ public class RenderLiftPanel<T extends BlockLiftPanelBase.TileEntityLiftPanel1Ba
 	private final boolean isOdd;
 	private final boolean isFlat;
 
-	private static final ResourceLocation ARROW_TEXTURE = ResourceLocation.parse("mtr:textures/block/lift_arrow.png");
+	private static final Identifier ARROW_TEXTURE = Identifier.parse("mtr:textures/block/lift_arrow.png");
 	private static final float ARROW_SPEED = 0.04F;
 	private static final int SLIDE_TIME = 5;
 	private static final int SLIDE_INTERVAL = 50;
@@ -46,7 +46,7 @@ public class RenderLiftPanel<T extends BlockLiftPanelBase.TileEntityLiftPanel1Ba
 	}
 
 	@Override
-	public void render(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int combinedOverlay) {
+	public void render(T entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int combinedOverlay) {
 		final Level world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -106,7 +106,7 @@ public class RenderLiftPanel<T extends BlockLiftPanelBase.TileEntityLiftPanel1Ba
 			// Floor Number
 			matrices.pushPose();
 			matrices.translate(0, 0, (isFlat ? 0.4375F : 0.25F) - SMALL_OFFSET * 2);
-			final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
+			final RenderBufferSource immediate = RenderTrains.getImmediateBufferSource();
 			try {
 				IDrawing.drawStringWithFont(matrices, textRenderer, immediate, ClientData.DATA_CACHE.requestLiftFloorText(trackPosition)[0], HorizontalAlignment.CENTER, VerticalAlignment.CENTER, 0, -0.47F, 0.1875F, 0.1875F, 1, ARGB_BLACK, false, MAX_LIGHT_GLOWING, null);
 			} finally {
@@ -119,7 +119,7 @@ public class RenderLiftPanel<T extends BlockLiftPanelBase.TileEntityLiftPanel1Ba
 		matrices.popPose();
 	}
 
-	private void renderLiftDisplay(PoseStack matrices, MultiBufferSource vertexConsumers, float zOffset, String floorNumber, String floorDisplay, Lift.LiftDirection liftDirection) {
+	private void renderLiftDisplay(PoseStack matrices, RenderBufferSource vertexConsumers, float zOffset, String floorNumber, String floorDisplay, Lift.LiftDirection liftDirection) {
 		matrices.pushPose();
 		matrices.translate(0, 0, zOffset - SMALL_OFFSET * 2);
 

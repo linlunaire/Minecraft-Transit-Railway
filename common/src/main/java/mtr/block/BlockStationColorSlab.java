@@ -12,10 +12,10 @@ import net.minecraft.world.level.block.SlabBlock;
 
 import java.util.List;
 
-public class BlockStationColorSlab extends SlabBlock {
+public class BlockStationColorSlab extends SlabBlock implements mtr.mappings.BlockTooltip {
 
 	public BlockStationColorSlab(Properties settings) {
-		super(settings);
+		super(mtr.mappings.RegistrationContext.stationColorProperties(settings));
 	}
 
 	@Override
@@ -23,10 +23,6 @@ public class BlockStationColorSlab extends SlabBlock {
 		return simpleCodec(properties -> this);
 	}
 
-	@Override
-	public String getDescriptionId() {
-		return super.getDescriptionId().replace("block.mtr.station_color_", "block.minecraft.");
-	}
 
 	@Override
 	public void appendHoverText(ItemStack itemStack, net.minecraft.world.item.Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {

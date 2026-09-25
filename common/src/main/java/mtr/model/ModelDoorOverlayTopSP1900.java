@@ -4,8 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import mtr.render.MoreRenderLayers;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.resources.ResourceLocation;
+import mtr.mappings.RenderBufferSource;
+import net.minecraft.resources.Identifier;
 
 public class ModelDoorOverlayTopSP1900 extends ModelDoorOverlayTopBase {
 
@@ -13,7 +13,7 @@ public class ModelDoorOverlayTopSP1900 extends ModelDoorOverlayTopBase {
 	private final ModelMapper outer_roof_2_r1;
 	private final ModelMapper outer_roof_1_r1;
 
-	private static final ResourceLocation TEXTURE_ID = ResourceLocation.parse("mtr:textures/block/sign/door_overlay_sp1900_top.png");
+	private static final Identifier TEXTURE_ID = Identifier.parse("mtr:textures/block/sign/door_overlay_sp1900_top.png");
 
 	public ModelDoorOverlayTopSP1900() {
 		final int textureWidth = 24;
@@ -42,7 +42,7 @@ public class ModelDoorOverlayTopSP1900 extends ModelDoorOverlayTopBase {
 	}
 
 	@Override
-	public void render(PoseStack matrices, MultiBufferSource vertexConsumers, int light, int position, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
+	public void render(PoseStack matrices, RenderBufferSource vertexConsumers, int light, int position, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ) {
 		ModelTrainBase.renderMirror(bb_main, matrices, vertexConsumers.getBuffer(MoreRenderLayers.getExterior(TEXTURE_ID)), light, position);
 	}
 }

@@ -11,14 +11,14 @@ import mtr.screen.WidgetBetterTextField;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.util.LightCoordsUtil;
+import mtr.mappings.RenderBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -28,20 +28,20 @@ import java.util.List;
 
 public interface IDrawing {
 
-	static void drawStringWithFont(PoseStack matrices, Font textRenderer, MultiBufferSource.BufferSource immediate, String text, float x, float y, int light) {
+	static void drawStringWithFont(PoseStack matrices, Font textRenderer, RenderBufferSource immediate, String text, float x, float y, int light) {
 		drawStringWithFont(matrices, textRenderer, immediate, text, IGui.HorizontalAlignment.CENTER, IGui.VerticalAlignment.CENTER, x, y, -1, -1, 1, IGui.ARGB_WHITE, true, light, null);
 	}
 
-	static void drawStringWithFont(PoseStack matrices, Font textRenderer, MultiBufferSource.BufferSource immediate, String text, IGui.HorizontalAlignment horizontalAlignment, IGui.VerticalAlignment verticalAlignment, float x, float y, float maxWidth, float maxHeight, float scale, int textColor, boolean shadow, int light, DrawingCallback drawingCallback) {
+	static void drawStringWithFont(PoseStack matrices, Font textRenderer, RenderBufferSource immediate, String text, IGui.HorizontalAlignment horizontalAlignment, IGui.VerticalAlignment verticalAlignment, float x, float y, float maxWidth, float maxHeight, float scale, int textColor, boolean shadow, int light, DrawingCallback drawingCallback) {
 		drawStringWithFont(matrices, textRenderer, immediate, text, horizontalAlignment, verticalAlignment, horizontalAlignment, x, y, maxWidth, maxHeight, scale, textColor, shadow, light, drawingCallback);
 	}
 
-	static void drawStringWithFont(PoseStack matrices, Font textRenderer, MultiBufferSource.BufferSource immediate, String text, IGui.HorizontalAlignment horizontalAlignment, IGui.VerticalAlignment verticalAlignment, IGui.HorizontalAlignment xAlignment, float x, float y, float maxWidth, float maxHeight, float scale, int textColor, boolean shadow, int light, DrawingCallback drawingCallback) {
+	static void drawStringWithFont(PoseStack matrices, Font textRenderer, RenderBufferSource immediate, String text, IGui.HorizontalAlignment horizontalAlignment, IGui.VerticalAlignment verticalAlignment, IGui.HorizontalAlignment xAlignment, float x, float y, float maxWidth, float maxHeight, float scale, int textColor, boolean shadow, int light, DrawingCallback drawingCallback) {
 		drawStringWithFont(matrices, textRenderer, immediate, text, horizontalAlignment, verticalAlignment, xAlignment, x, y, maxWidth, maxHeight, scale, textColor, textColor, 2, shadow, light, drawingCallback);
 	}
 
-	static void drawStringWithFont(PoseStack matrices, Font textRenderer, MultiBufferSource.BufferSource immediate, String text, IGui.HorizontalAlignment horizontalAlignment, IGui.VerticalAlignment verticalAlignment, IGui.HorizontalAlignment xAlignment, float x, float y, float maxWidth, float maxHeight, float scale, int textColorCjk, int textColor, float fontSizeRatio, boolean shadow, int light, DrawingCallback drawingCallback) {
-		final Style style = Config.useMTRFont() ? Style.EMPTY.withFont(ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "mtr")) : Style.EMPTY;
+	static void drawStringWithFont(PoseStack matrices, Font textRenderer, RenderBufferSource immediate, String text, IGui.HorizontalAlignment horizontalAlignment, IGui.VerticalAlignment verticalAlignment, IGui.HorizontalAlignment xAlignment, float x, float y, float maxWidth, float maxHeight, float scale, int textColorCjk, int textColor, float fontSizeRatio, boolean shadow, int light, DrawingCallback drawingCallback) {
+		final Style style = Config.useMTRFont() ? Style.EMPTY.withFont(new net.minecraft.network.chat.FontDescription.Resource(Identifier.fromNamespaceAndPath(MTR.MOD_ID, "mtr"))) : Style.EMPTY;
 
 		while (text.contains("||")) {
 			text = text.replace("||", "|");
@@ -93,7 +93,7 @@ public interface IDrawing {
 
 			final float xOffset = horizontalAlignment.getOffset(xAlignment.getOffset(x * scaleX, totalWidth), textRenderer.width(orderedTexts.get(i)) * extraScale - totalWidth);
 
-			final float shade = light == IGui.MAX_LIGHT_GLOWING ? 1 : Math.min(LightTexture.block(light) / 16F * 0.1F + 0.7F, 1);
+			final float shade = light == IGui.MAX_LIGHT_GLOWING ? 1 : Math.min(LightCoordsUtil.block(light) / 16F * 0.1F + 0.7F, 1);
 			final int a = ((isCJK ? textColorCjk : textColor) >> 24) & 0xFF;
 			final int r = (int) ((((isCJK ? textColorCjk : textColor) >> 16) & 0xFF) * shade);
 			final int g = (int) ((((isCJK ? textColorCjk : textColor) >> 8) & 0xFF) * shade);
@@ -119,8 +119,8 @@ public interface IDrawing {
 		}
 	}
 
-	static void drawLine(PoseStack matrices, MultiBufferSource vertexConsumers, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b) {
-		final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderType.lines());
+	static void drawLine(PoseStack matrices, RenderBufferSource vertexConsumers, float x1, float y1, float z1, float x2, float y2, float z2, int r, int g, int b) {
+		final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(net.minecraft.client.renderer.rendertype.RenderTypes.lines());
 		final PoseStack.Pose pose = matrices.last();
 		vertexConsumer.addVertex(pose.pose(), x1, y1, z1).setColor(r, g, b, 0xFF).setNormal(pose, 0, 1, 0);
 		vertexConsumer.addVertex(pose.pose(), x2, y2, z2).setColor(r, g, b, 0xFF).setNormal(pose, 0, 1, 0);
@@ -157,7 +157,7 @@ public interface IDrawing {
 	}
 
 	static void drawTexture(PoseStack matrices, VertexConsumer vertexConsumer, float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4, float u1, float v1, float u2, float v2, Direction facing, int color, int light) {
-		final Vec3i vec3i = facing.getNormal();
+		final Vec3i vec3i = facing.getUnitVec3i();
 		final PoseStack.Pose pose = matrices.last();
 		final int a = (color >> 24) & 0xFF;
 		final int r = (color >> 16) & 0xFF;
@@ -182,12 +182,12 @@ public interface IDrawing {
 		String newMessage = IGui.formatStationName(message).replace("  ", " ");
 		if (!newMessage.isEmpty()) {
 			if (Config.useTTSAnnouncements()) {
-				Narrator.getNarrator().say(newMessage, true);
+				Narrator.getNarrator().say(newMessage, true, 1F);
 			}
 			if (Config.showAnnouncementMessages()) {
 				final Player player = Minecraft.getInstance().player;
 				if (player != null) {
-					player.displayClientMessage(Text.literal(newMessage), false);
+					mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.literal(newMessage), false);
 				}
 			}
 		}

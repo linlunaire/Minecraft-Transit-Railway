@@ -50,14 +50,14 @@ public final class Station extends AreaBase {
 	@Deprecated
 	public Station(CompoundTag compoundTag) {
 		super(compoundTag);
-		zone = compoundTag.getInt(KEY_ZONE);
+		zone = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_ZONE);
 
-		final CompoundTag tagExits = compoundTag.getCompound(KEY_EXITS);
-		for (final String keyParent : tagExits.getAllKeys()) {
+		final CompoundTag tagExits = compoundTag.getCompoundOrEmpty(KEY_EXITS);
+		for (final String keyParent : tagExits.keySet()) {
 			final List<String> destinations = new ArrayList<>();
-			final CompoundTag tagDestinations = tagExits.getCompound(keyParent);
-			for (final String keyDestination : tagDestinations.getAllKeys()) {
-				destinations.add(tagDestinations.getString(keyDestination));
+			final CompoundTag tagDestinations = tagExits.getCompoundOrEmpty(keyParent);
+			for (final String keyDestination : tagDestinations.keySet()) {
+				destinations.add(mtr.mappings.CompoundTagMapper.getString(tagDestinations, keyDestination));
 			}
 			exits.put(keyParent, destinations);
 		}

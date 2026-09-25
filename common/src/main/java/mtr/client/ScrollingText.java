@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import mtr.MTRClient;
 import mtr.data.IGui;
 import mtr.render.MoreRenderLayers;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.core.Direction;
 
 public class ScrollingText implements IGui {
@@ -33,7 +33,7 @@ public class ScrollingText implements IGui {
 		}
 	}
 
-	public void setVertexConsumer(MultiBufferSource vertexConsumers) {
+	public void setVertexConsumer(RenderBufferSource vertexConsumers) {
 		vertexConsumer = dynamicResource == null ? null : vertexConsumers.getBuffer(MoreRenderLayers.getLight(dynamicResource.resourceLocation, true));
 	}
 

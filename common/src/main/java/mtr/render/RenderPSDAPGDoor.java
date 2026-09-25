@@ -9,12 +9,12 @@ import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import mtr.mappings.UtilitiesClient;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.EntityModelMapper;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -37,14 +37,14 @@ public class RenderPSDAPGDoor<T extends BlockPSDAPGDoorBase.TileEntityPSDAPGDoor
 	private static final ModelSingleCube MODEL_PSD_DOOR_LOCKED = new ModelSingleCube(6, 6, 5, 6, 1, 6, 6, 0);
 	private static final ModelSingleCube MODEL_LIFT_LEFT = new ModelSingleCube(28, 18, 0, 0, 0, 12, 16, 2);
 	private static final ModelSingleCube MODEL_LIFT_RIGHT = new ModelSingleCube(28, 18, 4, 0, 0, 12, 16, 2);
-	private static final ResourceLocation[] LIGHT_TEXTURES = {ResourceLocation.parse("mtr:textures/block/light_off.png"), ResourceLocation.parse("mtr:textures/block/light_on.png")};
-	private static final ResourceLocation[] APG_LIGHT_TEXTURES = {ResourceLocation.parse("mtr:textures/block/apg_door_light_off.png"), ResourceLocation.parse("mtr:textures/block/apg_door_light_on.png")};
-	private static final ResourceLocation[][][] PSD_DOOR_END_2_TEXTURES = createPsdTextures("mtr:textures/block/psd_door_end_%s_%s_2_%s.png");
-	private static final ResourceLocation[][][] PSD_DOOR_END_1_TEXTURES = createPsdTextures("mtr:textures/block/psd_door_end_%s_%s_1_%s.png");
-	private static final ResourceLocation[][][] PSD_DOOR_TEXTURES = createPsdTextures("mtr:textures/block/psd_door_%s_%s_%s.png");
-	private static final ResourceLocation[][] APG_DOOR_TEXTURES = createDoorTextures("mtr:textures/block/apg_door_%s_%s.png");
-	private static final ResourceLocation[][] LIFT_DOOR_TEXTURES = createDoorTextures("mtr:textures/block/lift_door_%s_%s_1.png");
-	private static final ResourceLocation DOOR_NOT_IN_USE_TEXTURE = ResourceLocation.parse("mtr:textures/block/sign/door_not_in_use.png");
+	private static final Identifier[] LIGHT_TEXTURES = {Identifier.parse("mtr:textures/block/light_off.png"), Identifier.parse("mtr:textures/block/light_on.png")};
+	private static final Identifier[] APG_LIGHT_TEXTURES = {Identifier.parse("mtr:textures/block/apg_door_light_off.png"), Identifier.parse("mtr:textures/block/apg_door_light_on.png")};
+	private static final Identifier[][][] PSD_DOOR_END_2_TEXTURES = createPsdTextures("mtr:textures/block/psd_door_end_%s_%s_2_%s.png");
+	private static final Identifier[][][] PSD_DOOR_END_1_TEXTURES = createPsdTextures("mtr:textures/block/psd_door_end_%s_%s_1_%s.png");
+	private static final Identifier[][][] PSD_DOOR_TEXTURES = createPsdTextures("mtr:textures/block/psd_door_%s_%s_%s.png");
+	private static final Identifier[][] APG_DOOR_TEXTURES = createDoorTextures("mtr:textures/block/apg_door_%s_%s.png");
+	private static final Identifier[][] LIFT_DOOR_TEXTURES = createDoorTextures("mtr:textures/block/lift_door_%s_%s_1.png");
+	private static final Identifier DOOR_NOT_IN_USE_TEXTURE = Identifier.parse("mtr:textures/block/sign/door_not_in_use.png");
 
 	public RenderPSDAPGDoor(BlockEntityRenderDispatcher dispatcher, int type) {
 		super(dispatcher);
@@ -52,7 +52,7 @@ public class RenderPSDAPGDoor<T extends BlockPSDAPGDoorBase.TileEntityPSDAPGDoor
 	}
 
 	@Override
-	public void render(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+	public void render(T entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
 		final Level world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -183,33 +183,33 @@ public class RenderPSDAPGDoor<T extends BlockPSDAPGDoorBase.TileEntityPSDAPGDoor
 	}
 
 	@Override
-	public boolean shouldRenderOffScreen(T blockEntity) {
+	public boolean shouldRenderOffScreen() {
 		return true;
 	}
 
-	private static ResourceLocation[][][] createPsdTextures(String pattern) {
-		final ResourceLocation[][][] textures = new ResourceLocation[2][2][2];
+	private static Identifier[][][] createPsdTextures(String pattern) {
+		final Identifier[][][] textures = new Identifier[2][2][2];
 		for (int half = 0; half < 2; half++) {
 			for (int side = 0; side < 2; side++) {
 				for (int type = 0; type < 2; type++) {
-					textures[half][side][type] = ResourceLocation.parse(String.format(pattern, half == 1 ? "top" : "bottom", side == 1 ? "right" : "left", type + 1));
+					textures[half][side][type] = Identifier.parse(String.format(pattern, half == 1 ? "top" : "bottom", side == 1 ? "right" : "left", type + 1));
 				}
 			}
 		}
 		return textures;
 	}
 
-	private static ResourceLocation[][] createDoorTextures(String pattern) {
-		final ResourceLocation[][] textures = new ResourceLocation[2][2];
+	private static Identifier[][] createDoorTextures(String pattern) {
+		final Identifier[][] textures = new Identifier[2][2];
 		for (int half = 0; half < 2; half++) {
 			for (int side = 0; side < 2; side++) {
-				textures[half][side] = ResourceLocation.parse(String.format(pattern, half == 1 ? "top" : "bottom", side == 1 ? "right" : "left"));
+				textures[half][side] = Identifier.parse(String.format(pattern, half == 1 ? "top" : "bottom", side == 1 ? "right" : "left"));
 			}
 		}
 		return textures;
 	}
 
-	private static class ModelSingleCube extends EntityModel<Entity> {
+	private static class ModelSingleCube extends EntityModelMapper<Entity> {
 
 		private final ModelMapper cube;
 
@@ -231,7 +231,7 @@ public class RenderPSDAPGDoor<T extends BlockPSDAPGDoorBase.TileEntityPSDAPGDoor
 		}
 	}
 
-	private static class ModelAPGDoorBottom extends EntityModel<Entity> {
+	private static class ModelAPGDoorBottom extends EntityModelMapper<Entity> {
 
 		private final ModelMapper bone;
 
@@ -265,7 +265,7 @@ public class RenderPSDAPGDoor<T extends BlockPSDAPGDoorBase.TileEntityPSDAPGDoor
 		}
 	}
 
-	private static class ModelAPGDoorLight extends EntityModel<Entity> {
+	private static class ModelAPGDoorLight extends EntityModelMapper<Entity> {
 
 		private final ModelMapper bone;
 

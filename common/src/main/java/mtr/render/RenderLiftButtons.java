@@ -14,12 +14,12 @@ import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.Utilities;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import mtr.mappings.RenderBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Tuple;
+import net.minecraft.resources.Identifier;
+import mtr.mappings.Tuple;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -33,15 +33,15 @@ import java.util.*;
 public class RenderLiftButtons extends BlockEntityRendererMapper<BlockLiftButtons.TileEntityLiftButtons> implements IGui, IBlock {
 
 	private static final int HOVER_COLOR = 0xFFFFAAAA;
-	private static final ResourceLocation BUTTON_TEXTURE = ResourceLocation.parse("mtr:textures/block/lift_button.png");
-	private static final ResourceLocation BLACK_TEXTURE = ResourceLocation.parse("mtr:textures/block/black.png");
+	private static final Identifier BUTTON_TEXTURE = Identifier.parse("mtr:textures/block/lift_button.png");
+	private static final Identifier BLACK_TEXTURE = Identifier.parse("mtr:textures/block/black.png");
 
 	public RenderLiftButtons(BlockEntityRenderDispatcher dispatcher) {
 		super(dispatcher);
 	}
 
 	@Override
-	public void render(BlockLiftButtons.TileEntityLiftButtons entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+	public void render(BlockLiftButtons.TileEntityLiftButtons entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
 		final Level world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -133,7 +133,7 @@ public class RenderLiftButtons extends BlockEntityRendererMapper<BlockLiftButton
 		matrices.popPose();
 	}
 
-	public static void renderLiftObjectLink(PoseStack matrices, MultiBufferSource vertexConsumers, Level world, BlockPos pos, BlockPos trackPosition, Direction facing, boolean holdingLinker) {
+	public static void renderLiftObjectLink(PoseStack matrices, RenderBufferSource vertexConsumers, Level world, BlockPos pos, BlockPos trackPosition, Direction facing, boolean holdingLinker) {
 		if (holdingLinker) {
 			final Direction trackFacing = IBlock.getStatePropertySafe(world, trackPosition, HorizontalDirectionalBlock.FACING);
 			IDrawing.drawLine(matrices, vertexConsumers, trackPosition.getX() - pos.getX() + trackFacing.getStepX() / 2F, trackPosition.getY() - pos.getY() + 0.5F, trackPosition.getZ() - pos.getZ() + trackFacing.getStepZ() / 2F, facing.getStepX() / 2F, 0.25F, facing.getStepZ() / 2F, 0xFF, 0xFF, 0xFF);

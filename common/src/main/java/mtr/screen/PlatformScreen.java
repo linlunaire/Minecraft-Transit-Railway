@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.data.Platform;
@@ -8,7 +8,7 @@ import mtr.mappings.Text;
 import mtr.mappings.UtilitiesClient;
 import mtr.packet.PacketTrainDataGuiClient;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class PlatformScreen extends SavedRailScreenBase<Platform> {
 
@@ -26,11 +26,11 @@ public class PlatformScreen extends SavedRailScreenBase<Platform> {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
+	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
+		final var matrices = guiGraphics.pose();
 		super.render(guiGraphics, mouseX, mouseY, delta);
 		if (showScheduleControls) {
-			guiGraphics.drawString(font, DWELL_TIME_TEXT, SQUARE_SIZE, SQUARE_SIZE * 2 + TEXT_FIELD_PADDING + TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.text(font, DWELL_TIME_TEXT, SQUARE_SIZE, SQUARE_SIZE * 2 + TEXT_FIELD_PADDING + TEXT_PADDING, ARGB_WHITE);
 		}
 	}
 
@@ -48,7 +48,7 @@ public class PlatformScreen extends SavedRailScreenBase<Platform> {
 	}
 
 	@Override
-	protected ResourceLocation getPacketIdentifier() {
+	protected Identifier getPacketIdentifier() {
 		return PACKET_UPDATE_PLATFORM;
 	}
 }

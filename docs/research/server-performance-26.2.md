@@ -18,14 +18,14 @@ ANTE 的实际服务端模拟入口由 `onSimulateTrain` 替换，走自己的 `
 
 ## 可复现检查
 
-使用仓库版本选择入口与 JDK 25；先构建 MTR，再构建引用其产物的 ANTE。保留完整构建输出。
+使用 JDK 25；先构建 MTR，再构建引用其产物的 ANTE。两者的 master 均仅构建 26.2，保留完整构建输出。
 
 ```powershell
 # 在 MTR 仓库；JAVA_HOME 应指向 JDK 25
-.\gradlew.bat build '-Version=26.2'
+.\gradlew.bat build
 
-# 在 ANTE 仓库，使用其相同的版本选择入口
-.\gradlew.bat build '-Version=26.2'
+# 在 ANTE 仓库
+.\gradlew.bat build
 ```
 
 `checkSaveQueueCompatibility` 对编译后的 26.2 存档模块进行回归，包含队列行为与失败保旧文件检查；纯集合工作量对比不是文件系统或多人服务器压测。保存测试仅使用临时目录，不触碰玩家存档。

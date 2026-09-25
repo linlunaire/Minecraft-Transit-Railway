@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public abstract class BlockMapper extends Block {
 
 	public BlockMapper(Properties properties) {
-		super(properties);
+		super(RegistrationContext.blockProperties(properties));
 	}
 
 	@Override
