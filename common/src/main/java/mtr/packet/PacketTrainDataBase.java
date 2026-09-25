@@ -21,24 +21,29 @@ public abstract class PacketTrainDataBase implements IPacket {
 		final String key = packet.readUtf(SerializedDataBase.PACKET_STRING_READ_LENGTH);
 		final FriendlyByteBuf packetCopy = new FriendlyByteBuf(packet.copy());
 		minecraft.execute(() -> {
-			final T data = cacheMap.get(id);
-			if (data == null) {
-				if (createDataWithId != null) {
-					final T newData = createDataWithId.apply(id, transportMode);
-					dataSet.add(newData);
-					newData.update(key, packetCopy);
+			try {
+				final T data = cacheMap.get(id);
+				if (data == null) {
+					if (createDataWithId != null) {
+						final T newData = createDataWithId.apply(id, transportMode);
+						dataSet.add(newData);
+						newData.update(key, packetCopy);
+						if (dataCallback != null) {
+							dataCallback.accept(newData, new ArrayList<>());
+						}
+					}
+				} else {
+					final List<String> oldData = dataCallback == null ? new ArrayList<>() : RailwayDataLoggingModule.getData(data);
+					data.update(key, packetCopy);
 					if (dataCallback != null) {
-						dataCallback.accept(newData, new ArrayList<>());
+						dataCallback.accept(data, oldData);
 					}
 				}
-			} else {
-				final List<String> oldData = dataCallback == null ? new ArrayList<>() : RailwayDataLoggingModule.getData(data);
-				data.update(key, packetCopy);
-				if (dataCallback != null) {
-					dataCallback.accept(data, oldData);
-				}
+				packetCallback.packetCallback(packetCopy, packetFullCopy);
+			} finally {
+				packetCopy.release();
+				packetFullCopy.release();
 			}
-			packetCallback.packetCallback(packetCopy, packetFullCopy);
 		});
 	}
 
@@ -46,14 +51,18 @@ public abstract class PacketTrainDataBase implements IPacket {
 		final FriendlyByteBuf packetFullCopy = new FriendlyByteBuf(packet.copy());
 		final long id = packet.readLong();
 		minecraft.execute(() -> {
-			final T data = cacheMap.get(id);
-			if (data != null) {
-				if (dataCallback != null) {
-					dataCallback.accept(data);
+			try {
+				final T data = cacheMap.get(id);
+				if (data != null) {
+					if (dataCallback != null) {
+						dataCallback.accept(data);
+					}
+					dataSet.remove(data);
 				}
-				dataSet.remove(data);
+				packetCallback.packetCallback(null, packetFullCopy);
+			} finally {
+				packetFullCopy.release();
 			}
-			packetCallback.packetCallback(null, packetFullCopy);
 		});
 	}
 

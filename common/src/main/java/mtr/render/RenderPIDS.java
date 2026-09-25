@@ -129,6 +129,10 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 		}
 
 		final MatrixStackHolder matrixStackHolder = new MatrixStackHolder(matrices);
+		final Font textRenderer = Minecraft.getInstance().font;
+		final double gameTick = MTRClient.getGameTick();
+		final int languageTicks = (int) Math.floor(gameTick) / SWITCH_LANGUAGE_TICKS;
+		final long currentTimeMillis = System.currentTimeMillis();
 
 		try {
 			final Map<Long, String> platformIdToName = new HashMap<>();
@@ -162,21 +166,25 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 			}
 
 			final int displayPageOffset = entity instanceof IPIDSRenderChild ? ((IPIDSRenderChild) entity).getDisplayPage() * maxArrivals : 0;
+			final float newDestinationMaxWidth = destinationMaxWidth - (!renderClassic ? 0 : carLengthMaxWidth);
 
 			// Loop through all lines
 			for (int j = 0; j < maxArrivals; j++) {
 				int arrivalLine;
 				// Get current schedule
-				final int languageTicks = (int) Math.floor(MTRClient.getGameTick()) / SWITCH_LANGUAGE_TICKS;
 				final ScheduleEntry currentSchedule = j + displayPageOffset < scheduleList.size() ? scheduleList.get(j + displayPageOffset) : null;
 				final Route route = currentSchedule == null ? null : ClientData.DATA_CACHE.routeIdMap.get(currentSchedule.routeId);
+				final String[] destinationSplit = route == null ? null : ClientData.DATA_CACHE.getFormattedRouteDestination(route, currentSchedule.currentStationIndex, "").split("\\|");
+				final String[] routeNumberSplit = route == null ? null : route.lightRailRouteNumber.split("\\|");
+				final boolean isLightRailRoute = route != null && route.isLightRailRoute;
+				final List<Route.RoutePlatform> stations = route == null ? null : route.platformIds.subList(currentSchedule.currentStationIndex + 1, route.platformIds.size());
+				final int callingAtMaxPages = stations == null || !renderSingle ? 1 : (int) Math.max(Math.ceil(stations.size() / (float) STATIONS_PER_PAGE), 1);
+				final int callingAtPage = callingAtMaxPages == 1 ? 0 : (int) Math.floor(gameTick / SWITCH_PAGE_TICKS) % callingAtMaxPages;
+				final int seconds = currentSchedule == null ? 0 : (int) ((currentSchedule.arrivalMillis - currentTimeMillis) / 1000);
 
 				final boolean isCJK;
 				// Check if there is a custom message (to determine CJK translations)
 				if (j < scheduleList.size() && !hideArrival[j] && route != null) {
-					final String[] destinationSplit = ClientData.DATA_CACHE.getFormattedRouteDestination(route, currentSchedule.currentStationIndex, "").split("\\|");
-					final boolean isLightRailRoute = route.isLightRailRoute;
-					final String[] routeNumberSplit = route.lightRailRouteNumber.split("\\|");
 					final String checkString;
 					if (customMessages[j * linesPerArrival].isEmpty()) {
 						checkString = (isLightRailRoute ? routeNumberSplit[languageTicks % routeNumberSplit.length] + " " : "") + IGui.textOrUntitled(destinationSplit[languageTicks % destinationSplit.length]);
@@ -204,17 +212,8 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 					final String destinationString;
 					final boolean useCustomMessage;
 
-					// Get current schedule
-					final List<Route.RoutePlatform> stations = route == null ? null : route.platformIds.subList(currentSchedule.currentStationIndex + 1, route.platformIds.size());
-					final int callingAtMaxPages = stations == null || !renderSingle ? 1 : (int) Math.max(Math.ceil(stations.size() / (float) STATIONS_PER_PAGE), 1);
-					final int callingAtPage = callingAtMaxPages == 1 ? 0 : (int) Math.floor(MTRClient.getGameTick() / (float) SWITCH_PAGE_TICKS) % callingAtMaxPages;
-
 					// Check if arrival number exists
 					if (arrivalNum < scheduleList.size() && !hideArrival[arrivalNum] && route != null) {
-						final String[] destinationSplit = ClientData.DATA_CACHE.getFormattedRouteDestination(route, currentSchedule.currentStationIndex, "").split("\\|");
-						final boolean isLightRailRoute = route.isLightRailRoute;
-						final String[] routeNumberSplit = route.lightRailRouteNumber.split("\\|");
-
 						// Check if there is a custom message to be shown
 						if (customMessages[i].isEmpty()) {
 							if ((arrivalLine == 0 && !renderSingle) || (arrivalLine == 1 && renderSingle)) {
@@ -241,8 +240,8 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 							}
 						}
 					} else {
-						final String[] destinationSplit = customMessages[i].split("\\|");
-						destinationString = destinationSplit[languageTicks % destinationSplit.length];
+						final String[] customDestinationSplit = customMessages[i].split("\\|");
+						destinationString = customDestinationSplit[languageTicks % customDestinationSplit.length];
 						useCustomMessage = true;
 					}
 
@@ -253,9 +252,6 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 					UtilitiesClient.rotateZDegrees(matrices, 180);
 					matrices.translate((startX - 8) / 16, -startY / 16 + (i / (float) linesPerArrival) * maxHeight / maxArrivals / 16, (startZ - 8) / 16 - SMALL_OFFSET * 2);
 					matrices.scale(1F / scale, 1F / scale, 1F / scale);
-
-					// Get text renderer
-					final Font textRenderer = Minecraft.getInstance().font;
 
 					if (useCustomMessage) {
 						// Render custom message
@@ -268,7 +264,6 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 						// Render arrival
 						final Component arrivalText;
 						// Get arrival time
-						final int seconds = (int) ((currentSchedule.arrivalMillis - System.currentTimeMillis()) / 1000);
 						if (seconds >= 60) {
 							if ((arrivalLine == 1 && renderVertical) || (arrivalLine == 0 && renderSingle) || renderClassic) {
 								arrivalText = Text.translatable(isCJK ? "gui.mtr.arrival_min_cjk" : "gui.mtr.arrival_min", seconds / 60).append(appendDotAfterMin && !isCJK ? "." : "");
@@ -325,8 +320,6 @@ public class RenderPIDS<T extends BlockEntityMapper> extends BlockEntityRenderer
 						if (renderArrivalNumber) {
 							drawText(textRenderer, String.valueOf(i + 1), matrices, vertexConsumers, light, seconds > 0 ? textColor : firstTrainColor);
 						}
-
-						final float newDestinationMaxWidth = destinationMaxWidth - (!renderClassic ? 0 : carLengthMaxWidth);
 
 						// Render platform number
 						if (renderType.showPlatformNumber && ((arrivalLine == 0 && renderSingle) || renderClassic)) {

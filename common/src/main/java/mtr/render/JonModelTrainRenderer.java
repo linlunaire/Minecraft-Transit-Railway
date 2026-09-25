@@ -2,6 +2,7 @@ package mtr.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import mtr.MTRClient;
 import mtr.client.TrainClientRegistry;
 import mtr.client.TrainProperties;
@@ -43,7 +44,8 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 
 	private static final EntityModel<Minecart> MODEL_MINECART = UtilitiesClient.getMinecartModel();
 	private static final EntityModel<Boat> MODEL_BOAT = UtilitiesClient.getBoatModel();
-	private static final Map<Long, FakeBoat> BOATS = new HashMap<>();
+	private static final Long2ObjectOpenHashMap<FakeBoat> BOATS = new Long2ObjectOpenHashMap<>();
+	private static final Map<String, ResourceLocation> TEXTURE_LOCATIONS = new HashMap<>();
 	private static final ModelCableCarGrip MODEL_CABLE_CAR_GRIP = new ModelCableCarGrip();
 	private static final ModelBogie MODEL_BOGIE = new ModelBogie();
 
@@ -72,7 +74,7 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 		final boolean hasPitch = pitch < 0 ? train.transportMode.hasPitchAscending : train.transportMode.hasPitchDescending;
 
 		final String trainId = train.trainId;
-		final TrainProperties trainProperties = TrainClientRegistry.getTrainProperties(trainId);
+		final TrainProperties trainProperties = train.getTrainProperties();
 
 		if (model == null && isTranslucentBatch) {
 			return;
@@ -100,10 +102,12 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 			final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(model.renderType(resolveTexture(textureId, textureId -> textureId + ".png")));
 
 			if (isBoat) {
-				if (!BOATS.containsKey(train.id)) {
-					BOATS.put(train.id, new FakeBoat());
+				FakeBoat boat = BOATS.get(train.id);
+				if (boat == null) {
+					boat = new FakeBoat();
+					BOATS.put(train.id, boat);
 				}
-				MODEL_BOAT.setupAnim(BOATS.get(train.id), (train.getSpeed() + Train.ACCELERATION_DEFAULT) * (doorLeftValue == 0 && doorRightValue == 0 ? lastFrameDuration : 0), 0, -0.1F, 0, 0);
+				MODEL_BOAT.setupAnim(boat, (train.getSpeed() + Train.ACCELERATION_DEFAULT) * (doorLeftValue == 0 && doorRightValue == 0 ? lastFrameDuration : 0), 0, -0.1F, 0, 0);
 			} else {
 				model.setupAnim(null, 0, 0, -0.1F, 0, 0);
 			}
@@ -142,6 +146,18 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 		matrices.popPose();
 	}
 
+	public static void removeTrainFromCache(long trainId) {
+		BOATS.remove(trainId);
+	}
+
+	public static void clearTrainCache() {
+		BOATS.clear();
+	}
+
+	public static void clearTextureCache() {
+		TEXTURE_LOCATIONS.clear();
+	}
+
 	@Override
 	public void renderConnection(Vec3 prevPos1, Vec3 prevPos2, Vec3 prevPos3, Vec3 prevPos4, Vec3 thisPos1, Vec3 thisPos2, Vec3 thisPos3, Vec3 thisPos4, double x, double y, double z, float yaw, float pitch) {
 		final BlockPos posAverage = applyAverageTransform(train.getViewOffset(), x, y, z);
@@ -149,8 +165,7 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 			return;
 		}
 
-		final String trainId = train.trainId;
-		final TrainProperties trainProperties = TrainClientRegistry.getTrainProperties(trainId);
+		final TrainProperties trainProperties = train.getTrainProperties();
 
 		final int light = LightTexture.pack(world.getBrightness(LightLayer.BLOCK, posAverage), world.getBrightness(LightLayer.SKY, posAverage));
 
@@ -205,29 +220,35 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 
 	public ResourceLocation resolveTexture(String textureId, Function<String, String> formatter) {
 		final String textureString = formatter.apply(textureId);
-		final ResourceLocation id = ResourceLocation.parse(textureString);
+		final ResourceLocation id = getTextureLocation(textureString);
 		final boolean available;
 
-		if (!RenderTrains.AVAILABLE_TEXTURES.contains(textureString) && !RenderTrains.UNAVAILABLE_TEXTURES.contains(textureString)) {
+		if (RenderTrains.AVAILABLE_TEXTURES.contains(textureString)) {
+			available = true;
+		} else if (RenderTrains.UNAVAILABLE_TEXTURES.contains(textureString)) {
+			available = false;
+		} else {
 			available = UtilitiesClient.hasResource(id);
 			(available ? RenderTrains.AVAILABLE_TEXTURES : RenderTrains.UNAVAILABLE_TEXTURES).add(textureString);
 			if (!available) {
 				System.out.println("Texture " + textureString + " not found, using default");
 			}
-		} else {
-			available = RenderTrains.AVAILABLE_TEXTURES.contains(textureString);
 		}
 
 		if (available) {
 			return id;
 		} else {
 			final TrainRendererBase baseRenderer = TrainClientRegistry.getTrainProperties(train.baseTrainType).renderer;
-			return ResourceLocation.parse((!(baseRenderer instanceof JonModelTrainRenderer) ? "mtr:textures/block/transparent.png" : formatter.apply(((JonModelTrainRenderer) baseRenderer).textureId)));
+			return getTextureLocation(!(baseRenderer instanceof JonModelTrainRenderer) ? "mtr:textures/block/transparent.png" : formatter.apply(((JonModelTrainRenderer) baseRenderer).textureId));
 		}
 	}
 
 	private ResourceLocation getConnectorTextureString(boolean isConnector, String partName) {
-		return resolveTexture(isConnector ? gangwayConnectionId : trainBarrierId, textureId -> String.format("%s_%s_%s.png", textureId, isConnector ? "connector" : "barrier", partName));
+		return resolveTexture(isConnector ? gangwayConnectionId : trainBarrierId, textureId -> textureId + "_" + (isConnector ? "connector" : "barrier") + "_" + partName + ".png");
+	}
+
+	private static ResourceLocation getTextureLocation(String texture) {
+		return TEXTURE_LOCATIONS.computeIfAbsent(texture, ResourceLocation::parse);
 	}
 
 	private static void drawTexture(PoseStack matrices, VertexConsumer vertexConsumer, Vec3 pos1, Vec3 pos2, Vec3 pos3, Vec3 pos4, int light) {

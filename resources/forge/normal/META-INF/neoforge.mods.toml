@@ -16,20 +16,20 @@ config = "mtr.mixins.json"
 [[dependencies.mtr]]
 modId = "neoforge"
 mandatory = true
-versionRange = "[21.1,)"
+versionRange = "[21.1.248,21.2)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.mtr]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.21.1,)"
+versionRange = "[1.21.1]"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.mtr]]
 modId = "architectury"
 mandatory = true
-versionRange = "[13,)"
+versionRange = "[13.0.11,14)"
 ordering = "AFTER"
 side = "BOTH"

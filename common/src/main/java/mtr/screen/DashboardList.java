@@ -1,8 +1,5 @@
 package mtr.screen;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.Tesselator;
 import mtr.client.ClientData;
 import mtr.client.IDrawing;
 import mtr.data.IGui;
@@ -50,9 +47,17 @@ public class DashboardList implements IGui {
 	private final Supplier<String> getSearch;
 	private final Consumer<String> setSearch;
 
-	private List<NameColorDataBase> dataSorted = new ArrayList<>();
-	private final Map<Integer, NameColorDataBase> dataFiltered = new HashMap<>();
+	private final List<NameColorDataBase> dataSorted = new ArrayList<>();
+	private final List<NameColorDataBase> dataFiltered = new ArrayList<>();
+	private final List<Integer> dataFilteredIndices = new ArrayList<>();
+	private final List<String> dataFilteredNames = new ArrayList<>();
+	private final List<String> dataNames = new ArrayList<>();
 	private int hoverIndex, page, totalPages;
+	private int lastItemsToShow = -1;
+	private int lastX = Integer.MIN_VALUE;
+	private String lastSearch = "";
+	private String pageText = "1/1";
+	private boolean filterDirty = true;
 
 	private boolean hasFind;
 	private boolean hasDrawArea;
@@ -119,31 +124,91 @@ public class DashboardList implements IGui {
 	}
 
 	public void tick() {
-		UtilitiesClient.setWidgetX(buttonPrevPage, x);
-		UtilitiesClient.setWidgetX(buttonNextPage, x + SQUARE_SIZE * 3);
-		UtilitiesClient.setWidgetX(textFieldSearch, x + SQUARE_SIZE * 4 + TEXT_FIELD_PADDING / 2);
+		if (lastX != x) {
+			lastX = x;
+			UtilitiesClient.setWidgetX(buttonPrevPage, x);
+			UtilitiesClient.setWidgetX(buttonNextPage, x + SQUARE_SIZE * 3);
+			UtilitiesClient.setWidgetX(textFieldSearch, x + SQUARE_SIZE * 4 + TEXT_FIELD_PADDING / 2);
+		}
 
 		final String text = textFieldSearch.getValue();
-		dataFiltered.clear();
-		for (int i = 0; i < dataSorted.size(); i++) {
-			if (dataSorted.get(i).name.toLowerCase(Locale.ENGLISH).contains(text.toLowerCase(Locale.ENGLISH))) {
-				dataFiltered.put(i, dataSorted.get(i));
+		boolean namesChanged = dataNames.size() != dataSorted.size();
+		if (!namesChanged) {
+			for (int i = 0; i < dataSorted.size(); i++) {
+				if (!Objects.equals(dataNames.get(i), dataSorted.get(i).name)) {
+					namesChanged = true;
+					break;
+				}
 			}
 		}
 
-		final int dataSize = dataFiltered.size();
-		totalPages = dataSize == 0 ? 1 : (int) Math.ceil((double) dataSize / itemsToShow());
-		setPage(page);
+		final boolean filterChanged = filterDirty || namesChanged || !lastSearch.equals(text);
+		if (filterChanged) {
+			filterDirty = false;
+			lastSearch = text;
+			dataFiltered.clear();
+			dataFilteredIndices.clear();
+			dataFilteredNames.clear();
+			dataNames.clear();
+			final String searchText = text.toLowerCase(Locale.ENGLISH);
+			for (int i = 0; i < dataSorted.size(); i++) {
+				final NameColorDataBase data = dataSorted.get(i);
+				dataNames.add(data.name);
+				if (data.name.toLowerCase(Locale.ENGLISH).contains(searchText)) {
+					dataFiltered.add(data);
+					dataFilteredIndices.add(i);
+					dataFilteredNames.add(IGui.formatStationName(data.name));
+				}
+			}
+		}
+
+		final int itemsToShow = itemsToShow();
+		if (lastItemsToShow != itemsToShow || filterChanged) {
+			lastItemsToShow = itemsToShow;
+			final int dataSize = dataFiltered.size();
+			totalPages = dataSize == 0 ? 1 : (dataSize + itemsToShow - 1) / itemsToShow;
+			setPage(page);
+		}
 	}
 
 	public void setData(Set<? extends NameColorDataBase> dataSet, boolean hasFind, boolean hasDrawArea, boolean hasEdit, boolean hasSort, boolean hasAdd, boolean hasDelete) {
-		List<? extends NameColorDataBase> dataList = new ArrayList<>(dataSet);
-		Collections.sort(dataList);
-		setData(dataList, hasFind, hasDrawArea, hasEdit, hasSort, hasAdd, hasDelete);
+		boolean isSameData = dataSorted.size() == dataSet.size() && dataSet.containsAll(dataSorted);
+		if (isSameData) {
+			for (int i = 1; i < dataSorted.size(); i++) {
+				if (dataSorted.get(i - 1).compareTo(dataSorted.get(i)) > 0) {
+					isSameData = false;
+					break;
+				}
+			}
+		}
+		if (!isSameData) {
+			dataSorted.clear();
+			dataSorted.addAll(dataSet);
+			Collections.sort(dataSorted);
+			filterDirty = true;
+		}
+		setCapabilities(hasFind, hasDrawArea, hasEdit, hasSort, hasAdd, hasDelete);
 	}
 
 	public void setData(List<? extends NameColorDataBase> dataList, boolean hasFind, boolean hasDrawArea, boolean hasEdit, boolean hasSort, boolean hasAdd, boolean hasDelete) {
-		dataSorted = new ArrayList<>(dataList);
+		boolean isSameData = dataSorted.size() == dataList.size();
+		if (isSameData) {
+			for (int i = 0; i < dataSorted.size(); i++) {
+				if (dataSorted.get(i) != dataList.get(i)) {
+					isSameData = false;
+					break;
+				}
+			}
+		}
+		if (!isSameData) {
+			dataSorted.clear();
+			dataSorted.addAll(dataList);
+			filterDirty = true;
+		}
+		setCapabilities(hasFind, hasDrawArea, hasEdit, hasSort, hasAdd, hasDelete);
+	}
+
+	private void setCapabilities(boolean hasFind, boolean hasDrawArea, boolean hasEdit, boolean hasSort, boolean hasAdd, boolean hasDelete) {
 		this.hasFind = hasFind;
 		final boolean hasPermission = ClientData.hasPermission();
 		this.hasDrawArea = hasPermission && hasDrawArea;
@@ -154,23 +219,18 @@ public class DashboardList implements IGui {
 	}
 
 	public void render(GuiGraphics guiGraphics, Font textRenderer) {
-		guiGraphics.drawCenteredString(textRenderer, String.format("%s/%s", page + 1, totalPages), x + SQUARE_SIZE * 2, y + TEXT_PADDING + TEXT_FIELD_PADDING / 2, ARGB_WHITE);
+		guiGraphics.drawCenteredString(textRenderer, pageText, x + SQUARE_SIZE * 2, y + TEXT_PADDING + TEXT_FIELD_PADDING / 2, ARGB_WHITE);
 		final int itemsToShow = itemsToShow();
-		for (int i = 0; i < itemsToShow; i++) {
-			if (i + itemsToShow * page < dataFiltered.size()) {
+		final int firstItem = itemsToShow * page;
+		final int endItem = Math.min(firstItem + itemsToShow, dataFiltered.size());
+		for (int itemIndex = firstItem; itemIndex < endItem; itemIndex++) {
+			final int i = itemIndex - firstItem;
 				final int drawY = SQUARE_SIZE * i + TEXT_PADDING + TOP_OFFSET;
-				final List<Integer> sortedKeys = new ArrayList<>(dataFiltered.keySet());
-				Collections.sort(sortedKeys);
-				final NameColorDataBase data = dataFiltered.get(sortedKeys.get(i + itemsToShow * page));
+				final NameColorDataBase data = dataFiltered.get(itemIndex);
 
-				Tesselator tesselator = Tesselator.getInstance();
-				BufferBuilder buffer = tesselator.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
-				UtilitiesClient.beginDrawingRectangle(buffer);
-				IDrawing.drawRectangle(buffer, x + TEXT_PADDING, y + drawY, x + TEXT_PADDING + TEXT_HEIGHT, y + drawY + TEXT_HEIGHT, ARGB_BLACK | data.color);
-				BufferUploader.drawWithShader(buffer.buildOrThrow());
-				UtilitiesClient.finishDrawingRectangle();
+				guiGraphics.fill(x + TEXT_PADDING, y + drawY, x + TEXT_PADDING + TEXT_HEIGHT, y + drawY + TEXT_HEIGHT, ARGB_BLACK | data.color);
 
-				final String drawString = IGui.formatStationName(data.name);
+				final String drawString = dataFilteredNames.get(itemIndex);
 				final int textStart = TEXT_PADDING * 2 + TEXT_HEIGHT;
 				final int textWidth = textRenderer.width(drawString);
 				final int availableSpace = width - textStart;
@@ -181,7 +241,6 @@ public class DashboardList implements IGui {
 				}
 				guiGraphics.drawString(textRenderer, drawString, 0, y + drawY, ARGB_WHITE);
 				guiGraphics.pose().popPose();
-			}
 		}
 	}
 
@@ -234,11 +293,9 @@ public class DashboardList implements IGui {
 	}
 
 	public int getHoverItemIndex() {
-		final List<Integer> sortedKeys = new ArrayList<>(dataFiltered.keySet());
-		Collections.sort(sortedKeys);
 		final int sortedIndex = hoverIndex + itemsToShow() * page;
-		if (sortedIndex >= 0 && sortedIndex < sortedKeys.size()) {
-			return sortedKeys.get(sortedIndex);
+		if (sortedIndex >= 0 && sortedIndex < dataFilteredIndices.size()) {
+			return dataFilteredIndices.get(sortedIndex);
 		} else {
 			return -1;
 		}
@@ -246,6 +303,7 @@ public class DashboardList implements IGui {
 
 	private void setPage(int newPage) {
 		page = Mth.clamp(newPage, 0, totalPages - 1);
+		pageText = (page + 1) + "/" + totalPages;
 		buttonPrevPage.visible = page > 0;
 		buttonNextPage.visible = page < totalPages - 1;
 	}

@@ -33,6 +33,7 @@ public abstract class TrainRendererBase {
 	protected static boolean isTranslucentBatch;
 
 	private static Entity cameraEntity;
+	private static int trainRenderDistance;
 	private static boolean hasEntity;
 	private static double entityX;
 	private static double entityY;
@@ -72,6 +73,7 @@ public abstract class TrainRendererBase {
 		TrainRendererBase.matrices = matrices;
 		TrainRendererBase.vertexConsumers = vertexConsumers;
 		cameraEntity = client.cameraEntity;
+		trainRenderDistance = UtilitiesClient.getRenderDistance() * (Config.trainRenderDistanceRatio() + 1);
 		hasEntity = entity != null;
 		entityX = hasEntity ? Mth.lerp(tickDelta, entity.xOld, entity.getX()) : 0;
 		entityY = hasEntity ? Mth.lerp(tickDelta, entity.yOld, entity.getY()) : 0;
@@ -88,7 +90,7 @@ public abstract class TrainRendererBase {
 		final Vec3 cameraPos = cameraEntity == null ? null : cameraEntity.position();
 		final BlockPos posAverage = RailwayData.newBlockPos(x + (noOffset || cameraPos == null ? 0 : cameraPos.x), y + (noOffset || cameraPos == null ? 0 : cameraPos.y), z + (noOffset || cameraPos == null ? 0 : cameraPos.z));
 
-		if (RenderTrains.shouldNotRender(posAverage, UtilitiesClient.getRenderDistance() * (Config.trainRenderDistanceRatio() + 1), null)) {
+		if (RenderTrains.shouldNotRender(cameraPos, posAverage, trainRenderDistance, null)) {
 			return null;
 		}
 
@@ -114,5 +116,12 @@ public abstract class TrainRendererBase {
 		}
 
 		return posAverage;
+	}
+
+	public static boolean isPositionVisible(Vec3 viewOffset, double x, double y, double z) {
+		final boolean noOffset = viewOffset == null;
+		final Vec3 cameraPos = cameraEntity == null ? null : cameraEntity.position();
+		final BlockPos posAverage = RailwayData.newBlockPos(x + (noOffset || cameraPos == null ? 0 : cameraPos.x), y + (noOffset || cameraPos == null ? 0 : cameraPos.y), z + (noOffset || cameraPos == null ? 0 : cameraPos.z));
+		return !RenderTrains.shouldNotRender(cameraPos, posAverage, trainRenderDistance, null);
 	}
 }

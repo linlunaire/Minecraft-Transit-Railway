@@ -1,6 +1,6 @@
-# Minecraft Transit Railway beta（Minecraft 1.21.1）
+# Minecraft Transit Railway 3.3.2（Minecraft 1.21.1）
 
-这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植测试版。
+这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植版。本 tag 保留 Java 21 / Gradle 8.14.5 构建基线；后续 26.2 工作在 master 延续。
 
 MTR 以香港 MTR、伦敦地铁和纽约地铁为灵感，提供自动列车、轨道、车站、PIDS、缆车、船只与飞机等内容，用于建设可实际运行的交通网络。
 

@@ -23,14 +23,28 @@ public class LiftServer extends Lift {
 	}
 
 	public void tickServer(Level world, Map<Player, Set<LiftServer>> liftsInPlayerRange, Set<LiftServer> liftsToSync) {
-		floors.forEach(floor -> world.players().forEach(player -> {
-			if (ridingEntities.contains(player.getUUID()) || player.blockPosition().distManhattan(floor) < LIFT_UPDATE_DISTANCE) {
-				if (!liftsInPlayerRange.containsKey(player)) {
-					liftsInPlayerRange.put(player, new HashSet<>());
+		if (!floors.isEmpty()) {
+			for (final Player player : world.players()) {
+				boolean inRange = ridingEntities.contains(player.getUUID());
+				if (!inRange) {
+					final BlockPos playerPos = player.blockPosition();
+					for (final BlockPos floor : floors) {
+						if (playerPos.distManhattan(floor) < LIFT_UPDATE_DISTANCE) {
+							inRange = true;
+							break;
+						}
+					}
 				}
-				liftsInPlayerRange.get(player).add(this);
+				if (inRange) {
+					Set<LiftServer> lifts = liftsInPlayerRange.get(player);
+					if (lifts == null) {
+						lifts = new HashSet<>();
+						liftsInPlayerRange.put(player, lifts);
+					}
+					lifts.add(this);
+				}
 			}
-		}));
+		}
 
 		tick(world, 1);
 

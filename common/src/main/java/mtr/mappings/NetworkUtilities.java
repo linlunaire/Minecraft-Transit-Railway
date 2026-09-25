@@ -12,8 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public interface NetworkUtilities {
 
@@ -35,9 +34,20 @@ public interface NetworkUtilities {
 	}
 
 	static void sendToPlayer(ServerPlayer player, ResourceLocation id, FriendlyByteBuf packet) {
-		packet.resetReaderIndex();
-		final PayloadType payloadType = getPayloadType(getS2CId(id));
-		NetworkManager.sendToPlayer(player, new RawPayload(payloadType.type, getBytes(packet)));
+		NetworkManager.sendToPlayer(player, createPayload(id, packet));
+	}
+
+	static void sendToPlayers(Iterable<? extends Player> players, Player excludedPlayer, ResourceLocation id, FriendlyByteBuf packet) {
+		final UUID excludedPlayerId = excludedPlayer == null ? null : excludedPlayer.getUUID();
+		final List<ServerPlayer> playersToSend = new ArrayList<>();
+		for (final Player player : players) {
+			if (excludedPlayerId == null || !player.getUUID().equals(excludedPlayerId)) {
+				playersToSend.add((ServerPlayer) player);
+			}
+		}
+		if (!playersToSend.isEmpty()) {
+			NetworkManager.sendToPlayers(playersToSend, createPayload(id, packet));
+		}
 	}
 
 	static void sendToServer(ResourceLocation id, FriendlyByteBuf packet) {
@@ -47,6 +57,12 @@ public interface NetworkUtilities {
 
 	private static PayloadType getPayloadType(ResourceLocation id) {
 		return PAYLOAD_TYPES.computeIfAbsent(id, PayloadType::new);
+	}
+
+	private static RawPayload createPayload(ResourceLocation id, FriendlyByteBuf packet) {
+		packet.resetReaderIndex();
+		final PayloadType payloadType = getPayloadType(getS2CId(id));
+		return new RawPayload(payloadType.type, getBytes(packet));
 	}
 
 	private static byte[] getBytes(FriendlyByteBuf packet) {

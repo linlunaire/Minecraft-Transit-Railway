@@ -31,6 +31,7 @@ public class VehicleRidingClient {
 	private float lastSentTicks;
 	private int interval;
 	private int previousInterval;
+	private boolean ridersRendered;
 
 	private final List<Double> offset = new ArrayList<>();
 	private final Map<UUID, Float> percentagesX = new HashMap<>();
@@ -59,13 +60,17 @@ public class VehicleRidingClient {
 		}
 
 		final boolean noOffset = offset.isEmpty();
-		riderPositions.forEach((uuid, position) -> {
-			if (noOffset) {
-				TrainRendererBase.renderRidingPlayer(getViewOffset(), uuid, position);
-			} else {
-				TrainRendererBase.renderRidingPlayer(getViewOffset(), uuid, position.subtract(offset.get(0), offset.get(1), offset.get(2)));
-			}
-		});
+		if (!ridersRendered) {
+			ridersRendered = true;
+			final Vec3 viewOffset = getViewOffset();
+			riderPositions.forEach((uuid, position) -> {
+				if (noOffset) {
+					TrainRendererBase.renderRidingPlayer(viewOffset, uuid, position);
+				} else {
+					TrainRendererBase.renderRidingPlayer(viewOffset, uuid, position.subtract(offset.get(0), offset.get(1), offset.get(2)));
+				}
+			});
+		}
 
 		if (noOffset) {
 			return Vec3.ZERO;
@@ -218,6 +223,7 @@ public class VehicleRidingClient {
 	}
 
 	public void begin() {
+		ridersRendered = false;
 		interval = (int) Math.floor(MTRClient.getGameTick() / VEHICLE_PERCENTAGE_UPDATE_INTERVAL);
 	}
 

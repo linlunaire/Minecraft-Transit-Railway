@@ -12,7 +12,9 @@ import mtr.model.ModelDoorOverlay;
 import mtr.model.ModelDoorOverlayTopBase;
 import mtr.model.ModelSimpleTrainBase;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
@@ -20,8 +22,19 @@ import java.util.function.Function;
 public class DynamicTrainModelLegacy extends ModelSimpleTrainBase<DynamicTrainModelLegacy> implements IResourcePackCreatorProperties {
 
 	private final Map<String, ModelMapper> parts = new HashMap<>();
+	private final Map<String, LegacyRenderPlan> renderPlans = new HashMap<>();
 	private final JsonObject properties;
 	private final int doorMax;
+	private final int[] windowPositions = {0};
+	private final int[] doorPositions = {0};
+	private final int[] endPositions = {0, 0};
+
+	private static final String[] RENDER_CATEGORIES = {
+			"parts_normal", "parts_door_opened", "parts_door_closed",
+			"parts_head_1", "parts_head_1_headlights", "parts_head_1_tail_lights",
+			"parts_head_2", "parts_head_2_headlights", "parts_head_2_tail_lights",
+			"parts_end_1", "parts_end_2"
+	};
 
 	public DynamicTrainModelLegacy(JsonObject model, JsonObject properties, DoorAnimationType doorAnimationType) {
 		super(doorAnimationType, false);
@@ -83,6 +96,9 @@ public class DynamicTrainModelLegacy extends ModelSimpleTrainBase<DynamicTrainMo
 
 		this.properties = properties;
 		doorMax = getOrDefault(properties, KEY_PROPERTIES_DOOR_MAX, 14, JsonElement::getAsInt);
+		for (final String category : RENDER_CATEGORIES) {
+			renderPlans.put(category, compileRenderPlan(category));
+		}
 	}
 
 	@Override
@@ -146,17 +162,17 @@ public class DynamicTrainModelLegacy extends ModelSimpleTrainBase<DynamicTrainMo
 
 	@Override
 	protected int[] getWindowPositions() {
-		return new int[]{0};
+		return windowPositions;
 	}
 
 	@Override
 	protected int[] getDoorPositions() {
-		return new int[]{0};
+		return doorPositions;
 	}
 
 	@Override
 	protected int[] getEndPositions() {
-		return new int[]{0, 0};
+		return endPositions;
 	}
 
 	@Override
@@ -171,59 +187,128 @@ public class DynamicTrainModelLegacy extends ModelSimpleTrainBase<DynamicTrainMo
 	}
 
 	private void renderParts(String category, PoseStack matrices, VertexConsumer vertices, RenderStage renderStage, int light, boolean renderDetails, float doorLeftZ, float doorRightZ) {
-		if (!properties.has(category)) {
+		final LegacyRenderPlan renderPlan = renderPlans.get(category);
+		if (renderPlan == null) {
 			return;
 		}
 
+		for (final LegacyRenderPart renderPart : renderPlan.partsByStage.get(renderStage.ordinal())) {
+			if (!renderDetails && renderPart.skipRenderingIfTooFar) {
+				continue;
+			}
+
+			final float zOffset = renderPart.doorOffset.getOffset(doorLeftZ, doorRightZ);
+			for (int i = 0; i < renderPart.positions.length; i += 2) {
+				renderOnce(renderPart.part, matrices, vertices, light, renderPart.positions[i], renderPart.positions[i + 1] + zOffset);
+			}
+			for (int i = 0; i < renderPart.flippedPositions.length; i += 2) {
+				renderOnceFlipped(renderPart.part, matrices, vertices, light, renderPart.flippedPositions[i], renderPart.flippedPositions[i + 1] - zOffset);
+			}
+		}
+	}
+
+	private LegacyRenderPlan compileRenderPlan(String category) {
+		final LegacyRenderPlan result = new LegacyRenderPlan();
+		if (!properties.has(category) || !properties.get(category).isJsonArray()) {
+			return result;
+		}
+
 		properties.getAsJsonArray(category).forEach(partElement -> {
-			final JsonObject partObject = partElement.getAsJsonObject();
-			final boolean shouldRender = renderDetails || !partObject.has("skip_rendering_if_too_far") || !partObject.get("skip_rendering_if_too_far").getAsBoolean();
-
-			if (shouldRender && renderStage.toString().equals(partObject.get("stage").getAsString().toUpperCase(Locale.ENGLISH))) {
+			try {
+				final JsonObject partObject = partElement.getAsJsonObject();
+				final RenderStage renderStage = RenderStage.valueOf(partObject.get("stage").getAsString().toUpperCase(Locale.ENGLISH));
 				final ModelMapper part = parts.get(partObject.get("part_name").getAsString());
-
-				if (part != null) {
-					final float zOffset;
-					if (partObject.has("door_offset_z")) {
-						switch (partObject.get("door_offset_z").getAsString()) {
-							case "left":
-								zOffset = doorLeftZ;
-								break;
-							case "right":
-								zOffset = doorRightZ;
-								break;
-							case "left_negative":
-								zOffset = -doorLeftZ;
-								break;
-							case "right_negative":
-								zOffset = -doorRightZ;
-								break;
-							default:
-								zOffset = 0;
-								break;
-						}
-					} else {
-						zOffset = 0;
-					}
-
-					if (partObject.has("positions")) {
-						partObject.getAsJsonArray("positions").forEach(positionElement -> {
-							final float x = positionElement.getAsJsonArray().get(0).getAsFloat();
-							final float z = positionElement.getAsJsonArray().get(1).getAsFloat();
-							renderOnce(part, matrices, vertices, light, x, z + zOffset);
-						});
-					}
-
-					if (partObject.has("positions_flipped")) {
-						partObject.getAsJsonArray("positions_flipped").forEach(positionElement -> {
-							final float x = positionElement.getAsJsonArray().get(0).getAsFloat();
-							final float z = positionElement.getAsJsonArray().get(1).getAsFloat();
-							renderOnceFlipped(part, matrices, vertices, light, x, z - zOffset);
-						});
-					}
+				if (part == null) {
+					return;
 				}
+
+				result.partsByStage.get(renderStage.ordinal()).add(new LegacyRenderPart(
+						part,
+						getOrDefault(partObject, "skip_rendering_if_too_far", false, JsonElement::getAsBoolean),
+						LegacyDoorOffset.fromString(getOrDefault(partObject, "door_offset_z", "", JsonElement::getAsString)),
+						compilePositions(partObject, "positions"),
+						compilePositions(partObject, "positions_flipped")
+				));
+			} catch (Exception ignored) {
 			}
 		});
+		return result;
+	}
+
+	private static float[] compilePositions(JsonObject partObject, String key) {
+		if (!partObject.has(key) || !partObject.get(key).isJsonArray()) {
+			return new float[0];
+		}
+		final JsonArray positionsArray = partObject.getAsJsonArray(key);
+		final float[] positions = new float[positionsArray.size() * 2];
+		for (int i = 0; i < positionsArray.size(); i++) {
+			final JsonArray position = positionsArray.get(i).getAsJsonArray();
+			positions[i * 2] = position.get(0).getAsFloat();
+			positions[i * 2 + 1] = position.get(1).getAsFloat();
+		}
+		return positions;
+	}
+
+	private static class LegacyRenderPlan {
+
+		private final List<List<LegacyRenderPart>> partsByStage = new ArrayList<>();
+
+		private LegacyRenderPlan() {
+			for (int i = 0; i < RenderStage.values().length; i++) {
+				partsByStage.add(new ArrayList<>());
+			}
+		}
+	}
+
+	private static class LegacyRenderPart {
+
+		private final ModelMapper part;
+		private final boolean skipRenderingIfTooFar;
+		private final LegacyDoorOffset doorOffset;
+		private final float[] positions;
+		private final float[] flippedPositions;
+
+		private LegacyRenderPart(ModelMapper part, boolean skipRenderingIfTooFar, LegacyDoorOffset doorOffset, float[] positions, float[] flippedPositions) {
+			this.part = part;
+			this.skipRenderingIfTooFar = skipRenderingIfTooFar;
+			this.doorOffset = doorOffset;
+			this.positions = positions;
+			this.flippedPositions = flippedPositions;
+		}
+	}
+
+	private enum LegacyDoorOffset {
+		NONE, LEFT_POSITIVE, RIGHT_POSITIVE, LEFT_NEGATIVE, RIGHT_NEGATIVE;
+
+		private float getOffset(float doorLeftZ, float doorRightZ) {
+			switch (this) {
+				case LEFT_POSITIVE:
+					return doorLeftZ;
+				case RIGHT_POSITIVE:
+					return doorRightZ;
+				case LEFT_NEGATIVE:
+					return -doorLeftZ;
+				case RIGHT_NEGATIVE:
+					return -doorRightZ;
+				default:
+					return 0;
+			}
+		}
+
+		private static LegacyDoorOffset fromString(String value) {
+			switch (value) {
+				case "left":
+					return LEFT_POSITIVE;
+				case "right":
+					return RIGHT_POSITIVE;
+				case "left_negative":
+					return LEFT_NEGATIVE;
+				case "right_negative":
+					return RIGHT_NEGATIVE;
+				default:
+					return NONE;
+			}
+		}
 	}
 
 	private static <T> void getArrayFromValue(T[] array, JsonObject jsonObject, String key, Function<JsonElement, T> function) {

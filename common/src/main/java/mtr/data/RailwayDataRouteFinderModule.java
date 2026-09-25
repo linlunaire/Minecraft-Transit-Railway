@@ -17,6 +17,7 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 	private BlockPos endPos;
 	private RouteFinderRequest currentRouteFinderRequest;
 	private int totalTime;
+	private int tempDataDuration;
 	private int count;
 	private long startMillis;
 	private TickStage tickStage = TickStage.GET_POS;
@@ -94,6 +95,7 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 					break;
 				case START_FIND_ROUTE:
 					tempData.clear();
+					tempDataDuration = 0;
 					platformPositions.clear();
 					platformPositions.addAll(railwayData.dataCache.platformConnections.keySet());
 					platformPositions.add(endPos.asLong());
@@ -130,7 +132,7 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 
 						tickStage = TickStage.GET_POS;
 					} else {
-						final int elapsedTime = tempData.stream().mapToInt(data -> data.duration).sum();
+						final int elapsedTime = tempDataDuration;
 						if (elapsedTime > 0 && elapsedTime < totalTime) {
 							totalTime = elapsedTime;
 							data.clear();
@@ -159,8 +161,10 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 	}
 
 	private boolean findRoutePart() {
-		final int elapsedTime = tempData.stream().mapToInt(data -> data.duration).sum();
+		final int elapsedTime = tempDataDuration;
 		final BlockPos prevPos = tempData.isEmpty() ? startPos : tempData.get(tempData.size() - 1).pos;
+		final long prevPosLong = prevPos.asLong();
+		final int prevDistanceToEnd = prevPos.distManhattan(endPos);
 
 		BlockPos bestPosition = null;
 		float bestIncrease = -Float.MAX_VALUE;
@@ -169,7 +173,7 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 		int bestWaitingTime = 0;
 
 		for (final long thisPosLong : platformPositions) {
-			final ConnectionDetails connectionDetails = DataCache.tryGet(railwayData.dataCache.platformConnections, prevPos.asLong(), thisPosLong);
+			final ConnectionDetails connectionDetails = DataCache.tryGet(railwayData.dataCache.platformConnections, prevPosLong, thisPosLong);
 			final BlockPos thisPos = BlockPos.of(thisPosLong);
 			int duration = prevPos.distManhattan(thisPos) * WALKING_SPEED_TICKS_PER_METER;
 			long routeId = 0;
@@ -211,7 +215,7 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 			}
 
 			if (verifyTime(thisPosLong, elapsedTime + duration)) {
-				final float increase = (float) (prevPos.distManhattan(endPos) - thisPos.distManhattan(endPos)) / duration;
+				final float increase = (float) (prevDistanceToEnd - thisPos.distManhattan(endPos)) / duration;
 				globalBlacklist.put(thisPosLong, elapsedTime + duration);
 				if (increase > bestIncrease) {
 					bestPosition = thisPos;
@@ -225,13 +229,14 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 
 		if (bestPosition == null || bestDuration == 0) {
 			if (!tempData.isEmpty()) {
-				tempData.remove(tempData.size() - 1);
+				tempDataDuration -= tempData.remove(tempData.size() - 1).duration;
 			} else {
 				return true;
 			}
 		} else {
 			localBlacklist.put(bestPosition.asLong(), elapsedTime + bestDuration);
 			tempData.add(new RouteFinderData(bestPosition, bestDuration, bestRouteId, bestWaitingTime));
+			tempDataDuration += bestDuration;
 		}
 
 		return !tempData.isEmpty() && tempData.get(tempData.size() - 1).pos.equals(endPos);

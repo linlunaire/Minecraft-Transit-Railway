@@ -14,6 +14,8 @@ import java.util.*;
 public class SignalBlocks {
 
 	private final Map<UUID, Set<SignalBlock>> railToSignalBlocks = new HashMap<>();
+	private final Map<Long, SignalBlock> signalBlockIdMap = new HashMap<>();
+	private final Set<UUID> railsToOccupy = new HashSet<>();
 	public final List<SignalBlock> signalBlocks = new ArrayList<>();
 
 	public long add(long id, DyeColor color, UUID rail) {
@@ -80,36 +82,52 @@ public class SignalBlocks {
 			return;
 		}
 
-		final Set<UUID> railsToAdd = new HashSet<>();
-		railsToAdd.add(currentRail);
+		final Set<SignalBlock> signalBlocksForRail = railToSignalBlocks.get(currentRail);
+		if (signalBlocksForRail == null) {
+			for (final Map<UUID, Long> trainPositionsMap : trainPositions) {
+				final Long occupyingTrain = trainPositionsMap.get(currentRail);
+				if (occupyingTrain != null && occupyingTrain != trainId) {
+					return;
+				}
+			}
+			trainPositions.get(1).put(currentRail, trainId);
+			return;
+		}
 
-		if (railToSignalBlocks.containsKey(currentRail)) {
-			railToSignalBlocks.get(currentRail).forEach(signalBlock -> {
-				railsToAdd.addAll(signalBlock.rails);
-				signalBlock.occupied = 2;
-			});
+		railsToOccupy.clear();
+		railsToOccupy.add(currentRail);
+		for (final SignalBlock signalBlock : signalBlocksForRail) {
+			railsToOccupy.addAll(signalBlock.rails);
+			signalBlock.occupied = 2;
 		}
 
 		for (final Map<UUID, Long> trainPositionsMap : trainPositions) {
-			if (railsToAdd.stream().anyMatch(rail -> trainPositionsMap.containsKey(rail) && trainPositionsMap.get(rail) != trainId)) {
-				return;
+			for (final UUID rail : railsToOccupy) {
+				final Long occupyingTrain = trainPositionsMap.get(rail);
+				if (occupyingTrain != null && occupyingTrain != trainId) {
+					return;
+				}
 			}
 		}
 
-		railsToAdd.forEach(rail -> trainPositions.get(1).put(rail, trainId));
+		final Map<UUID, Long> currentTrainPositions = trainPositions.get(1);
+		for (final UUID rail : railsToOccupy) {
+			currentTrainPositions.put(rail, trainId);
+		}
 	}
 
 	public void resetOccupied() {
-		signalBlocks.forEach(signalBlock -> {
+		for (final SignalBlock signalBlock : signalBlocks) {
 			if (signalBlock.isOccupied()) {
 				signalBlock.occupied--;
 			}
-		});
+		}
 	}
 
 	public List<SignalBlock> getSignalBlocksAtTrack(UUID rail) {
-		if (railToSignalBlocks.containsKey(rail)) {
-			final List<SignalBlock> matchingSignalBlocks = new ArrayList<>(railToSignalBlocks.get(rail));
+		final Set<SignalBlock> signalBlocksForRail = railToSignalBlocks.get(rail);
+		if (signalBlocksForRail != null) {
+			final List<SignalBlock> matchingSignalBlocks = new ArrayList<>(signalBlocksForRail);
 			matchingSignalBlocks.sort(Comparator.comparingInt(signalBlock -> signalBlock.color.ordinal()));
 			return matchingSignalBlocks;
 		} else {
@@ -118,25 +136,33 @@ public class SignalBlocks {
 	}
 
 	public boolean isOccupied(UUID rail) {
-		if (railToSignalBlocks.containsKey(rail)) {
-			return railToSignalBlocks.get(rail).stream().anyMatch(SignalBlock::isOccupied);
-		} else {
-			return false;
+		final Set<SignalBlock> signalBlocksForRail = railToSignalBlocks.get(rail);
+		if (signalBlocksForRail != null) {
+			for (final SignalBlock signalBlock : signalBlocksForRail) {
+				if (signalBlock.isOccupied()) {
+					return true;
+				}
+			}
 		}
+		return false;
 	}
 
 	public void getSignalBlockStatus(Map<Long, Boolean> signalBlockStatus, UUID rail) {
-		if (railToSignalBlocks.containsKey(rail)) {
-			railToSignalBlocks.get(rail).forEach(signalBlock -> signalBlockStatus.put(signalBlock.id, signalBlock.isOccupied()));
+		final Set<SignalBlock> signalBlocksForRail = railToSignalBlocks.get(rail);
+		if (signalBlocksForRail != null) {
+			for (final SignalBlock signalBlock : signalBlocksForRail) {
+				signalBlockStatus.put(signalBlock.id, signalBlock.isOccupied());
+			}
 		}
 	}
 
 	public void writeSignalBlockStatus(Map<Long, Boolean> signalBlockStatus) {
-		signalBlockStatus.forEach((id, occupied) -> signalBlocks.forEach(signalBlock -> {
-			if (signalBlock.id == id) {
+		signalBlockStatus.forEach((id, occupied) -> {
+			final SignalBlock signalBlock = signalBlockIdMap.get(id);
+			if (signalBlock != null) {
 				signalBlock.occupied = occupied ? 2 : 0;
 			}
-		}));
+		});
 	}
 
 	public FriendlyByteBuf getValidationPacket(Map<BlockPos, Map<BlockPos, Rail>> rails) {
@@ -170,12 +196,11 @@ public class SignalBlocks {
 
 	public void writeCache() {
 		railToSignalBlocks.clear();
-		signalBlocks.forEach(signalBlock -> signalBlock.rails.forEach(rail -> {
-			if (!railToSignalBlocks.containsKey(rail)) {
-				railToSignalBlocks.put(rail, new HashSet<>());
-			}
-			railToSignalBlocks.get(rail).add(signalBlock);
-		}));
+		signalBlockIdMap.clear();
+		signalBlocks.forEach(signalBlock -> {
+			signalBlockIdMap.put(signalBlock.id, signalBlock);
+			signalBlock.rails.forEach(rail -> railToSignalBlocks.computeIfAbsent(rail, ignored -> new HashSet<>()).add(signalBlock));
+		});
 	}
 
 	public static class SignalBlock extends NameColorDataBase {
@@ -275,11 +300,14 @@ public class SignalBlocks {
 		private boolean isConnected(UUID checkRail) {
 			final long checkPos1 = checkRail.getLeastSignificantBits();
 			final long checkPos2 = checkRail.getMostSignificantBits();
-			return rails.stream().anyMatch(rail -> {
+			for (final UUID rail : rails) {
 				final long pos1 = rail.getLeastSignificantBits();
 				final long pos2 = rail.getMostSignificantBits();
-				return checkPos1 == pos1 || checkPos1 == pos2 || checkPos2 == pos1 || checkPos2 == pos2;
-			});
+				if (checkPos1 == pos1 || checkPos1 == pos2 || checkPos2 == pos1 || checkPos2 == pos2) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		@Override

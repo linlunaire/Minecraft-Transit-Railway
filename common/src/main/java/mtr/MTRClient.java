@@ -26,6 +26,7 @@ public class MTRClient implements IPacket {
 	private static boolean isVivecraft;
 	private static boolean isPehkui;
 	private static float gameTick = 0;
+	private static long renderFrame;
 	private static float lastPlayedTrainSoundsTick = 0;
 
 	public static final int TICKS_PER_SPEED_SOUND = 4;
@@ -458,7 +459,12 @@ public class MTRClient implements IPacket {
 		return gameTick;
 	}
 
+	public static long getRenderFrame() {
+		return renderFrame;
+	}
+
 	public static void incrementGameTick() {
+		renderFrame++;
 		gameTick += getLastFrameDuration();
 		ClientData.tick();
 	}

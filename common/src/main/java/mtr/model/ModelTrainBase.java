@@ -1,11 +1,7 @@
 package mtr.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import mtr.MTRClient;
 import mtr.client.DoorAnimationType;
 import mtr.client.ScrollingText;
@@ -78,14 +74,17 @@ public abstract class ModelTrainBase extends EntityModel<Entity> implements IGui
 
 			if (renderDetails) {
 				final TrainClient train = data instanceof TrainClient ? (TrainClient) data : null;
-				final MultiBufferSource.BufferSource immediate = MultiBufferSource.immediate(new ByteBufferBuilder(256));
-				final Route thisRoute = train == null ? null : train.getThisRoute();
-				final Route nextRoute = train == null ? null : train.getNextRoute();
-				final Station thisStation = train == null ? null : train.getThisStation();
-				final Station nextStation = train == null ? null : train.getNextStation();
-				final Station lastStation = train == null ? null : train.getLastStation();
-				renderTextDisplays(matrices, vertexConsumers, Minecraft.getInstance().font, immediate, thisRoute, nextRoute, thisStation, nextStation, lastStation, thisRoute == null ? null : thisRoute.getDestination(train.getCurrentStationIndex()), currentCar, trainCars, atPlatform, train == null ? tempScrollingTexts : train.scrollingTexts);
-				immediate.endBatch();
+				final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
+				try {
+					final Route thisRoute = train == null ? null : train.getThisRoute();
+					final Route nextRoute = train == null ? null : train.getNextRoute();
+					final Station thisStation = train == null ? null : train.getThisStation();
+					final Station nextStation = train == null ? null : train.getNextStation();
+					final Station lastStation = train == null ? null : train.getLastStation();
+					renderTextDisplays(matrices, vertexConsumers, Minecraft.getInstance().font, immediate, thisRoute, nextRoute, thisStation, nextStation, lastStation, thisRoute == null ? null : thisRoute.getDestination(train.getCurrentStationIndex()), currentCar, trainCars, atPlatform, train == null ? tempScrollingTexts : train.scrollingTexts);
+				} finally {
+					immediate.endBatch();
+				}
 			}
 		}
 

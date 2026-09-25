@@ -1,6 +1,5 @@
 package mtr.packet;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import mtr.Keys;
 import mtr.RegistryClient;
@@ -30,8 +29,8 @@ import java.util.function.BiFunction;
 
 public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 
-	private static final Map<Integer, ByteBuf> TEMP_PACKETS_RECEIVER = new HashMap<>();
-	private static long tempPacketId = 0;
+	private static final Map<Integer, byte[]> TEMP_PACKETS_RECEIVER = new HashMap<>();
+	private static long tempPacketId = Long.MIN_VALUE;
 	private static int expectedSize = 0;
 
 	public static void openVersionCheckS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
@@ -181,7 +180,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 		final Rail rail1 = new Rail(packet);
 		final Rail rail2 = new Rail(packet);
 		final long savedRailId = packet.readLong();
-		minecraftClient.execute(() -> {
+		ClientData.executeInRailPacketOrder(minecraftClient, () -> {
 			RailwayData.addRail(ClientData.RAILS, ClientData.PLATFORMS, ClientData.SIDINGS, transportMode, pos1, pos2, rail1, 0);
 			RailwayData.addRail(ClientData.RAILS, ClientData.PLATFORMS, ClientData.SIDINGS, transportMode, pos2, pos1, rail2, savedRailId);
 		});
@@ -191,23 +190,23 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 		final long id = packet.readLong();
 		final DyeColor dyeColor = DyeColor.values()[packet.readInt()];
 		final UUID rail = packet.readUUID();
-		minecraftClient.execute(() -> ClientData.SIGNAL_BLOCKS.add(id, dyeColor, rail));
+		ClientData.executeInRailPacketOrder(minecraftClient, () -> ClientData.SIGNAL_BLOCKS.add(id, dyeColor, rail));
 	}
 
 	public static void removeNodeS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
 		final BlockPos pos = packet.readBlockPos();
-		minecraftClient.execute(() -> RailwayData.removeNode(null, ClientData.RAILS, pos));
+		ClientData.executeInRailPacketOrder(minecraftClient, () -> RailwayData.removeNode(null, ClientData.RAILS, pos));
 	}
 
 	public static void removeLiftFloorTrackS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
 		final BlockPos pos = packet.readBlockPos();
-		minecraftClient.execute(() -> RailwayData.removeLiftFloorTrack(null, ClientData.LIFTS, pos));
+		ClientData.executeAfterInitialSync(minecraftClient, () -> RailwayData.removeLiftFloorTrack(null, ClientData.LIFTS, pos));
 	}
 
 	public static void removeRailConnectionS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
 		final BlockPos pos1 = packet.readBlockPos();
 		final BlockPos pos2 = packet.readBlockPos();
-		minecraftClient.execute(() -> RailwayData.removeRailConnection(null, ClientData.RAILS, pos1, pos2));
+		ClientData.executeInRailPacketOrder(minecraftClient, () -> RailwayData.removeRailConnection(null, ClientData.RAILS, pos1, pos2));
 	}
 
 	public static void removeSignalsS2C(Minecraft minecraftClient, FriendlyByteBuf packet) {
@@ -220,7 +219,7 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 			colors.add(DyeColor.values()[packet.readInt()]);
 			rails.add(packet.readUUID());
 		}
-		minecraftClient.execute(() -> {
+		ClientData.executeInRailPacketOrder(minecraftClient, () -> {
 			for (int i = 0; i < removeCount; i++) {
 				ClientData.SIGNAL_BLOCKS.remove(ids.get(i), colors.get(i), rails.get(i));
 			}
@@ -236,23 +235,33 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 			TEMP_PACKETS_RECEIVER.clear();
 			tempPacketId = id;
 			expectedSize = Integer.MAX_VALUE;
+			ClientData.beginInitialSync(id);
 		}
 
 		if (complete) {
 			expectedSize = chunk + 1;
 		}
 
-		TEMP_PACKETS_RECEIVER.put(chunk, packet.readBytes(packet.readableBytes()));
+		final byte[] chunkData = new byte[packet.readableBytes()];
+		packet.readBytes(chunkData);
+		TEMP_PACKETS_RECEIVER.put(chunk, chunkData);
 
 		if (TEMP_PACKETS_RECEIVER.size() == expectedSize) {
-			final FriendlyByteBuf newPacket = new FriendlyByteBuf(Unpooled.buffer());
+			int totalBytes = 0;
 			for (int i = 0; i < expectedSize; i++) {
-				newPacket.writeBytes(TEMP_PACKETS_RECEIVER.get(i));
+				totalBytes += TEMP_PACKETS_RECEIVER.get(i).length;
+			}
+			final byte[] completeData = new byte[totalBytes];
+			int writeOffset = 0;
+			for (int i = 0; i < expectedSize; i++) {
+				final byte[] currentChunk = TEMP_PACKETS_RECEIVER.get(i);
+				System.arraycopy(currentChunk, 0, completeData, writeOffset, currentChunk.length);
+				writeOffset += currentChunk.length;
 			}
 			TEMP_PACKETS_RECEIVER.clear();
 
 			try {
-				minecraftClient.execute(() -> ClientData.receivePacket(newPacket));
+				ClientData.receivePacketAsync(minecraftClient, id, completeData);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -260,15 +269,24 @@ public class PacketTrainDataGuiClient extends PacketTrainDataBase {
 	}
 
 	public static <T extends NameColorDataBase> void receiveUpdateOrDeleteS2C(Minecraft minecraftClient, FriendlyByteBuf packet, Set<T> dataSet, Map<Long, T> cacheMap, BiFunction<Long, TransportMode, T> createDataWithId, boolean isDelete) {
-		final PacketCallback packetCallback = (updatePacket, fullPacket) -> {
-			ClientData.DATA_CACHE.sync();
-			ClientData.DATA_CACHE.refreshDynamicResources();
-		};
-		if (isDelete) {
-			deleteData(dataSet, cacheMap, minecraftClient, packet, packetCallback, null);
-		} else {
-			updateData(dataSet, cacheMap, minecraftClient, packet, packetCallback, createDataWithId, null);
-		}
+		final byte[] packetData = new byte[packet.readableBytes()];
+		packet.readBytes(packetData);
+		ClientData.executeAfterInitialSync(minecraftClient, () -> {
+			final FriendlyByteBuf deferredPacket = new FriendlyByteBuf(Unpooled.wrappedBuffer(packetData));
+			try {
+				final PacketCallback packetCallback = (updatePacket, fullPacket) -> {
+					ClientData.DATA_CACHE.sync();
+					ClientData.DATA_CACHE.refreshDynamicResources();
+				};
+				if (isDelete) {
+					deleteData(dataSet, cacheMap, minecraftClient, deferredPacket, packetCallback, null);
+				} else {
+					updateData(dataSet, cacheMap, minecraftClient, deferredPacket, packetCallback, createDataWithId, null);
+				}
+			} finally {
+				deferredPacket.release();
+			}
+		});
 	}
 
 	public static void sendUpdate(ResourceLocation packetId, FriendlyByteBuf packet) {

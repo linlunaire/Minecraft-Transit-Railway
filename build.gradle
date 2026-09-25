@@ -10,13 +10,14 @@ plugins {
 	id "com.gradleup.shadow" version "8.3.0" apply false
 }
 
-def default_minecraft_version = "1.21.1"
-// Some Gradle/property combinations coerce a dotted command-line value such
-// as 1.21.1 to "1". Only accept a complete Minecraft version; this port's
-// default is 1.21.1 when no valid override is supplied.
+// This release baseline owns the Java 21 / Minecraft 1.21.1 source set.
 def requested_minecraft_version = gradle.startParameter.projectProperties.get("buildVersion")?.toString()
-def minecraft_version = requested_minecraft_version?.matches("\\d+\\.\\d+\\.\\d+") ? requested_minecraft_version : default_minecraft_version
-def minecraft_main_version = minecraft_version.split("\\.")[1] as int
+if (requested_minecraft_version != null && requested_minecraft_version != "1.21.1") {
+	throw new GradleException("This release baseline builds Minecraft 1.21.1 only.")
+}
+def minecraft_version = "1.21.1"
+def minecraft_main_version = 21
+rootProject.ext.minecraft_version = minecraft_version
 def mappings_commit = "59c5ee19517f61f1b00a54c013322dc32592941f"
 def font_face_observer_commit = "46553ba71b2a1bcf33a3f16a84dfc88d7dbe616b"
 def patreon_api_key = rootProject.properties.containsKey("patreonApiKey") ? rootProject.getProperties().get("patreonApiKey").toString() : ""
@@ -102,7 +103,7 @@ tasks.register("setupFiles") {
 	System.out.println("Parchment: " + parchment_version)
 
 	download.run {
-		src "https://github.com/Jhesterccj/Minecraft-Mappings/archive/${mappings_commit}.zip"
+		src "https://github.com/linborealis/Minecraft-Mappings/archive/${mappings_commit}.zip"
 		dest "common/src/main/java/mtr/mappings/mappings.zip"
 		overwrite true
 		retries - 1
@@ -142,7 +143,7 @@ tasks.register("setupFiles") {
 	}
 	if (rootProject.variation == "normal" || rootProject.variation == "server") {
 		download.run {
-		src "https://raw.githubusercontent.com/Jhesterccj/Minecraft-Mappings/${mappings_commit}/fabric.min.js"
+		src "https://raw.githubusercontent.com/linborealis/Minecraft-Mappings/${mappings_commit}/fabric.min.js"
 			dest "common/src/main/resources/assets/mtr/website/fabric.min.js"
 			overwrite true
 			retries - 1

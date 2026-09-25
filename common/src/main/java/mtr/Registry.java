@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -71,6 +72,14 @@ public class Registry {
 	@ExpectPlatform
 	public static void sendToPlayer(ServerPlayer player, ResourceLocation id, FriendlyByteBuf packet) {
 		throw new AssertionError();
+	}
+
+	public static void sendToPlayers(Level world, ResourceLocation id, FriendlyByteBuf packet) {
+		sendToPlayers(world, null, id, packet);
+	}
+
+	public static void sendToPlayers(Level world, Player excludedPlayer, ResourceLocation id, FriendlyByteBuf packet) {
+		NetworkUtilities.sendToPlayers(world.players(), excludedPlayer, id, packet);
 	}
 
 	@ExpectPlatform

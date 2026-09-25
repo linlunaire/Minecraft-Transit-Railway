@@ -10,14 +10,15 @@ import java.util.function.Supplier;
 
 public class MoreRenderLayers extends RenderLayerMapper {
 
-	private static final Map<String, RenderType> LIGHT_CACHE = new HashMap<>();
+	private static final Map<ResourceLocation, RenderType> LIGHT_CACHE = new HashMap<>();
+	private static final Map<ResourceLocation, RenderType> LIGHT_TRANSLUCENT_CACHE = new HashMap<>();
 	private static final Map<ResourceLocation, RenderType> INTERIOR_CACHE = new HashMap<>();
 	private static final Map<ResourceLocation, RenderType> INTERIOR_TRANSLUCENT_CACHE = new HashMap<>();
 	private static final Map<ResourceLocation, RenderType> EXTERIOR_CACHE = new HashMap<>();
 	private static final Map<ResourceLocation, RenderType> EXTERIOR_TRANSLUCENT_CACHE = new HashMap<>();
 
 	public static RenderType getLight(ResourceLocation texture, boolean isTranslucent) {
-		return checkCache(texture.toString() + isTranslucent, () -> beaconBeam(texture, isTranslucent), LIGHT_CACHE);
+		return checkCache(texture, () -> beaconBeam(texture, isTranslucent), isTranslucent ? LIGHT_TRANSLUCENT_CACHE : LIGHT_CACHE);
 	}
 
 	public static RenderType getInterior(ResourceLocation texture) {
@@ -36,13 +37,22 @@ public class MoreRenderLayers extends RenderLayerMapper {
 		return checkCache(texture, () -> entityTranslucentCull(texture), EXTERIOR_TRANSLUCENT_CACHE);
 	}
 
+	public static void clearCache() {
+		LIGHT_CACHE.clear();
+		LIGHT_TRANSLUCENT_CACHE.clear();
+		INTERIOR_CACHE.clear();
+		INTERIOR_TRANSLUCENT_CACHE.clear();
+		EXTERIOR_CACHE.clear();
+		EXTERIOR_TRANSLUCENT_CACHE.clear();
+	}
+
 	private static <T> RenderType checkCache(T identifier, Supplier<RenderType> supplier, Map<T, RenderType> cache) {
-		if (cache.containsKey(identifier)) {
-			return cache.get(identifier);
-		} else {
-			final RenderType renderLayer = supplier.get();
-			cache.put(identifier, renderLayer);
-			return renderLayer;
+		final RenderType cachedRenderLayer = cache.get(identifier);
+		if (cachedRenderLayer != null) {
+			return cachedRenderLayer;
 		}
+		final RenderType renderLayer = supplier.get();
+		cache.put(identifier, renderLayer);
+		return renderLayer;
 	}
 }

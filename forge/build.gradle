@@ -70,35 +70,33 @@ components.java {
 }
 
 tasks.register("moveNeoForgeBuilds") {
+	dependsOn tasks.named("remapJar")
 	doLast {
 		delete fileTree("../build/release").matching {
-			include "**/${rootProject.variation_header}-forge*"
-			include "**/${rootProject.variation_header}-neoforge*"
+			include "${rootProject.variation_header}-forge-${rootProject.minecraft_version}-*.jar"
+			include "${rootProject.variation_header}-neoforge-${rootProject.minecraft_version}-*.jar"
 		}
 		delete fileTree("../build/libs").matching {
-			include "**/${rootProject.variation_header}-forge*"
-			include "**/${rootProject.variation_header}-neoforge*"
+			include "${rootProject.variation_header}-forge-${rootProject.minecraft_version}-*.jar"
+			include "${rootProject.variation_header}-neoforge-${rootProject.minecraft_version}-*.jar"
 		}
 		delete fileTree("../build/latest").matching {
-			include "**/${rootProject.variation_header}-forge*"
-			include "**/${rootProject.variation_header}-neoforge*"
+			include "${rootProject.variation_header}-forge-${rootProject.minecraft_version}-*.jar"
+			include "${rootProject.variation_header}-neoforge-${rootProject.minecraft_version}-*.jar"
 		}
 		copy {
-			from "build/libs"
-			include "neoforge-*${rootProject.mod_version}.jar"
+			from tasks.named("remapJar").get().archiveFile
 			into "../build/release"
 			rename "(.+)", "${rootProject.variation_header}-\$1"
 		}
 		if (rootProject.variation == "normal") {
 			copy {
-				from "build/libs"
-				include "neoforge-*${rootProject.mod_version}.jar"
+				from tasks.named("remapJar").get().archiveFile
 				into "../build/latest"
 				rename { fileName -> "MTR-${fileName.replace(rootProject.mod_version, "latest")}" }
 			}
 			copy {
-				from "build/libs"
-				include "*${rootProject.mod_version}-dev-shadow.jar"
+				from tasks.named("shadowJar").get().archiveFile
 				into "../build/libs"
 				rename "(.+)", "MTR-\$1"
 			}
@@ -121,7 +119,7 @@ tasks.register("testServer") {
 			copy {
 				from "../build/latest"
 				into "server/mods"
-				include "MTR-neoforge-*-latest.jar"
+				include "MTR-neoforge-${rootProject.minecraft_version}-latest.jar"
 				rename "(.+)", "MTR.jar"
 			}
 			download {
@@ -154,5 +152,5 @@ tasks.register("testServer") {
 }
 
 tasks.named("build") {
-	finalizedBy tasks.named("moveNeoForgeBuilds")
+	dependsOn tasks.named("moveNeoForgeBuilds")
 }

@@ -34,6 +34,7 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 	public final JsonObject properties;
 	public final int doorMax;
 	private final Map<String, Boolean> whitelistBlacklistCache = new HashMap<>();
+	private RenderPlan renderPlan;
 
 	public DynamicTrainModel(JsonObject model, JsonObject properties, DoorAnimationType doorAnimationType) {
 		super(doorAnimationType, false);
@@ -123,28 +124,26 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 		this.doorRightZ = doorRightZ;
 		this.head1IsFront = head1IsFront;
 
-		iterateParts(currentCar, trainCars, partObject -> {
-			if (!renderDetails && partObject.get(KEY_PROPERTIES_SKIP_RENDERING_IF_TOO_FAR).getAsBoolean() || !renderStage.toString().equals(partObject.get(KEY_PROPERTIES_STAGE).getAsString().toUpperCase(Locale.ENGLISH)) || shouldSkipRender(partObject)) {
-				return;
+		prepareRenderPlan();
+		final RenderPlan currentRenderPlan = renderPlan;
+
+		for (final RenderPart renderPart : currentRenderPlan.partsByStage.get(renderStage.ordinal())) {
+			if (!renderDetails && renderPart.skipRenderingIfTooFar || renderPart.shouldSkipCar(currentCar, trainCars) || shouldSkipRender(renderPart.renderCondition)) {
+				continue;
 			}
 
-			final ModelMapper part = parts.get(partObject.get(KEY_PROPERTIES_NAME).getAsString());
-
-			if (part != null) {
-				final float xOffset = getOffsetX(partObject);
-				final float zOffset = getOffsetZ(partObject);
-				final boolean mirror = partObject.get(KEY_PROPERTIES_MIRROR).getAsBoolean();
-				partObject.getAsJsonArray(KEY_PROPERTIES_POSITIONS).forEach(positionElement -> {
-					final float x = positionElement.getAsJsonArray().get(0).getAsFloat();
-					final float z = positionElement.getAsJsonArray().get(1).getAsFloat();
-					if (mirror) {
-						renderOnceFlipped(part, matrices, vertices, light, x - xOffset, z - zOffset);
-					} else {
-						renderOnce(part, matrices, vertices, light, x + xOffset, z + zOffset);
-					}
-				});
+			final float xOffset = getOffsetX(renderPart.doorOffset);
+			final float zOffset = getOffsetZ(renderPart.doorOffset);
+			for (int i = 0; i < renderPart.positions.length; i += 2) {
+				final float x = renderPart.positions[i];
+				final float z = renderPart.positions[i + 1];
+				if (renderPart.mirror) {
+					renderOnceFlipped(renderPart.part, matrices, vertices, light, x - xOffset, z - zOffset);
+				} else {
+					renderOnce(renderPart.part, matrices, vertices, light, x + xOffset, z + zOffset);
+				}
 			}
-		});
+		}
 	}
 
 	@Override
@@ -270,6 +269,13 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 		return doorMax;
 	}
 
+	public void prepareRenderPlan() {
+		if (renderPlan == null) {
+			// Resource loaders may replace the public parts and properties from a constructor-tail hook.
+			renderPlan = compileRenderPlan();
+		}
+	}
+
 	private ModelMapper addChildren(JsonObject jsonObject, Map<String, ModelMapper> children, Map<String, String> uuidToParentString, ModelDataWrapper modelDataWrapper) {
 		final ModelMapper part = new ModelMapper(modelDataWrapper);
 		jsonObject.getAsJsonArray("children").forEach(child -> {
@@ -347,8 +353,49 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 		});
 	}
 
+	private RenderPlan compileRenderPlan() {
+		final RenderPlan result = new RenderPlan();
+		properties.getAsJsonArray(KEY_PROPERTIES_PARTS).forEach(partElement -> {
+			final JsonObject partObject = partElement.getAsJsonObject();
+			final ModelMapper part = parts.get(partObject.get(KEY_PROPERTIES_NAME).getAsString());
+			final RenderStage renderStage;
+			try {
+				renderStage = RenderStage.valueOf(partObject.get(KEY_PROPERTIES_STAGE).getAsString().toUpperCase(Locale.ENGLISH));
+			} catch (Exception ignored) {
+				return;
+			}
+			if (part == null) {
+				return;
+			}
+
+			final JsonArray positionsArray = partObject.getAsJsonArray(KEY_PROPERTIES_POSITIONS);
+			final float[] positions = new float[positionsArray.size() * 2];
+			for (int i = 0; i < positionsArray.size(); i++) {
+				final JsonArray position = positionsArray.get(i).getAsJsonArray();
+				positions[i * 2] = position.get(0).getAsFloat();
+				positions[i * 2 + 1] = position.get(1).getAsFloat();
+			}
+
+			result.partsByStage.get(renderStage.ordinal()).add(new RenderPart(
+					part,
+					partObject.get(KEY_PROPERTIES_SKIP_RENDERING_IF_TOO_FAR).getAsBoolean(),
+					partObject.get(KEY_PROPERTIES_MIRROR).getAsBoolean(),
+					EnumHelper.valueOf(ResourcePackCreatorProperties.DoorOffset.NONE, partObject.get(KEY_PROPERTIES_DOOR_OFFSET).getAsString()),
+					EnumHelper.valueOf(ResourcePackCreatorProperties.RenderCondition.ALL, partObject.get(KEY_PROPERTIES_RENDER_CONDITION).getAsString()),
+					positions,
+					CarFilter.compile(partObject.get(KEY_PROPERTIES_WHITELISTED_CARS).getAsString()),
+					CarFilter.compile(partObject.get(KEY_PROPERTIES_BLACKLISTED_CARS).getAsString())
+			));
+		});
+		return result;
+	}
+
 	private boolean shouldSkipRender(JsonObject partObject) {
-		switch (EnumHelper.valueOf(ResourcePackCreatorProperties.RenderCondition.ALL, partObject.get(KEY_PROPERTIES_RENDER_CONDITION).getAsString())) {
+		return shouldSkipRender(EnumHelper.valueOf(ResourcePackCreatorProperties.RenderCondition.ALL, partObject.get(KEY_PROPERTIES_RENDER_CONDITION).getAsString()));
+	}
+
+	private boolean shouldSkipRender(ResourcePackCreatorProperties.RenderCondition renderCondition) {
+		switch (renderCondition) {
 			case DOORS_OPEN:
 				return doorLeftZ == 0 && doorRightZ == 0;
 			case DOORS_CLOSED:
@@ -371,7 +418,11 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 	}
 
 	private float getOffsetX(JsonObject partObject) {
-		switch (EnumHelper.valueOf(ResourcePackCreatorProperties.DoorOffset.NONE, partObject.get(KEY_PROPERTIES_DOOR_OFFSET).getAsString())) {
+		return getOffsetX(EnumHelper.valueOf(ResourcePackCreatorProperties.DoorOffset.NONE, partObject.get(KEY_PROPERTIES_DOOR_OFFSET).getAsString()));
+	}
+
+	private float getOffsetX(ResourcePackCreatorProperties.DoorOffset doorOffset) {
+		switch (doorOffset) {
 			case LEFT_POSITIVE:
 			case LEFT_NEGATIVE:
 				return -doorLeftX;
@@ -384,7 +435,11 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 	}
 
 	private float getOffsetZ(JsonObject partObject) {
-		switch (EnumHelper.valueOf(ResourcePackCreatorProperties.DoorOffset.NONE, partObject.get(KEY_PROPERTIES_DOOR_OFFSET).getAsString())) {
+		return getOffsetZ(EnumHelper.valueOf(ResourcePackCreatorProperties.DoorOffset.NONE, partObject.get(KEY_PROPERTIES_DOOR_OFFSET).getAsString()));
+	}
+
+	private float getOffsetZ(ResourcePackCreatorProperties.DoorOffset doorOffset) {
+		switch (doorOffset) {
 			case LEFT_POSITIVE:
 				return doorLeftZ;
 			case RIGHT_POSITIVE:
@@ -395,6 +450,111 @@ public class DynamicTrainModel extends ModelTrainBase implements IResourcePackCr
 				return -doorRightZ;
 			default:
 				return 0;
+		}
+	}
+
+	private static class RenderPlan {
+
+		private final List<List<RenderPart>> partsByStage = new ArrayList<>();
+
+		private RenderPlan() {
+			for (int i = 0; i < RenderStage.values().length; i++) {
+				partsByStage.add(new ArrayList<>());
+			}
+		}
+	}
+
+	private static class RenderPart {
+
+		private final ModelMapper part;
+		private final boolean skipRenderingIfTooFar;
+		private final boolean mirror;
+		private final ResourcePackCreatorProperties.DoorOffset doorOffset;
+		private final ResourcePackCreatorProperties.RenderCondition renderCondition;
+		private final float[] positions;
+		private final CarFilter whitelist;
+		private final CarFilter blacklist;
+
+		private RenderPart(ModelMapper part, boolean skipRenderingIfTooFar, boolean mirror, ResourcePackCreatorProperties.DoorOffset doorOffset, ResourcePackCreatorProperties.RenderCondition renderCondition, float[] positions, CarFilter whitelist, CarFilter blacklist) {
+			this.part = part;
+			this.skipRenderingIfTooFar = skipRenderingIfTooFar;
+			this.mirror = mirror;
+			this.doorOffset = doorOffset;
+			this.renderCondition = renderCondition;
+			this.positions = positions;
+			this.whitelist = whitelist;
+			this.blacklist = blacklist;
+		}
+
+		private boolean shouldSkipCar(int currentCar, int trainCars) {
+			return blacklist.getStrength(currentCar, trainCars) > whitelist.getStrength(currentCar, trainCars);
+		}
+	}
+
+	private static class CarFilter {
+
+		private final int[] exactCars;
+		private final int[] multiples;
+		private final int[] additions;
+		private final int baseStrength;
+
+		private CarFilter(int[] exactCars, int[] multiples, int[] additions, int baseStrength) {
+			this.exactCars = exactCars;
+			this.multiples = multiples;
+			this.additions = additions;
+			this.baseStrength = baseStrength;
+		}
+
+		private int getStrength(int currentCar, int trainCars) {
+			for (final int car : exactCars) {
+				if (car == currentCar + 1 || car == currentCar - trainCars) {
+					return 3;
+				}
+			}
+			for (int i = 0; i < multiples.length; i++) {
+				if ((currentCar + 1 + additions[i]) % multiples[i] == 0) {
+					return 2;
+				}
+			}
+			return baseStrength;
+		}
+
+		private static CarFilter compile(String expression) {
+			final List<Integer> exactCars = new ArrayList<>();
+			final List<Integer> multiples = new ArrayList<>();
+			final List<Integer> additions = new ArrayList<>();
+			final String[] filters = expression.split(",");
+			for (final String filter : filters) {
+				if (filter.isEmpty()) {
+					continue;
+				}
+				if (filter.contains("%")) {
+					try {
+						final String[] filterSplit = filter.split("\\+");
+						final int multiple = Integer.parseInt(filterSplit[0].replace("%", ""));
+						final int addition = filterSplit.length == 1 ? 0 : Integer.parseInt(filterSplit[1]);
+						if (multiple != 0) {
+							multiples.add(multiple);
+							additions.add(addition);
+						}
+					} catch (Exception ignored) {
+					}
+				} else {
+					try {
+						exactCars.add(Integer.parseInt(filter));
+					} catch (Exception ignored) {
+					}
+				}
+			}
+			return new CarFilter(toIntArray(exactCars), toIntArray(multiples), toIntArray(additions), filters.length == 0 ? 1 : 0);
+		}
+
+		private static int[] toIntArray(List<Integer> values) {
+			final int[] result = new int[values.size()];
+			for (int i = 0; i < values.size(); i++) {
+				result[i] = values.get(i);
+			}
+			return result;
 		}
 	}
 

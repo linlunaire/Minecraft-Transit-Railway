@@ -19,9 +19,10 @@ public class JonTrainSound extends TrainSoundBase {
 
 	public final String soundId;
 	public final JonTrainSoundConfig config;
-	private final char[] SOUND_GROUP_LETTERS = {'a', 'b', 'c'};
-	private final int SOUND_GROUP_SIZE = SOUND_GROUP_LETTERS.length;
+	private final Random random = new Random();
 
+	private static final char[] SOUND_GROUP_LETTERS = {'a', 'b', 'c'};
+	private static final int SOUND_GROUP_SIZE = SOUND_GROUP_LETTERS.length;
 	private static final String SOUND_ACCELERATION = "_acceleration_";
 	private static final String SOUND_DECELERATION = "_deceleration_";
 	private static final String SOUND_DOOR_OPEN = "_door_open";
@@ -55,8 +56,6 @@ public class JonTrainSound extends TrainSoundBase {
 			final float referenceAcceleration = config.constantPlaybackSpeed ? train.accelerationConstant : Train.ACCELERATION_DEFAULT;
 			final int floorSpeed = (int) Math.floor(train.getSpeed() / referenceAcceleration / MTRClient.TICKS_PER_SPEED_SOUND);
 			if (floorSpeed > 0) {
-				final Random random = new Random();
-
 				if (floorSpeed >= 30 && random.nextInt(RANDOM_SOUND_CHANCE) == 0) {
 					((ClientLevel) world).playLocalSound(pos, RegistryUtilities.createSoundEvent(ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, soundId + SOUND_RANDOM)), SoundSource.BLOCKS, 10, 1, false);
 				}

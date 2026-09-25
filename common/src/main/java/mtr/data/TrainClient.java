@@ -40,14 +40,17 @@ public class TrainClient extends Train implements IGui {
 	private AnnouncementCallback announcementCallback;
 	private AnnouncementCallback lightRailAnnouncementCallback;
 	private Depot depot;
-	private List<Long> routeIds = new ArrayList<>();
+	private List<Long> routeIds = Collections.emptyList();
 
 	public final TrainRendererBase trainRenderer;
 	public final TrainSoundBase trainSound;
 	public final VehicleRidingClient vehicleRidingClient = new VehicleRidingClient(ridingEntities, PACKET_UPDATE_TRAIN_PASSENGER_POSITION);
 	public final List<ScrollingText> scrollingTexts = new ArrayList<>();
+	private final TrainProperties trainProperties;
 
 	private final Set<Runnable> trainTranslucentRenders = new HashSet<>();
+	private final List<TranslucentCarRender> pooledTrainTranslucentRenders = new ArrayList<>();
+	private int trainTranslucentRenderCount;
 
 	private static final float CONNECTION_HEIGHT = 2.25F;
 	private static final float CONNECTION_Z_OFFSET = 0.5F;
@@ -55,7 +58,7 @@ public class TrainClient extends Train implements IGui {
 
 	public TrainClient(FriendlyByteBuf packet) {
 		super(packet);
-		final TrainProperties trainProperties = TrainClientRegistry.getTrainProperties(trainId);
+		trainProperties = TrainClientRegistry.getTrainProperties(trainId);
 		trainRenderer = trainProperties.renderer.createTrainInstance(this);
 		trainSound = trainProperties.sound.createTrainInstance(this);
 	}
@@ -83,9 +86,13 @@ public class TrainClient extends Train implements IGui {
 		final double newY = carY - offset.y;
 		final double newZ = carZ - offset.z;
 
-		doorOpening = doorValue > oldDoorValue;
 		trainRenderer.renderCar(ridingCar, newX, newY, newZ, carYaw, carPitch, doorLeftOpen, doorRightOpen);
-		trainTranslucentRenders.add(() -> trainRenderer.renderCar(ridingCar, newX, newY, newZ, carYaw, carPitch, doorLeftOpen, doorRightOpen));
+		if (!Config.hideTranslucentParts()) {
+			if (trainTranslucentRenderCount == pooledTrainTranslucentRenders.size()) {
+				pooledTrainTranslucentRenders.add(new TranslucentCarRender());
+			}
+			pooledTrainTranslucentRenders.get(trainTranslucentRenderCount++).set(ridingCar, newX, newY, newZ, carYaw, carPitch, doorLeftOpen, doorRightOpen);
+		}
 
 		if (ridingCar > 0) {
 			final double newPrevCarX = prevCarX - offset.x;
@@ -97,6 +104,9 @@ public class TrainClient extends Train implements IGui {
 			final Vec3 connectPos = prevPos0.add(thisPos0).scale(0.5);
 			final float connectYaw = (float) Mth.atan2(thisPos0.x - prevPos0.x, thisPos0.z - prevPos0.z);
 			final float connectPitch = realSpacing == 0 ? 0 : (float) asin((thisPos0.y - prevPos0.y) / realSpacing);
+			if (!TrainRendererBase.isPositionVisible(getViewOffset(), connectPos.x, connectPos.y, connectPos.z)) {
+				return;
+			}
 
 			for (int i = 0; i < 2; i++) {
 				final double xStart = width / 2D + (i == 0 ? -1 : 0.5) * CONNECTION_X_OFFSET;
@@ -129,6 +139,7 @@ public class TrainClient extends Train implements IGui {
 			return false;
 		}
 
+		doorOpening = doorValue > oldDoorValue;
 		vehicleRidingClient.begin();
 
 		if (ticksElapsed > 0) {
@@ -152,7 +163,6 @@ public class TrainClient extends Train implements IGui {
 				}
 			}
 
-			final TrainProperties trainProperties = TrainClientRegistry.getTrainProperties(trainId);
 			vehicleRidingClient.movePlayer(uuid -> {
 				final CalculateCarCallback calculateCarCallback = (x, y, z, yaw, pitch, realSpacingRender, doorLeftOpenRender, doorRightOpenRender) -> vehicleRidingClient.setOffsets(uuid, x, y, z, yaw, pitch, transportMode.maxLength == 1 ? spacing : realSpacingRender, width, doorLeftOpenRender, doorRightOpenRender, transportMode.hasPitchAscending, transportMode.hasPitchDescending, trainProperties.riderOffset, trainProperties.riderOffsetDismounting, speed > 0, doorValue == 0, () -> {
 					final boolean isShifting = clientPlayer.isShiftKeyDown();
@@ -211,7 +221,7 @@ public class TrainClient extends Train implements IGui {
 
 	@Override
 	protected boolean skipScanBlocks(Level world, double trainX, double trainY, double trainZ) {
-		return false;
+		return doorValue == 0;
 	}
 
 	@Override
@@ -237,6 +247,7 @@ public class TrainClient extends Train implements IGui {
 
 	public void simulateTrain(Level world, float ticksElapsed, SpeedCallback speedCallback, AnnouncementCallback announcementCallback, AnnouncementCallback lightRailAnnouncementCallback) {
 		trainTranslucentRenders.clear();
+		trainTranslucentRenderCount = 0;
 		this.speedCallback = speedCallback;
 		this.announcementCallback = announcementCallback;
 		this.lightRailAnnouncementCallback = lightRailAnnouncementCallback;
@@ -268,7 +279,7 @@ public class TrainClient extends Train implements IGui {
 		if (depot == null || routeIds.isEmpty()) {
 			final Siding siding = ClientData.DATA_CACHE.sidingIdMap.get(sidingId);
 			depot = siding == null ? null : ClientData.DATA_CACHE.sidingIdToDepot.get(siding.id);
-			routeIds = depot == null ? new ArrayList<>() : depot.routeIds;
+			routeIds = depot == null ? Collections.emptyList() : depot.routeIds;
 			if (depot != null) {
 				depot.lastDeployedMillis = System.currentTimeMillis();
 			}
@@ -281,12 +292,20 @@ public class TrainClient extends Train implements IGui {
 	}
 
 	public void renderTranslucent() {
+		for (int i = 0; i < trainTranslucentRenderCount; i++) {
+			pooledTrainTranslucentRenders.get(i).render(trainRenderer);
+		}
+		trainTranslucentRenderCount = 0;
 		trainTranslucentRenders.forEach(Runnable::run);
 		trainTranslucentRenders.clear();
 	}
 
 	public Vec3 getViewOffset() {
 		return vehicleRidingClient.getViewOffset();
+	}
+
+	public TrainProperties getTrainProperties() {
+		return trainProperties;
 	}
 
 	public int getCurrentStationIndex() {
@@ -374,6 +393,33 @@ public class TrainClient extends Train implements IGui {
 			}
 		}
 		return 0;
+	}
+
+	private static class TranslucentCarRender {
+
+		private int carIndex;
+		private double x;
+		private double y;
+		private double z;
+		private float yaw;
+		private float pitch;
+		private boolean doorLeftOpen;
+		private boolean doorRightOpen;
+
+		private void set(int carIndex, double x, double y, double z, float yaw, float pitch, boolean doorLeftOpen, boolean doorRightOpen) {
+			this.carIndex = carIndex;
+			this.x = x;
+			this.y = y;
+			this.z = z;
+			this.yaw = yaw;
+			this.pitch = pitch;
+			this.doorLeftOpen = doorLeftOpen;
+			this.doorRightOpen = doorRightOpen;
+		}
+
+		private void render(TrainRendererBase trainRenderer) {
+			trainRenderer.renderCar(carIndex, x, y, z, yaw, pitch, doorLeftOpen, doorRightOpen);
+		}
 	}
 
 	@FunctionalInterface

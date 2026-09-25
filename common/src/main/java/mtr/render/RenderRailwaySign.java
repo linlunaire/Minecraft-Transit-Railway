@@ -1,8 +1,6 @@
 package mtr.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import mtr.block.BlockRailwaySign;
 import mtr.block.BlockStationNameBase;
 import mtr.block.IBlock;
@@ -30,6 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign> extends BlockEntityRendererMapper<T> implements IBlock, IGui, IDrawing {
+	private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.parse("mtr:textures/block/white.png");
 
 	public RenderRailwaySign(BlockEntityRenderDispatcher dispatcher) {
 		super(dispatcher);
@@ -85,7 +84,7 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 
 		if (renderBackground) {
 			final int newBackgroundColor = backgroundColor | ARGB_BLACK;
-			RenderTrains.scheduleRender(ResourceLocation.parse("mtr:textures/block/white.png"), false, RenderTrains.QueuedRenderLayer.LIGHT, (matricesNew, vertexConsumer) -> {
+			RenderTrains.scheduleRender(WHITE_TEXTURE, false, RenderTrains.QueuedRenderLayer.LIGHT, (matricesNew, vertexConsumer) -> {
 				storedMatrixTransformations.transform(matricesNew);
 				IDrawing.drawTexture(matricesNew, vertexConsumer, 0, 0, SMALL_OFFSET, 0.5F * (signIds.length), 0.5F, SMALL_OFFSET, facing, newBackgroundColor, MAX_LIGHT_GLOWING);
 				matricesNew.popPose();
@@ -94,7 +93,7 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 		for (int i = 0; i < signIds.length; i++) {
 			if (signIds[i] != null) {
 				drawSign(matrices, vertexConsumers, storedMatrixTransformations, Minecraft.getInstance().font, pos, signIds[i], 0.5F * i, 0, 0.5F, getMaxWidth(signIds, i, false), getMaxWidth(signIds, i, true), entity.getSelectedIds(), facing, backgroundColor | ARGB_BLACK, (textureId, x, y, size, flipTexture) -> {
-					RenderTrains.scheduleRender(ResourceLocation.parse(textureId.toString()), true, RenderTrains.QueuedRenderLayer.LIGHT_TRANSLUCENT, (matricesNew, vertexConsumer) -> {
+					RenderTrains.scheduleRender(textureId, true, RenderTrains.QueuedRenderLayer.LIGHT_TRANSLUCENT, (matricesNew, vertexConsumer) -> {
 						storedMatrixTransformations.transform(matricesNew);
 						IDrawing.drawTexture(matricesNew, vertexConsumer, x, y, size, size, flipTexture ? 1 : 0, 0, flipTexture ? 0 : 1, 1, facing, -1, MAX_LIGHT_GLOWING);
 						matricesNew.popPose();
@@ -131,8 +130,6 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 		final boolean isLine = signId.equals(BlockRailwaySign.SignType.LINE.toString()) || signId.equals(BlockRailwaySign.SignType.LINE_FLIPPED.toString());
 		final boolean isPlatform = signId.equals(BlockRailwaySign.SignType.PLATFORM.toString()) || signId.equals(BlockRailwaySign.SignType.PLATFORM_FLIPPED.toString());
 		final boolean isStation = signId.equals(BlockRailwaySign.SignType.STATION.toString()) || signId.equals(BlockRailwaySign.SignType.STATION_FLIPPED.toString());
-
-		final MultiBufferSource.BufferSource immediate = RenderTrains.shouldNotRender(pos, RenderTrains.maxTrainRenderDistance / 2, null) ? null : MultiBufferSource.immediate(new ByteBufferBuilder(256));
 
 		if (vertexConsumers != null && isExit) {
 			final Station station = RailwayData.getStation(ClientData.STATIONS, ClientData.DATA_CACHE, pos);
@@ -242,7 +239,14 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 				final float maxWidth = Math.max(0, (flipCustomText ? maxWidthLeft : maxWidthRight) * size - fixedMargin * (isSmall ? 1 : 2));
 				final float start = flipCustomText ? x - (isSmall ? 0 : fixedMargin) : x + size + (isSmall ? 0 : fixedMargin);
 				if (vertexConsumers == null) {
-					IDrawing.drawStringWithFont(matrices, textRenderer, immediate, isExit || isLine ? "..." : sign.customText, flipCustomText ? HorizontalAlignment.RIGHT : HorizontalAlignment.LEFT, VerticalAlignment.TOP, start, y + fixedMargin, maxWidth, size - fixedMargin * 2, 0.01F, ARGB_WHITE, false, MAX_LIGHT_GLOWING, null);
+					if (!RenderTrains.shouldNotRender(pos, RenderTrains.maxTrainRenderDistance / 2, null)) {
+						final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
+						try {
+							IDrawing.drawStringWithFont(matrices, textRenderer, immediate, isExit || isLine ? "..." : sign.customText, flipCustomText ? HorizontalAlignment.RIGHT : HorizontalAlignment.LEFT, VerticalAlignment.TOP, start, y + fixedMargin, maxWidth, size - fixedMargin * 2, 0.01F, ARGB_WHITE, false, MAX_LIGHT_GLOWING, null);
+						} finally {
+							immediate.endBatch();
+						}
+					}
 				} else {
 					final String signText;
 					if (isStation) {
@@ -253,10 +257,6 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 					renderCustomText(signText, storedMatrixTransformations, facing, size, start, flipCustomText, maxWidth, backgroundColor);
 				}
 			}
-		}
-
-		if (immediate != null) {
-			immediate.endBatch();
 		}
 	}
 

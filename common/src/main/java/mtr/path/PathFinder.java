@@ -149,16 +149,26 @@ public class PathFinder {
 			return;
 		}
 
-		final RailAngle newDirection = oldRail == null ? newConnections.values().stream().map(rail -> rail.facingStart).findFirst().orElse(RailAngle.E) : oldRail.facingEnd.getOpposite();
+		final RailAngle newDirection = oldRail == null && newConnections != null && !newConnections.isEmpty() ? newConnections.values().iterator().next().facingStart : oldRail == null ? RailAngle.E : oldRail.facingEnd.getOpposite();
 		final List<BlockPos> otherOptions = new ArrayList<>();
 
 		if (newConnections != null) {
 			final boolean canTurnBack = oldRail != null && oldRail.railType == RailType.TURN_BACK && !turnBacks.contains(newPos);
+			boolean pathContainsPositionAndDirection = false;
+			if (!canTurnBack) {
+				for (final PathPart pathPart : path) {
+					if (pathPart.isSame(newPos, newDirection)) {
+						pathContainsPositionAndDirection = true;
+						break;
+					}
+				}
+			}
+			final boolean canVisitPositionAndDirection = !pathContainsPositionAndDirection;
 			if (oldRail != null && oldRail.railType == RailType.RUNWAY && newConnections.size() <= 1) {
 				otherOptions.addAll(runways);
 			} else {
 				newConnections.forEach((connectedPos, rail) -> {
-					if (canTurnBack || rail.railType != RailType.NONE && rail.facingStart != newDirection.getOpposite() && path.stream().noneMatch(pathPart -> pathPart.isSame(newPos, newDirection))) {
+					if (canTurnBack || rail.railType != RailType.NONE && rail.facingStart != newDirection.getOpposite() && canVisitPositionAndDirection) {
 						otherOptions.add(connectedPos);
 						if (canTurnBack) {
 							turnBacks.add(newPos);

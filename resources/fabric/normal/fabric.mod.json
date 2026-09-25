@@ -29,7 +29,10 @@
 		"mtr.mixins.json"
 	],
 	"depends": {
-		"fabric": "*",
-		"minecraft": "*"
+		"fabricloader": ">=0.16.0",
+		"fabric-api": "*",
+		"architectury": ">=13.0.11 <14",
+		"minecraft": "1.21.1",
+		"java": ">=21"
 	}
 }

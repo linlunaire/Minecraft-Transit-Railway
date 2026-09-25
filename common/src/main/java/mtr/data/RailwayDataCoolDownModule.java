@@ -9,9 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 public class RailwayDataCoolDownModule extends RailwayDataModuleBase {
 
@@ -39,8 +38,8 @@ public class RailwayDataCoolDownModule extends RailwayDataModuleBase {
 				playerSeats.put(player, seat);
 				playerSeatCoolDowns.put(player, 3);
 			} else {
-				seat = playerSeats.get(player);
-				playerSeatCoolDowns.put(player, playerSeatCoolDowns.get(player) - 1);
+				seat = seatOld;
+				playerSeatCoolDowns.put(player, seatCoolDownOld - 1);
 			}
 			seat.updateSeatByRailwayData(player);
 
@@ -56,19 +55,20 @@ public class RailwayDataCoolDownModule extends RailwayDataModuleBase {
 			}
 		});
 
-		final Set<Player> playersToRemove = new HashSet<>();
-		playerRidingCoolDown.forEach((player, coolDown) -> {
+		final Iterator<Map.Entry<Player, Integer>> playerRidingCoolDownIterator = playerRidingCoolDown.entrySet().iterator();
+		while (playerRidingCoolDownIterator.hasNext()) {
+			final Map.Entry<Player, Integer> entry = playerRidingCoolDownIterator.next();
+			final Player player = entry.getKey();
+			final int coolDown = entry.getValue();
 			if (coolDown <= 0) {
 				updatePlayerRiding(player, 0);
-				playersToRemove.add(player);
 				player.stopRiding();
+				playerRidingCoolDownIterator.remove();
+				playerRidingRoute.remove(player);
+			} else {
+				entry.setValue(coolDown - 1);
 			}
-			playerRidingCoolDown.put(player, coolDown - 1);
-		});
-		playersToRemove.forEach(player -> {
-			playerRidingCoolDown.remove(player);
-			playerRidingRoute.remove(player);
-		});
+		}
 	}
 
 	public void onPlayerJoin(ServerPlayer serverPlayer) {
@@ -106,11 +106,8 @@ public class RailwayDataCoolDownModule extends RailwayDataModuleBase {
 	}
 
 	public Route getRidingRoute(Player player) {
-		if (playerRidingRoute.containsKey(player)) {
-			return railwayData.dataCache.routeIdMap.get(playerRidingRoute.get(player));
-		} else {
-			return null;
-		}
+		final Long routeId = playerRidingRoute.get(player);
+		return routeId == null ? null : railwayData.dataCache.routeIdMap.get(routeId);
 	}
 
 	public void moveSeat(Player player, double x, double y, double z) {

@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import mtr.client.ClientData;
 import mtr.client.IDrawing;
 import mtr.data.*;
@@ -14,6 +13,7 @@ import mtr.mappings.SelectableMapper;
 import mtr.mappings.Text;
 import mtr.mappings.UtilitiesClient;
 import mtr.mappings.WidgetMapper;
+import mtr.render.RenderTrains;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
@@ -162,24 +162,27 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 			}
 		}
 
-		final MultiBufferSource.BufferSource immediate = MultiBufferSource.immediate(new ByteBufferBuilder(256));
-		if (showStations) {
-			for (final Station station : ClientData.STATIONS) {
-				if (canDrawAreaText(station)) {
-					final BlockPos pos = station.getCenter();
-					final String stationString = String.format("%s|(%s)", station.name, Text.translatable("gui.mtr.zone_number", station.zone).getString());
-					drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> IDrawing.drawStringWithFont(matrices, textRenderer, immediate, stationString, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
+		final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
+		try {
+			if (showStations) {
+				for (final Station station : ClientData.STATIONS) {
+					if (canDrawAreaText(station)) {
+						final BlockPos pos = station.getCenter();
+						final String stationString = String.format("%s|(%s)", station.name, Text.translatable("gui.mtr.zone_number", station.zone).getString());
+						drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> IDrawing.drawStringWithFont(matrices, textRenderer, immediate, stationString, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
+					}
+				}
+			} else {
+				for (final Depot depot : ClientData.DEPOTS) {
+					if (canDrawAreaText(depot)) {
+						final BlockPos pos = depot.getCenter();
+						drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> IDrawing.drawStringWithFont(matrices, textRenderer, immediate, depot.name, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
+					}
 				}
 			}
-		} else {
-			for (final Depot depot : ClientData.DEPOTS) {
-				if (canDrawAreaText(depot)) {
-					final BlockPos pos = depot.getCenter();
-					drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> IDrawing.drawStringWithFont(matrices, textRenderer, immediate, depot.name, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
-				}
-			}
+		} finally {
+			immediate.endBatch();
 		}
-		immediate.endBatch();
 
 		final String mousePosText = String.format("(%s, %s)", RailwayData.round(mouseWorldPos.getA(), 1), RailwayData.round(mouseWorldPos.getB(), 1));
 		guiGraphics.drawString( textRenderer, mousePosText, x + width - TEXT_PADDING - textRenderer.width(mousePosText), y + TEXT_PADDING, ARGB_WHITE);

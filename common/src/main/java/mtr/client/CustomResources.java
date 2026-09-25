@@ -10,6 +10,7 @@ import mtr.mappings.UtilitiesClient;
 import mtr.model.ModelSimpleTrainBase;
 import mtr.model.ModelTrainBase;
 import mtr.render.JonModelTrainRenderer;
+import mtr.render.MoreRenderLayers;
 import mtr.render.RenderTrains;
 import mtr.sound.JonTrainSound;
 import mtr.sound.bve.BveTrainSound;
@@ -33,6 +34,9 @@ public class CustomResources implements IResourcePackCreatorProperties, ICustomR
 	public static void reload(ResourceManager manager) {
 		TrainClientRegistry.reset();
 		RenderTrains.clearTextureAvailability();
+		RenderTrains.clearRenderQueue();
+		JonModelTrainRenderer.clearTextureCache();
+		MoreRenderLayers.clearCache();
 		ClientData.DATA_CACHE.resetFonts();
 		CUSTOM_SIGNS.clear();
 		final List<String> customTrains = new ArrayList<>();
@@ -102,7 +106,14 @@ public class CustomResources implements IResourcePackCreatorProperties, ICustomR
 								final boolean useLegacy = jsonProperties.has("parts_normal");
 								// TODO temporary code end
 
-								final ModelTrainBase model = useLegacy ? new DynamicTrainModelLegacy(jsonModel, jsonProperties, doorAnimationType) : new DynamicTrainModel(jsonModel, jsonProperties, doorAnimationType);
+								final ModelTrainBase model;
+								if (useLegacy) {
+									model = new DynamicTrainModelLegacy(jsonModel, jsonProperties, doorAnimationType);
+								} else {
+									final DynamicTrainModel dynamicTrainModel = new DynamicTrainModel(jsonModel, jsonProperties, doorAnimationType);
+									dynamicTrainModel.prepareRenderPlan();
+									model = dynamicTrainModel;
+								}
 								final String soundBaseId = useBveSound ? bveSoundBaseId : speedSoundBaseId;
 								final JonTrainSound.JonTrainSoundConfig soundConfig = useBveSound ? null : new JonTrainSound.JonTrainSoundConfig(doorSoundBaseId, speedSoundCount, doorCloseSoundTime, accelSoundAtCoast, constPlaybackSpeed);
 								TrainClientRegistry.register(trainId, newBaseTrainType2.toLowerCase(Locale.ENGLISH), name, description, wikipediaArticle, model, textureId, color, gangwayConnectionId2, trainBarrierId, riderOffset, riderOffset, baseTrainProperties.bogiePosition, baseTrainProperties.isJacobsBogie, soundBaseId, soundConfig);

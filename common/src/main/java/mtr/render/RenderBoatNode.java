@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderBoatNode extends BlockEntityRendererMapper<BlockNode.TileEntityBoatNode> {
+	private static final ResourceLocation OAK_LOG_TEXTURE = ResourceLocation.parse("textures/block/oak_log.png");
 
 	public RenderBoatNode(BlockEntityRenderDispatcher dispatcher) {
 		super(dispatcher);
@@ -39,7 +40,7 @@ public class RenderBoatNode extends BlockEntityRendererMapper<BlockNode.TileEnti
 		}
 
 		matrices.pushPose();
-		final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(MoreRenderLayers.getExterior(ResourceLocation.parse("textures/block/oak_log.png")));
+		final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(MoreRenderLayers.getExterior(OAK_LOG_TEXTURE));
 		IDrawing.drawTexture(matrices, vertexConsumer, 0.25F, 0, 0.25F, 0.25F, 0, 0.75F, 0.75F, 0, 0.75F, 0.75F, 0, 0.25F, 0.25F, 0.25F, 0.75F, 0.75F, Direction.EAST, -1, light);
 		IDrawing.drawTexture(matrices, vertexConsumer, 0.75F, 0, 0.25F, 0.75F, 0, 0.75F, 0.25F, 0, 0.75F, 0.25F, 0, 0.25F, 0.25F, 0.25F, 0.75F, 0.75F, Direction.DOWN, -1, light);
 		matrices.popPose();

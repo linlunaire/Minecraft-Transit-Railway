@@ -8,9 +8,7 @@ import mtr.block.BlockLiftTrackFloor;
 import mtr.data.*;
 import mtr.mappings.Utilities;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -28,6 +26,7 @@ import java.text.AttributedString;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,9 @@ public class ClientCache extends DataCache implements IGui {
 
 	private final Object2ObjectLinkedOpenHashMap<String, DynamicResource> dynamicResources = new Object2ObjectLinkedOpenHashMap<>();
 	private final ObjectLinkedOpenHashSet<String> resourcesToRefresh = new ObjectLinkedOpenHashSet<>();
-	private final List<Runnable> resourceRegistryQueue = new ArrayList<>();
+	private final ConcurrentLinkedQueue<Runnable> resourceRegistryQueue = new ConcurrentLinkedQueue<>();
+	private final Object dynamicResourceLock = new Object();
+	private volatile long dynamicResourceGeneration;
 
 	public static final float LINE_HEIGHT_MULTIPLIER = 1.25F;
 	private static final ResourceLocation DEFAULT_BLACK_RESOURCE = ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "textures/block/black.png");
@@ -118,6 +119,21 @@ public class ClientCache extends DataCache implements IGui {
 	public void refreshDynamicResources() {
 		System.out.println("Refreshing dynamic resources");
 		resourcesToRefresh.addAll(dynamicResources.keySet());
+	}
+
+	public void clearDynamicResources() {
+		final List<Runnable> staleRegistrations = new ArrayList<>();
+		synchronized (dynamicResourceLock) {
+			dynamicResourceGeneration++;
+			Runnable registration;
+			while ((registration = resourceRegistryQueue.poll()) != null) {
+				staleRegistrations.add(registration);
+			}
+		}
+		staleRegistrations.forEach(Runnable::run);
+		dynamicResources.values().forEach(DynamicResource::remove);
+		dynamicResources.clear();
+		resourcesToRefresh.clear();
 	}
 
 	public void syncLiftIds() {
@@ -414,11 +430,9 @@ public class ClientCache extends DataCache implements IGui {
 			}
 		}
 
-		if (!resourceRegistryQueue.isEmpty()) {
-			final Runnable runnable = resourceRegistryQueue.remove(0);
-			if (runnable != null) {
-				runnable.run();
-			}
+		final Runnable runnable = resourceRegistryQueue.poll();
+		if (runnable != null) {
+			runnable.run();
 		}
 
 		final boolean needsRefresh = resourcesToRefresh.contains(key);
@@ -429,30 +443,16 @@ public class ClientCache extends DataCache implements IGui {
 		}
 
 		RouteMapGenerator.setConstants();
-		CompletableFuture.supplyAsync(supplier).thenAccept(nativeImage -> resourceRegistryQueue.add(() -> {
-			final DynamicResource staticTextureProviderOld = dynamicResources.get(key);
-			if (staticTextureProviderOld != null) {
-				staticTextureProviderOld.remove();
-			}
-
-			final DynamicResource dynamicResourceNew;
-			if (nativeImage == null) {
-				dynamicResourceNew = defaultRenderingColor.dynamicResource;
-			} else {
-				final DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
-				String newKey = key;
-				try {
-					newKey = URLEncoder.encode(key, "UTF-8");
-				} catch (Exception e) {
-					e.printStackTrace();
+		final long resourceGeneration = dynamicResourceGeneration;
+		CompletableFuture.supplyAsync(supplier).thenAccept(nativeImage -> {
+			synchronized (dynamicResourceLock) {
+				if (resourceGeneration != dynamicResourceGeneration) {
+					closeNativeImage(nativeImage);
+					return;
 				}
-				final ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "dynamic_texture_" + newKey.toLowerCase(Locale.ENGLISH).replaceAll("[^0-9a-z_]", "_"));
-				minecraftClient.getTextureManager().register(resourceLocation, dynamicTexture);
-				dynamicResourceNew = new DynamicResource(resourceLocation, dynamicTexture);
+				resourceRegistryQueue.add(() -> registerDynamicResource(key, nativeImage, defaultRenderingColor, minecraftClient, resourceGeneration));
 			}
-
-			dynamicResources.put(key, dynamicResourceNew);
-		}));
+		});
 
 		if (needsRefresh) {
 			resourcesToRefresh.remove(key);
@@ -463,6 +463,42 @@ public class ClientCache extends DataCache implements IGui {
 			return defaultRenderingColor.dynamicResource;
 		} else {
 			return dynamicResource;
+		}
+	}
+
+	private void registerDynamicResource(String key, NativeImage nativeImage, DefaultRenderingColor defaultRenderingColor, Minecraft minecraftClient, long resourceGeneration) {
+		if (resourceGeneration != dynamicResourceGeneration) {
+			closeNativeImage(nativeImage);
+			return;
+		}
+
+		final DynamicResource staticTextureProviderOld = dynamicResources.get(key);
+		if (staticTextureProviderOld != null) {
+			staticTextureProviderOld.remove();
+		}
+
+		final DynamicResource dynamicResourceNew;
+		if (nativeImage == null) {
+			dynamicResourceNew = defaultRenderingColor.dynamicResource;
+		} else {
+			final DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
+			String newKey = key;
+			try {
+				newKey = URLEncoder.encode(key, "UTF-8");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			final ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "dynamic_texture_" + newKey.toLowerCase(Locale.ENGLISH).replaceAll("[^0-9a-z_]", "_"));
+			minecraftClient.getTextureManager().register(resourceLocation, dynamicTexture);
+			dynamicResourceNew = new DynamicResource(resourceLocation, dynamicTexture);
+		}
+
+		dynamicResources.put(key, dynamicResourceNew);
+		}
+
+	private static void closeNativeImage(NativeImage nativeImage) {
+		if (nativeImage != null) {
+			nativeImage.close();
 		}
 	}
 
@@ -554,13 +590,7 @@ public class ClientCache extends DataCache implements IGui {
 
 		private void remove() {
 			if (!resourceLocation.equals(DEFAULT_BLACK_RESOURCE) && !resourceLocation.equals(DEFAULT_WHITE_RESOURCE) && !resourceLocation.equals(DEFAULT_TRANSPARENT_RESOURCE)) {
-				final TextureManager textureManager = Minecraft.getInstance().getTextureManager();
-				textureManager.release(resourceLocation);
-				final AbstractTexture abstractTexture = textureManager.getTexture(resourceLocation);
-				if (abstractTexture != null) {
-					abstractTexture.releaseId();
-					abstractTexture.close();
-				}
+				Minecraft.getInstance().getTextureManager().release(resourceLocation);
 			}
 		}
 	}

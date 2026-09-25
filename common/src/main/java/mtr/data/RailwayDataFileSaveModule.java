@@ -30,17 +30,17 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 
 	private final SignalBlocks signalBlocks;
 
-	private final List<Long> dirtyStationIds = new ArrayList<>();
-	private final List<Long> dirtyPlatformIds = new ArrayList<>();
-	private final List<Long> dirtySidingIds = new ArrayList<>();
-	private final List<Long> dirtyRouteIds = new ArrayList<>();
-	private final List<Long> dirtyDepotIds = new ArrayList<>();
-	private final List<Long> dirtyLiftIds = new ArrayList<>();
-	private final List<BlockPos> dirtyRailPositions = new ArrayList<>();
-	private final List<SignalBlocks.SignalBlock> dirtySignalBlocks = new ArrayList<>();
+	private final Deque<Long> dirtyStationIds = new ArrayDeque<>();
+	private final Deque<Long> dirtyPlatformIds = new ArrayDeque<>();
+	private final Deque<Long> dirtySidingIds = new ArrayDeque<>();
+	private final Deque<Long> dirtyRouteIds = new ArrayDeque<>();
+	private final Deque<Long> dirtyDepotIds = new ArrayDeque<>();
+	private final Deque<Long> dirtyLiftIds = new ArrayDeque<>();
+	private final Deque<BlockPos> dirtyRailPositions = new ArrayDeque<>();
+	private final Deque<SignalBlocks.SignalBlock> dirtySignalBlocks = new ArrayDeque<>();
 
 	private final Map<Path, Integer> existingFiles = new HashMap<>();
-	private final List<Path> checkFilesToDelete = new ArrayList<>();
+	private final Set<Path> checkFilesToDelete = new LinkedHashSet<>();
 
 	private final Path stationsPath;
 	private final Path platformsPath;
@@ -165,7 +165,9 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 
 			final boolean doneWriting = dirtyStationIds.isEmpty() && dirtyPlatformIds.isEmpty() && dirtySidingIds.isEmpty() && dirtyRouteIds.isEmpty() && dirtyDepotIds.isEmpty() && dirtyLiftIds.isEmpty() && dirtyRailPositions.isEmpty() && dirtySignalBlocks.isEmpty();
 			if (hasSpareTime && !checkFilesToDelete.isEmpty() && doneWriting) {
-				final Path path = checkFilesToDelete.remove(0);
+				final Iterator<Path> iterator = checkFilesToDelete.iterator();
+				final Path path = iterator.next();
+				iterator.remove();
 				try {
 					Files.deleteIfExists(path);
 				} catch (IOException e) {
@@ -278,10 +280,10 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 		return null;
 	}
 
-	private <T extends SerializedDataBase, U> boolean writeDirtyDataToFile(List<U> dirtyData, Function<U, T> getId, Function<U, Long> idToLong, Path path) {
+	private <T extends SerializedDataBase, U> boolean writeDirtyDataToFile(Deque<U> dirtyData, Function<U, T> getId, Function<U, Long> idToLong, Path path) {
 		final long millis = System.currentTimeMillis();
 		while (!dirtyData.isEmpty()) {
-			final U id = dirtyData.remove(0);
+			final U id = dirtyData.removeFirst();
 			final T data = getId.apply(id);
 			if (data != null) {
 				final Path newPath = writeMessagePackToFile(data, idToLong.apply(id), path);

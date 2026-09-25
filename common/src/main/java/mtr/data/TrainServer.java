@@ -16,7 +16,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.msgpack.value.Value;
 
@@ -24,6 +23,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public class TrainServer extends Train {
+	private static final Direction[] DIRECTIONS = Direction.values();
 
 	private boolean canDeploy;
 	private List<Map<UUID, Long>> trainPositions;
@@ -116,17 +116,21 @@ public class TrainServer extends Train {
 
 	@Override
 	protected boolean handlePositions(Level world, Vec3[] positions, float ticksElapsed) {
-		final AABB trainAABB = new AABB(positions[0], positions[positions.length - 1]).inflate(TRAIN_UPDATE_DISTANCE);
-		final boolean[] playerNearby = {false};
-		world.players().forEach(player -> {
-			if (isPlayerRiding(player) || trainAABB.contains(player.position())) {
-				if (!trainsInPlayerRange.containsKey(player)) {
-					trainsInPlayerRange.put(player, new HashSet<>());
-				}
-				trainsInPlayerRange.get(player).add(this);
-				playerNearby[0] = true;
+		final Vec3 firstPosition = positions[0];
+		final Vec3 lastPosition = positions[positions.length - 1];
+		final double minX = Math.min(firstPosition.x, lastPosition.x) - TRAIN_UPDATE_DISTANCE;
+		final double minY = Math.min(firstPosition.y, lastPosition.y) - TRAIN_UPDATE_DISTANCE;
+		final double minZ = Math.min(firstPosition.z, lastPosition.z) - TRAIN_UPDATE_DISTANCE;
+		final double maxX = Math.max(firstPosition.x, lastPosition.x) + TRAIN_UPDATE_DISTANCE;
+		final double maxY = Math.max(firstPosition.y, lastPosition.y) + TRAIN_UPDATE_DISTANCE;
+		final double maxZ = Math.max(firstPosition.z, lastPosition.z) + TRAIN_UPDATE_DISTANCE;
+		boolean playerNearby = false;
+		for (final Player player : world.players()) {
+			if (isPlayerRiding(player) || player.getX() >= minX && player.getX() < maxX && player.getY() >= minY && player.getY() < maxY && player.getZ() >= minZ && player.getZ() < maxZ) {
+				trainsInPlayerRange.computeIfAbsent(player, ignored -> new HashSet<>()).add(this);
+				playerNearby = true;
 			}
-		});
+		}
 
 		final BlockPos frontPos = RailwayData.newBlockPos(positions[reversed ? positions.length - 1 : 0]);
 		if (RailwayData.chunkLoaded(world, frontPos)) {
@@ -140,7 +144,7 @@ public class TrainServer extends Train {
 					}
 
 					if ((block instanceof BlockTrainCargoLoader || block instanceof BlockTrainCargoUnloader) && BlockTrainSensorBase.matchesFilter(world, checkPos, routeId, speed)) {
-						for (final Direction direction : Direction.values()) {
+						for (final Direction direction : DIRECTIONS) {
 							final Container nearbyInventory = HopperBlockEntity.getContainerAt(world, checkPos.relative(direction));
 							if (nearbyInventory != null) {
 								if (block instanceof BlockTrainCargoLoader) {
@@ -166,7 +170,7 @@ public class TrainServer extends Train {
 			});
 		}
 
-		return playerNearby[0];
+		return playerNearby;
 	}
 
 	@Override
@@ -183,15 +187,10 @@ public class TrainServer extends Train {
 			final PathData pathData = path.get(checkIndex);
 			final UUID railProduct = pathData.getRailProduct();
 			for (final Map<UUID, Long> trainPositionsMap : trainPositions) {
-				if (trainPositionsMap.containsKey(railProduct) && trainPositionsMap.get(railProduct) != id) {
+				final Long occupyingTrain = trainPositionsMap.get(railProduct);
+				if (occupyingTrain != null && occupyingTrain != id) {
 					if (routeId != 0) {
-						if (!trainDelays.containsKey(routeId)) {
-							trainDelays.put(routeId, new HashMap<>());
-						}
-						if (!trainDelays.get(routeId).containsKey(pathData.startingPos)) {
-							trainDelays.get(routeId).put(pathData.startingPos, new TrainDelay());
-						}
-						trainDelays.get(routeId).get(pathData.startingPos).delaying();
+						trainDelays.computeIfAbsent(routeId, ignored -> new HashMap<>()).computeIfAbsent(pathData.startingPos, ignored -> new TrainDelay()).delaying();
 					}
 					return true;
 				}
@@ -263,7 +262,8 @@ public class TrainServer extends Train {
 			float offsetTime = 0;
 			float offsetTimeTemp = 0;
 			boolean secondRound = false;
-			Runnable addSchedule = null;
+			long pendingPlatformId = 0;
+			ScheduleEntry pendingSchedule = null;
 			routeId = 0;
 			for (int i = startingIndex; i < timeSegments.size() + (isRepeat() ? timeSegments.size() : 0); i++) {
 				final Siding.TimeSegment timeSegment = timeSegments.get(i % timeSegments.size());
@@ -277,23 +277,22 @@ public class TrainServer extends Train {
 					}
 
 					final long platformId = timeSegment.savedRailBaseId;
-					if (!schedulesForPlatform.containsKey(platformId)) {
-						schedulesForPlatform.put(platformId, new ArrayList<>());
-					}
+					final List<ScheduleEntry> platformSchedules = schedulesForPlatform.computeIfAbsent(platformId, ignored -> new ArrayList<>());
 
 					if (secondRound) {
 						offsetTime = offsetTimeTemp - timeSegment.endTime;
 						secondRound = false;
-					} else if (addSchedule != null) {
-						addSchedule.run();
+					} else if (pendingSchedule != null) {
+						schedulesForPlatform.get(pendingPlatformId).add(pendingSchedule);
 					}
 
 					if (isOnRoute || nextDepartureTicks >= 0) {
 						final long arrivalMillis = currentMillis + (long) ((timeSegment.endTime + offsetTime - currentTime) * Depot.MILLIS_PER_TICK);
-						addSchedule = () -> schedulesForPlatform.get(platformId).add(new ScheduleEntry(arrivalMillis, trainCars, timeSegment.routeId, timeSegment.currentStationIndex));
+						pendingPlatformId = platformId;
+						pendingSchedule = new ScheduleEntry(arrivalMillis, trainCars, timeSegment.routeId, timeSegment.currentStationIndex);
 						if (!isRepeat()) {
-							addSchedule.run();
-							addSchedule = null;
+							platformSchedules.add(pendingSchedule);
+							pendingSchedule = null;
 						}
 					}
 

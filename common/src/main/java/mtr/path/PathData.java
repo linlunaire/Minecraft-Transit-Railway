@@ -23,6 +23,7 @@ public class PathData extends SerializedDataBase {
 
 	public final BlockPos startingPos;
 	private final BlockPos endingPos;
+	private UUID railProduct;
 
 	private static final String KEY_RAIL = "rail";
 	private static final String KEY_SAVED_RAIL_BASE_ID = "saved_rail_base_id";
@@ -106,7 +107,10 @@ public class PathData extends SerializedDataBase {
 	}
 
 	public UUID getRailProduct() {
-		return getRailProduct(startingPos, endingPos);
+		if (railProduct == null) {
+			railProduct = getRailProduct(startingPos, endingPos);
+		}
+		return railProduct;
 	}
 
 	public static UUID getRailProduct(BlockPos startingPos, BlockPos endingPos) {

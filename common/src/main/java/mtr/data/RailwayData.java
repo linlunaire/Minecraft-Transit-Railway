@@ -25,7 +25,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessagePacker;
@@ -36,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class RailwayData extends PersistentStateMapper implements IPacket {
 
@@ -271,15 +269,13 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		players.forEach(player -> {
 			final BlockPos playerBlockPos = player.blockPosition();
 			final Vec3 playerPos = player.position();
+			final BlockPos playerLastUpdatedPosition = playerLastUpdatedPositions.get(player);
 
-			if (!playerLastUpdatedPositions.containsKey(player) || playerLastUpdatedPositions.get(player).distManhattan(playerBlockPos) > PLAYER_MOVE_UPDATE_THRESHOLD) {
+			if (playerLastUpdatedPosition == null || playerLastUpdatedPosition.distManhattan(playerBlockPos) > PLAYER_MOVE_UPDATE_THRESHOLD) {
 				final Map<BlockPos, Map<BlockPos, Rail>> railsToAdd = new HashMap<>();
 				rails.forEach((startPos, blockPosRailMap) -> blockPosRailMap.forEach((endPos, rail) -> {
-					if (new AABB(Vec3.atLowerCornerOf(startPos), Vec3.atLowerCornerOf(endPos)).inflate(RAIL_UPDATE_DISTANCE).contains(playerPos)) {
-						if (!railsToAdd.containsKey(startPos)) {
-							railsToAdd.put(startPos, new HashMap<>());
-						}
-						railsToAdd.get(startPos).put(endPos, rail);
+					if (isRailInUpdateRange(playerPos, startPos, endPos)) {
+						railsToAdd.computeIfAbsent(startPos, ignored -> new HashMap<>()).put(endPos, rail);
 					}
 				}));
 
@@ -302,8 +298,9 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		});
 
 		updateNearbyTrains.startTick();
-		trainPositions.remove(0);
-		trainPositions.add(new HashMap<>());
+		final Map<UUID, Long> oldestTrainPositions = trainPositions.remove(0);
+		oldestTrainPositions.clear();
+		trainPositions.add(oldestTrainPositions);
 		schedulesForPlatform.clear();
 		signalBlocks.resetOccupied();
 		sidings.forEach(siding -> {
@@ -334,17 +331,21 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 			final BlockPos playerBlockPos = player.blockPosition();
 			final Vec3 playerPos = player.position();
 
-			final Set<Long> platformIds = platforms.stream().filter(platform -> {
+			final Set<Long> platformIds = new HashSet<>();
+			platforms.forEach(platform -> {
 				if (platform.isCloseToSavedRail(playerBlockPos, PLAYER_MOVE_UPDATE_THRESHOLD, PLAYER_MOVE_UPDATE_THRESHOLD, PLAYER_MOVE_UPDATE_THRESHOLD)) {
-					return true;
+					platformIds.add(platform.id);
+					return;
 				}
 				final Station station = dataCache.platformIdToStation.get(platform.id);
-				return station != null && station.inArea(playerBlockPos.getX(), playerBlockPos.getZ());
-			}).map(platform -> platform.id).collect(Collectors.toSet());
+				if (station != null && station.inArea(playerBlockPos.getX(), playerBlockPos.getZ())) {
+					platformIds.add(platform.id);
+				}
+			});
 
 			final Set<UUID> railsToAdd = new HashSet<>();
 			rails.forEach((startPos, blockPosRailMap) -> blockPosRailMap.forEach((endPos, rail) -> {
-				if (new AABB(Vec3.atLowerCornerOf(startPos), Vec3.atLowerCornerOf(endPos)).inflate(RAIL_UPDATE_DISTANCE).contains(playerPos)) {
+				if (isRailInUpdateRange(playerPos, startPos, endPos)) {
 					railsToAdd.add(PathData.getRailProduct(startPos, endPos));
 				}
 			}));
@@ -432,7 +433,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		validateData();
 		final FriendlyByteBuf packet = signalBlocks.getValidationPacket(rails);
 		if (packet != null) {
-			world.players().forEach(player2 -> Registry.sendToPlayer((ServerPlayer) player2, PACKET_REMOVE_SIGNALS, packet));
+			Registry.sendToPlayers(world, PACKET_REMOVE_SIGNALS, packet);
 		}
 	}
 
@@ -450,7 +451,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		validateData();
 		final FriendlyByteBuf packet = signalBlocks.getValidationPacket(rails);
 		if (packet != null) {
-			world.players().forEach(player2 -> Registry.sendToPlayer((ServerPlayer) player2, PACKET_REMOVE_SIGNALS, packet));
+			Registry.sendToPlayers(world, PACKET_REMOVE_SIGNALS, packet);
 		}
 	}
 
@@ -622,11 +623,17 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 
 	public static Station getStation(Set<Station> stations, DataCache dataCache, BlockPos pos) {
 		try {
-			if (dataCache.blockPosToStation.containsKey(pos)) {
-				return dataCache.blockPosToStation.get(pos);
-			} else {
-				return stations.stream().filter(station -> station.inArea(pos.getX(), pos.getZ())).findFirst().orElse(null);
+			final Station cachedStation = dataCache.blockPosToStation.get(pos);
+			if (cachedStation != null) {
+				return cachedStation;
 			}
+			for (final Station station : stations) {
+				if (station.inArea(pos.getX(), pos.getZ())) {
+					dataCache.blockPosToStation.put(pos, station);
+					return station;
+				}
+			}
+			return null;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -693,6 +700,12 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 
 	public static boolean isBetween(double value, double value1, double value2, double padding) {
 		return value >= Math.min(value1, value2) - padding && value <= Math.max(value1, value2) + padding;
+	}
+
+	private static boolean isRailInUpdateRange(Vec3 playerPos, BlockPos startPos, BlockPos endPos) {
+		return playerPos.x >= Math.min(startPos.getX(), endPos.getX()) - RAIL_UPDATE_DISTANCE && playerPos.x < Math.max(startPos.getX(), endPos.getX()) + RAIL_UPDATE_DISTANCE &&
+				playerPos.y >= Math.min(startPos.getY(), endPos.getY()) - RAIL_UPDATE_DISTANCE && playerPos.y < Math.max(startPos.getY(), endPos.getY()) + RAIL_UPDATE_DISTANCE &&
+				playerPos.z >= Math.min(startPos.getZ(), endPos.getZ()) - RAIL_UPDATE_DISTANCE && playerPos.z < Math.max(startPos.getZ(), endPos.getZ()) + RAIL_UPDATE_DISTANCE;
 	}
 
 	public static float round(double value, int decimalPlaces) {
@@ -791,7 +804,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 			if (delete) {
 				final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
 				packet.writeLong(savedRailBase.id);
-				world.players().forEach(player -> Registry.sendToPlayer((ServerPlayer) player, packetId, packet));
+				Registry.sendToPlayers(world, packetId, packet);
 			}
 			return delete;
 		});

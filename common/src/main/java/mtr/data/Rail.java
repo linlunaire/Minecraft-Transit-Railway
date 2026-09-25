@@ -31,6 +31,7 @@ public class Rail extends SerializedDataBase {
 	private final double h2, k2, r2, tStart2, tEnd2;
 	private final int yStart, yEnd;
 	private final boolean reverseT1, isStraight1, reverseT2, isStraight2;
+	private transient volatile double[] renderCache;
 
 	private static final double ACCEPT_THRESHOLD = 1E-4;
 	private static final int MIN_RADIUS = 2;
@@ -364,8 +365,25 @@ public class Rail extends SerializedDataBase {
 	}
 
 	public void render(RenderRail callback, float offsetRadius1, float offsetRadius2) {
-		renderSegment(h1, k1, r1, tStart1, tEnd1, 0, offsetRadius1, offsetRadius2, reverseT1, isStraight1, callback);
-		renderSegment(h2, k2, r2, tStart2, tEnd2, Math.abs(tEnd1 - tStart1), offsetRadius1, offsetRadius2, reverseT2, isStraight2, callback);
+		final double[] cachedSegments = getRenderCache();
+		for (int i = 0; i < cachedSegments.length; i += 10) {
+			final double x1 = cachedSegments[i] + cachedSegments[i + 2] * offsetRadius1;
+			final double z1 = cachedSegments[i + 1] + cachedSegments[i + 3] * offsetRadius1;
+			final double x2 = cachedSegments[i] + cachedSegments[i + 2] * offsetRadius2;
+			final double z2 = cachedSegments[i + 1] + cachedSegments[i + 3] * offsetRadius2;
+			final double x3 = cachedSegments[i + 4] + cachedSegments[i + 6] * offsetRadius2;
+			final double z3 = cachedSegments[i + 5] + cachedSegments[i + 7] * offsetRadius2;
+			final double x4 = cachedSegments[i + 4] + cachedSegments[i + 6] * offsetRadius1;
+			final double z4 = cachedSegments[i + 5] + cachedSegments[i + 7] * offsetRadius1;
+			callback.renderRail(
+					x1, z1, x2, z2, x3, z3, x4, z4,
+					cachedSegments[i + 8], cachedSegments[i + 9]
+			);
+		}
+	}
+
+	public void prewarmRender() {
+		getRenderCache();
 	}
 
 	public boolean goodRadius() {
@@ -419,23 +437,72 @@ public class Rail extends SerializedDataBase {
 		}
 	}
 
-	private void renderSegment(double h, double k, double r, double tStart, double tEnd, double rawValueOffset, float offsetRadius1, float offsetRadius2, boolean reverseT, boolean isStraight, RenderRail callback) {
+	private double[] getRenderCache() {
+		double[] result = renderCache;
+		if (result == null) {
+			result = createRenderCache();
+			renderCache = result;
+		}
+		return result;
+	}
+
+	private double[] createRenderCache() {
+		final int segmentCount1 = getRenderSegmentCount(tStart1, tEnd1);
+		final int segmentCount2 = getRenderSegmentCount(tStart2, tEnd2);
+		final double[] result = new double[(segmentCount1 + segmentCount2) * 10];
+		int index = writeRenderSegment(result, 0, h1, k1, r1, tStart1, tEnd1, 0, reverseT1, isStraight1);
+		writeRenderSegment(result, index, h2, k2, r2, tStart2, tEnd2, Math.abs(tEnd1 - tStart1), reverseT2, isStraight2);
+		return result;
+	}
+
+	private int writeRenderSegment(double[] result, int index, double h, double k, double r, double tStart, double tEnd, double rawValueOffset, boolean reverseT, boolean isStraight) {
 		final double count = Math.abs(tEnd - tStart);
 		final double increment = count / Math.round(count);
 
 		for (double i = 0; i < count - 0.1; i += increment) {
 			final double t1 = (reverseT ? -1 : 1) * i + tStart;
 			final double t2 = (reverseT ? -1 : 1) * (i + increment) + tStart;
-			final Vec3 corner1 = getPositionXZ(h, k, r, t1, offsetRadius1, isStraight);
-			final Vec3 corner2 = getPositionXZ(h, k, r, t1, offsetRadius2, isStraight);
-			final Vec3 corner3 = getPositionXZ(h, k, r, t2, offsetRadius2, isStraight);
-			final Vec3 corner4 = getPositionXZ(h, k, r, t2, offsetRadius1, isStraight);
-
-			final double y1 = getPositionY(i + rawValueOffset);
-			final double y2 = getPositionY(i + increment + rawValueOffset);
-
-			callback.renderRail(corner1.x, corner1.z, corner2.x, corner2.z, corner3.x, corner3.z, corner4.x, corner4.z, y1, y2);
+			if (isStraight) {
+				final double straightRadius = Math.abs(h) >= 0.5 && Math.abs(k) >= 0.5 ? 0 : r;
+				result[index] = h * t1 + k * straightRadius + 0.5;
+				result[index + 1] = k * t1 + h * r + 0.5;
+				result[index + 2] = k;
+				result[index + 3] = -h;
+				result[index + 4] = h * t2 + k * straightRadius + 0.5;
+				result[index + 5] = k * t2 + h * r + 0.5;
+				result[index + 6] = k;
+				result[index + 7] = -h;
+			} else {
+				final double angle1 = t1 / r;
+				final double angle2 = t2 / r;
+				final double cos1 = Math.cos(angle1);
+				final double sin1 = Math.sin(angle1);
+				final double cos2 = Math.cos(angle2);
+				final double sin2 = Math.sin(angle2);
+				result[index] = h + r * cos1 + 0.5;
+				result[index + 1] = k + r * sin1 + 0.5;
+				result[index + 2] = cos1;
+				result[index + 3] = sin1;
+				result[index + 4] = h + r * cos2 + 0.5;
+				result[index + 5] = k + r * sin2 + 0.5;
+				result[index + 6] = cos2;
+				result[index + 7] = sin2;
+			}
+			result[index + 8] = getPositionY(i + rawValueOffset);
+			result[index + 9] = getPositionY(i + increment + rawValueOffset);
+			index += 10;
 		}
+		return index;
+	}
+
+	private static int getRenderSegmentCount(double tStart, double tEnd) {
+		final double count = Math.abs(tEnd - tStart);
+		final double increment = count / Math.round(count);
+		int result = 0;
+		for (double i = 0; i < count - 0.1; i += increment) {
+			result++;
+		}
+		return result;
 	}
 
 	private RailAngle getRailAngle(boolean getEnd) {

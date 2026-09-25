@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderPSDTop extends RenderRouteBase<BlockPSDTop.TileEntityPSDTop> {
+	private static final ResourceLocation PSD_TOP_TEXTURE = ResourceLocation.parse("mtr:textures/block/psd_top.png");
 
 	private static final float END_FRONT_OFFSET = 1 / (Mth.SQRT_OF_TWO * 16);
 	private static final float BOTTOM_DIAGONAL_OFFSET = ((float) Math.sqrt(3) - 1) / 32;
@@ -53,7 +54,7 @@ public class RenderPSDTop extends RenderRouteBase<BlockPSDTop.TileEntityPSDTop> 
 		if (!airLeft && !airRight || persistent) {
 			return;
 		}
-		RenderTrains.scheduleRender(ResourceLocation.parse("mtr:textures/block/psd_top.png"), false, RenderTrains.QueuedRenderLayer.EXTERIOR, (matrices, vertexConsumer) -> {
+		RenderTrains.scheduleRender(PSD_TOP_TEXTURE, false, RenderTrains.QueuedRenderLayer.EXTERIOR, (matrices, vertexConsumer) -> {
 			storedMatrixTransformations.transform(matrices);
 			if (airLeft) {
 				// back

@@ -385,13 +385,18 @@ public abstract class Train extends NameColorDataBase implements IPacket {
 	}
 
 	public final int getIndex(double tempRailProgress, boolean roundDown) {
-		for (int i = 0; i < path.size(); i++) {
-			final double tempDistance = distances.get(i);
+		int low = 0;
+		int high = path.size();
+		while (low < high) {
+			final int middle = (low + high) >>> 1;
+			final double tempDistance = distances.get(middle);
 			if (tempRailProgress < tempDistance || roundDown && tempRailProgress == tempDistance) {
-				return i;
+				high = middle;
+			} else {
+				low = middle + 1;
 			}
 		}
-		return path.size() - 1;
+		return Math.min(low, path.size() - 1);
 	}
 
 	public final float getRailSpeed(int railIndex) {
@@ -604,8 +609,9 @@ public abstract class Train extends NameColorDataBase implements IPacket {
 			final double realSpacing = pos2.distanceTo(pos1);
 			final float yaw = (float) Mth.atan2(pos2.x - pos1.x, pos2.z - pos1.z);
 			final float pitch = realSpacing == 0 ? 0 : (float) asin((pos2.y - pos1.y) / realSpacing);
-			final boolean doorLeftOpen = scanDoors(world, x, y, z, (float) Math.PI + yaw, pitch, realSpacing / 2, dwellTicks) && doorValue > 0;
-			final boolean doorRightOpen = scanDoors(world, x, y, z, yaw, pitch, realSpacing / 2, dwellTicks) && doorValue > 0;
+			final boolean shouldSkipBlockScan = skipScanBlocks(world, x, y, z);
+			final boolean doorLeftOpen = !shouldSkipBlockScan && scanDoors(world, x, y, z, (float) Math.PI + yaw, pitch, realSpacing / 2, dwellTicks) && doorValue > 0;
+			final boolean doorRightOpen = !shouldSkipBlockScan && scanDoors(world, x, y, z, yaw, pitch, realSpacing / 2, dwellTicks) && doorValue > 0;
 
 			calculateCarCallback.calculateCarCallback(x, y, z, yaw, pitch, realSpacing, doorLeftOpen, doorRightOpen);
 		}
@@ -663,10 +669,6 @@ public abstract class Train extends NameColorDataBase implements IPacket {
 	}
 
 	private boolean scanDoors(Level world, double trainX, double trainY, double trainZ, float checkYaw, float pitch, double halfSpacing, int dwellTicks) {
-		if (skipScanBlocks(world, trainX, trainY, trainZ)) {
-			return false;
-		}
-
 		boolean hasPlatform = false;
 		final Vec3 offsetVec = new Vec3(1, 0, 0).yRot(checkYaw).xRot(pitch);
 		final Vec3 traverseVec = new Vec3(0, 0, 1).yRot(checkYaw).xRot(pitch);

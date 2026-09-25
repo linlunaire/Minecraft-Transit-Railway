@@ -15,6 +15,7 @@ public class UpdateNearbyMovingObjects<T extends NameColorDataBase> implements I
 	public final Map<Player, Set<T>> newDataSetInPlayerRange = new HashMap<>();
 	public final Set<T> dataSetToSync = new HashSet<>();
 	private final Map<Player, Set<T>> dataSetInPlayerRange = new HashMap<>();
+	private final Map<T, byte[]> serializedData = new HashMap<>();
 	private final ResourceLocation deletePacketId;
 	private final ResourceLocation updatePacketId;
 
@@ -26,19 +27,21 @@ public class UpdateNearbyMovingObjects<T extends NameColorDataBase> implements I
 	public void startTick() {
 		newDataSetInPlayerRange.clear();
 		dataSetToSync.clear();
+		serializedData.clear();
 	}
 
 	public void tick() {
 		dataSetInPlayerRange.forEach((player, dataSet) -> {
+			final Set<T> newDataSet = newDataSetInPlayerRange.get(player);
 			for (final T data : dataSet) {
-				if (!newDataSetInPlayerRange.containsKey(player) || !newDataSetInPlayerRange.get(player).contains(data)) {
+				if (newDataSet == null || !newDataSet.contains(data)) {
 					final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
 
-					if (newDataSetInPlayerRange.containsKey(player)) {
-						packet.writeInt(newDataSetInPlayerRange.get(player).size());
-						newDataSetInPlayerRange.get(player).forEach(dataToKeep -> packet.writeLong(dataToKeep.id));
-					} else {
+					if (newDataSet == null) {
 						packet.writeInt(0);
+					} else {
+						packet.writeInt(newDataSet.size());
+						newDataSet.forEach(dataToKeep -> packet.writeLong(dataToKeep.id));
 					}
 
 					if (packet.readableBytes() <= MAX_PACKET_BYTES) {
@@ -51,35 +54,39 @@ public class UpdateNearbyMovingObjects<T extends NameColorDataBase> implements I
 		});
 
 		newDataSetInPlayerRange.forEach((player, dataSet) -> {
-			final List<FriendlyByteBuf> dataSetPacketsToUpdate = new ArrayList<>();
-			dataSet.forEach(data -> {
-				if (dataSetToSync.contains(data) || !dataSetInPlayerRange.containsKey(player) || !dataSetInPlayerRange.get(player).contains(data)) {
-					final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
-					data.writePacket(packet);
-					if (packet.readableBytes() < MAX_PACKET_BYTES) {
-						dataSetPacketsToUpdate.add(packet);
-					}
-				}
-			});
-
-			while (!dataSetPacketsToUpdate.isEmpty()) {
-				final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
-
-				while (!dataSetPacketsToUpdate.isEmpty()) {
-					final FriendlyByteBuf dataPacket = dataSetPacketsToUpdate.get(0);
-					if (packet.readableBytes() + dataPacket.readableBytes() < MAX_PACKET_BYTES) {
+			final Set<T> oldDataSet = dataSetInPlayerRange.get(player);
+			FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
+			for (final T data : dataSet) {
+				if (dataSetToSync.contains(data) || oldDataSet == null || !oldDataSet.contains(data)) {
+					final byte[] dataPacket = getSerializedData(data);
+					if (dataPacket.length < MAX_PACKET_BYTES) {
+						if (packet.readableBytes() + dataPacket.length >= MAX_PACKET_BYTES) {
+							Registry.sendToPlayer((ServerPlayer) player, updatePacketId, packet);
+							packet = new FriendlyByteBuf(Unpooled.buffer());
+						}
 						packet.writeBytes(dataPacket);
-						dataSetPacketsToUpdate.remove(0);
-					} else {
-						break;
 					}
 				}
+			}
 
+			if (packet.readableBytes() > 0) {
 				Registry.sendToPlayer((ServerPlayer) player, updatePacketId, packet);
 			}
 		});
 
 		dataSetInPlayerRange.clear();
 		dataSetInPlayerRange.putAll(newDataSetInPlayerRange);
+	}
+
+	private byte[] getSerializedData(T data) {
+		byte[] dataPacket = serializedData.get(data);
+		if (dataPacket == null) {
+			final FriendlyByteBuf packet = new FriendlyByteBuf(Unpooled.buffer());
+			data.writePacket(packet);
+			dataPacket = new byte[packet.readableBytes()];
+			packet.getBytes(packet.readerIndex(), dataPacket);
+			serializedData.put(data, dataPacket);
+		}
+		return dataPacket;
 	}
 }

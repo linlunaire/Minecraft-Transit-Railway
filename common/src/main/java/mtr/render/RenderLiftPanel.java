@@ -1,8 +1,6 @@
 package mtr.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import mtr.MTRClient;
 import mtr.block.BlockLiftPanelBase;
 import mtr.block.BlockLiftTrackFloor;
@@ -108,9 +106,12 @@ public class RenderLiftPanel<T extends BlockLiftPanelBase.TileEntityLiftPanel1Ba
 			// Floor Number
 			matrices.pushPose();
 			matrices.translate(0, 0, (isFlat ? 0.4375F : 0.25F) - SMALL_OFFSET * 2);
-			final MultiBufferSource.BufferSource immediate = MultiBufferSource.immediate(new ByteBufferBuilder(256));
-			IDrawing.drawStringWithFont(matrices, textRenderer, immediate, ClientData.DATA_CACHE.requestLiftFloorText(trackPosition)[0], HorizontalAlignment.CENTER, VerticalAlignment.CENTER, 0, -0.47F, 0.1875F, 0.1875F, 1, ARGB_BLACK, false, MAX_LIGHT_GLOWING, null);
-			immediate.endBatch();
+			final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
+			try {
+				IDrawing.drawStringWithFont(matrices, textRenderer, immediate, ClientData.DATA_CACHE.requestLiftFloorText(trackPosition)[0], HorizontalAlignment.CENTER, VerticalAlignment.CENTER, 0, -0.47F, 0.1875F, 0.1875F, 1, ARGB_BLACK, false, MAX_LIGHT_GLOWING, null);
+			} finally {
+				immediate.endBatch();
+			}
 			matrices.popPose();
 
 			renderLiftDisplay(matrices, vertexConsumers, isFlat ? 0.4375F : 0.25F, text[0], text[1], lift.getLiftDirection());

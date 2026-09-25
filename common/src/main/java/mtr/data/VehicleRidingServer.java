@@ -4,13 +4,12 @@ import io.netty.buffer.Unpooled;
 import mtr.Registry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -43,13 +42,18 @@ public class VehicleRidingServer {
 					packet.writeFloat(percentageX);
 					packet.writeFloat(percentageZ);
 					packet.writeUUID(player.getUUID());
-					world.players().forEach(worldPlayer -> Registry.sendToPlayer((ServerPlayer) worldPlayer, packetId, packet));
+					Registry.sendToPlayers(world, packetId, packet);
 				}
 			});
 		}
 
-		final Set<UUID> ridersToRemove = new HashSet<>();
-		ridingEntities.forEach(uuid -> {
+		if (ridingEntities.isEmpty()) {
+			return;
+		}
+
+		final Iterator<UUID> ridingEntitiesIterator = ridingEntities.iterator();
+		while (ridingEntitiesIterator.hasNext()) {
+			final UUID uuid = ridingEntitiesIterator.next();
 			final Player player = world.getPlayerByUUID(uuid);
 
 			if (player != null) {
@@ -64,17 +68,13 @@ public class VehicleRidingServer {
 					remove = false;
 				}
 
-				if (remove) {
-					ridersToRemove.add(uuid);
-				}
-
 				railwayData.railwayDataCoolDownModule.updatePlayerRiding(player, routeId);
 				ridingCallback.accept(player);
-			}
-		});
 
-		if (!ridersToRemove.isEmpty()) {
-			ridersToRemove.forEach(ridingEntities::remove);
+				if (remove) {
+					ridingEntitiesIterator.remove();
+				}
+			}
 		}
 	}
 }

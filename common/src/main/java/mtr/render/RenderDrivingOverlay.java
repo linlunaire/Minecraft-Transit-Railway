@@ -3,7 +3,6 @@ package mtr.render;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import mtr.data.*;
-import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -22,6 +21,8 @@ public class RenderDrivingOverlay implements IGui {
 
 	private static final int HOT_BAR_WIDTH = 182;
 	private static final int HOT_BAR_HEIGHT = 22;
+	private static final ResourceLocation HOT_BAR_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar");
+	private static final ResourceLocation HOT_BAR_SELECTION_SPRITE = ResourceLocation.withDefaultNamespace("hud/hotbar_selection");
 
 	public static void render(Object guiGraphics) {
 		render((GuiGraphics) guiGraphics);
@@ -43,18 +44,16 @@ public class RenderDrivingOverlay implements IGui {
 
 		guiGraphics.pose().pushPose();
 		RenderSystem.enableBlend();
-		final ResourceLocation widgetsTexture = ResourceLocation.withDefaultNamespace("textures/gui/widgets.png");
-		UtilitiesClient.beginDrawingTexture(widgetsTexture);
 		final int startX = (window.getGuiScaledWidth() - HOT_BAR_WIDTH) / 2;
 		final int startY = window.getGuiScaledHeight() - (player.isCreative() ? 47 : 63);
 
-		guiGraphics.blit(widgetsTexture, startX, startY, 0, 0, 61, HOT_BAR_HEIGHT, 256, 256);
-		guiGraphics.blit(widgetsTexture, startX + 61, startY, 141, 0, 41, HOT_BAR_HEIGHT, 256, 256);
-		guiGraphics.blit(widgetsTexture, startX + 120, startY, 0, 0, 21, HOT_BAR_HEIGHT, 256, 256);
-		guiGraphics.blit(widgetsTexture, startX + 141, startY, 141, 0, 41, HOT_BAR_HEIGHT, 256, 256);
+		guiGraphics.blitSprite(HOT_BAR_SPRITE, HOT_BAR_WIDTH, HOT_BAR_HEIGHT, 0, 0, startX, startY, 61, HOT_BAR_HEIGHT);
+		guiGraphics.blitSprite(HOT_BAR_SPRITE, HOT_BAR_WIDTH, HOT_BAR_HEIGHT, 141, 0, startX + 61, startY, 41, HOT_BAR_HEIGHT);
+		guiGraphics.blitSprite(HOT_BAR_SPRITE, HOT_BAR_WIDTH, HOT_BAR_HEIGHT, 0, 0, startX + 120, startY, 21, HOT_BAR_HEIGHT);
+		guiGraphics.blitSprite(HOT_BAR_SPRITE, HOT_BAR_WIDTH, HOT_BAR_HEIGHT, 141, 0, startX + 141, startY, 41, HOT_BAR_HEIGHT);
 
-		guiGraphics.blit(widgetsTexture, startX + 39 + Math.max(accelerationSign, -2) * 20, startY - 1, 0, 22, 24, 24, 256, 256);
-		guiGraphics.blit(widgetsTexture, startX + (doorValue > 0 ? doorValue < 1 ? 139 : 159 : 119), startY - 1, 0, 22, 24, 24, 256, 256);
+		guiGraphics.blitSprite(HOT_BAR_SELECTION_SPRITE, startX + 39 + Math.max(accelerationSign, -2) * 20, startY - 1, 24, 23);
+		guiGraphics.blitSprite(HOT_BAR_SELECTION_SPRITE, startX + (doorValue > 0 ? doorValue < 1 ? 139 : 159 : 119), startY - 1, 24, 23);
 
 		guiGraphics.drawString(client.font, "B2", startX + 6, startY + 8, doorValue == 0 && accelerationSign == -2 ? ARGB_WHITE : ARGB_GRAY, true);
 		guiGraphics.drawString(client.font, "B1", startX + 26, startY + 8, doorValue == 0 && accelerationSign == -1 ? ARGB_WHITE : ARGB_GRAY, true);

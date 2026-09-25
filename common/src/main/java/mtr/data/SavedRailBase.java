@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.phys.AABB;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.msgpack.core.MessagePacker;
 import org.msgpack.value.Value;
@@ -128,7 +127,9 @@ public abstract class SavedRailBase extends NameColorDataBase {
 		final int x2 = Math.max(pos1.getX(), pos2.getX());
 		final int y2 = Math.max(pos1.getY(), pos2.getY());
 		final int z2 = Math.max(pos1.getZ(), pos2.getZ());
-		return new AABB(x1 - radius, y1 - lower, z1 - radius, x2 + radius + 1, y2 + upper + 1, z2 + radius + 1).contains(pos.getX(), pos.getY(), pos.getZ());
+		return pos.getX() >= x1 - radius && pos.getX() < x2 + radius + 1 &&
+				pos.getY() >= y1 - lower && pos.getY() < y2 + upper + 1 &&
+				pos.getZ() >= z1 - radius && pos.getZ() < z2 + radius + 1;
 	}
 
 	public List<BlockPos> getOrderedPositions(BlockPos pos, boolean reverse) {

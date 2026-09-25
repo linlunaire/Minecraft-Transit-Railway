@@ -1,6 +1,7 @@
 package mtr.data;
 
 import io.netty.buffer.Unpooled;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import mtr.packet.IPacket;
 import mtr.path.PathData;
 import mtr.path.PathFinder;
@@ -38,6 +39,8 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 	private final List<TimeSegment> timeSegments = new ArrayList<>();
 	private final Map<Long, Map<Long, Float>> platformTimes = new HashMap<>();
 	private final Set<TrainServer> trains = new HashSet<>();
+	private final LongOpenHashSet railProgressSet = new LongOpenHashSet();
+	private final Set<TrainServer> trainsToRemove = new HashSet<>();
 
 	private static final String KEY_RAIL_LENGTH = "rail_length";
 	private static final String KEY_BASE_TRAIN_TYPE = "train_type";
@@ -354,8 +357,8 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 		int trainsAtDepot = 0;
 		boolean spawnTrain = true;
 
-		final Set<Long> railProgressSet = new HashSet<>();
-		final Set<TrainServer> trainsToRemove = new HashSet<>();
+		railProgressSet.clear();
+		trainsToRemove.clear();
 		for (final TrainServer train : trains) {
 			if (train.isCurrentlyManual() && railwayDataDriveTrainModule.drive(train)) {
 				trainsToSync.add(train);
@@ -377,10 +380,9 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 			}
 
 			final long roundedRailProgress = Math.round(train.getRailProgress() * 10);
-			if (railProgressSet.contains(roundedRailProgress)) {
+			if (!railProgressSet.add(roundedRailProgress)) {
 				trainsToRemove.add(train);
 			}
-			railProgressSet.add(roundedRailProgress);
 
 			if (trainPositions != null && !transportMode.continuousMovement) {
 				train.writeTrainPositions(trainPositions, signalBlocks);
