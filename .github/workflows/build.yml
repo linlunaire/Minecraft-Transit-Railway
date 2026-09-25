@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: [master, '26.2']
     tags: ['26.2-*']
   pull_request:
-    branches: [master]
+    branches: [master, '26.2']
   workflow_dispatch:
 
 permissions:
