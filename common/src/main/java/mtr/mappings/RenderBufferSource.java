@@ -5,6 +5,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollection;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.network.chat.Component;
@@ -78,6 +79,31 @@ public final class RenderBufferSource implements AutoCloseable {
 	public VertexConsumer getBuffer(RenderType type) {
 		ensureOpen();
 		return batches.computeIfAbsent(Objects.requireNonNull(type), ignored -> new CapturedVertices());
+	}
+
+	/** Static translated geometry is captured by identity, not copied vertex by vertex. */
+	public void drawRetained(RetainedGeometry geometry, Matrix4f pose) {
+		ensureOpen();
+		Objects.requireNonNull(geometry);
+		if ((pose.properties() & org.joml.Matrix4fc.PROPERTY_TRANSLATION) == 0) {
+			throw new IllegalArgumentException("Retained geometry currently supports translation only");
+		}
+		final var submit = new RetainedGeometry.Submit(geometry, pose.m30(), pose.m31(), pose.m32());
+		submissions.add((matrices, collector, cameraState) -> {
+			matrices.pushPose();
+			try {
+				matrices.translate(submit.x(), submit.y(), submit.z());
+				final Matrix4f combined = matrices.last().pose();
+				if ((combined.properties() & org.joml.Matrix4fc.PROPERTY_TRANSLATION) != 0
+					&& collector.order(0) instanceof SubmitNodeCollection collection) {
+					collection.solid.submit(new RetainedGeometry.Submit(geometry, combined.m30(), combined.m31(), combined.m32()));
+				} else {
+					collector.submitCustomGeometry(matrices, geometry.type(), geometry::emit);
+				}
+			} finally {
+				matrices.popPose();
+			}
+		});
 	}
 
 	public void drawText(FormattedCharSequence text, float x, float y, int color, boolean shadow, Matrix4f pose, int background, int light) {

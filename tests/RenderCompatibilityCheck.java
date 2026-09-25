@@ -21,6 +21,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -115,6 +116,7 @@ public final class RenderCompatibilityCheck {
 		}
 		require(geometryCount == 2 && textCount == 1, "Expected two material batches and one text node");
 		checkBatchLifetime(opaque);
+		checkSnapshotOwnership(opaque);
 		checkAddonSubmissions();
 		checkMaterials();
 		checkVanillaVehicles();
@@ -274,6 +276,63 @@ public final class RenderCompatibilityCheck {
 			}
 		}
 		expectIllegalState(RenderBufferSource::current);
+	}
+
+	private static void checkSnapshotOwnership(RenderType type) {
+		// Warm the snapshot/flush path before measuring just the ownership handoff.
+		for (int i = 0; i < 128; i++) {
+			try (RenderBufferSource source = RenderBufferSource.begin(Vec3.ZERO)) {
+				emit(source.getBuffer(type), 4);
+				source.endBatch();
+			}
+		}
+		final var threadBean = ManagementFactory.getThreadMXBean();
+		final com.sun.management.ThreadMXBean allocations = threadBean instanceof com.sun.management.ThreadMXBean bean
+			&& bean.isThreadAllocatedMemorySupported() && bean.isThreadAllocatedMemoryEnabled() ? bean : null;
+		final long threadId = Thread.currentThread().threadId();
+		final RenderSnapshot snapshot;
+		final int largeBatchCount = 513;
+		final long snapshotAllocation;
+		try (RenderBufferSource source = RenderBufferSource.begin(Vec3.ZERO)) {
+			final VertexConsumer first = source.getBuffer(type);
+			emit(first, largeBatchCount);
+			final long before = allocations == null ? 0 : allocations.getThreadAllocatedBytes(threadId);
+			source.endBatch();
+			snapshotAllocation = allocations == null ? 0 : allocations.getThreadAllocatedBytes(threadId) - before;
+			require(snapshotAllocation < 4096, "Sealing a batch copied its vertex storage: " + snapshotAllocation + " bytes allocated");
+			expectIllegalState(() -> first.addVertex(999, 999, 999));
+			expectIllegalState(() -> first.setColor(0));
+			expectIllegalState(() -> first.setUv(0, 0));
+			expectIllegalState(() -> first.setUv1(0, 0));
+			expectIllegalState(() -> first.setUv2(0, 0));
+			expectIllegalState(() -> first.setNormal(0, 0, 0));
+			expectIllegalState(() -> first.setLineWidth(0));
+			emit(source.getBuffer(type), 4);
+			snapshot = source.snapshot();
+		}
+		// Later extraction and repeated submission must never alter an owned batch.
+		try (RenderBufferSource source = RenderBufferSource.begin(Vec3.ZERO)) {
+			emit(source.getBuffer(type), largeBatchCount + 100);
+		}
+		for (int i = 0; i < 2; i++) {
+			final PoseStack matrices = new PoseStack();
+			matrices.translate(10, 20, 30);
+			matrices.mulPose(Axis.ZP.rotationDegrees(90));
+			final SubmitNodeStorage storage = new SubmitNodeStorage();
+			snapshot.submit(matrices, storage, new CameraRenderState());
+			final List<Integer> counts = new ArrayList<>();
+			storage.drainPhases(phase -> phase.sortInto((node, blending) -> {
+				require(node instanceof CustomFeatureRenderer.Submit, "Owned batch lost its geometry node");
+				final CustomFeatureRenderer.Submit geometry = (CustomFeatureRenderer.Submit) node;
+				final InspectVertices vertices = new InspectVertices();
+				geometry.customGeometryRenderer().render(geometry.pose(), vertices);
+				counts.add(vertices.count);
+			}));
+			require(counts.size() == 2 && counts.contains(largeBatchCount) && counts.contains(4),
+				"Owned batches changed, merged or replayed unused capacity: " + counts);
+		}
+		System.out.println("PASS: no-copy vertex ownership, partial capacity, sealed attributes, isolated later batches and repeated delayed submission"
+			+ (allocations == null ? " (allocation counting unavailable)" : " (snapshot allocation: " + snapshotAllocation + " bytes)"));
 	}
 
 	private static void emit(VertexConsumer vertices, int count) {

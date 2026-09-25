@@ -24,7 +24,7 @@ public final class LoaderHookCompatibilityCheck {
 
 	private static final String MIXIN = "Lorg/spongepowered/asm/mixin/";
 	private static final Set<String> CLIENT_MIXINS = Set.of("LevelExtractionMixin", "LevelSubmissionMixin", "LevelRenderStateMixin",
-		"PlayerRendererOffsetMixin", "PassengerRenderStateMixin", "TerrainModelsMixin", "ItemModelPropertiesMixin");
+		"FeatureRenderDispatcherMixin", "PlayerRendererOffsetMixin", "PassengerRenderStateMixin", "TerrainModelsMixin", "ItemModelPropertiesMixin");
 
 	public static void main(String[] args) throws Exception {
 		final Path root = Path.of(args[0]);
@@ -35,7 +35,7 @@ public final class LoaderHookCompatibilityCheck {
 			config.getAsJsonArray("client").forEach(name -> names.add(name.getAsString()));
 			require(Set.copyOf(names).equals(CLIENT_MIXINS) && names.size() == CLIENT_MIXINS.size(), loader + ": missing/duplicate/legacy client hooks");
 			config.getAsJsonArray("mixins").forEach(name -> names.add(name.getAsString()));
-			require(names.size() == 8 && names.getLast().equals("PlayerTeleportationStateAccessor"), loader + ": unexpected common hooks");
+			require(names.size() == CLIENT_MIXINS.size() + 1 && names.getLast().equals("PlayerTeleportationStateAccessor"), loader + ": unexpected common hooks");
 			for (String name : names) {
 				Path file = root.resolve("common/build/classes/java/main/mtr/mixin/" + name + ".class");
 				if (!Files.exists(file)) file = root.resolve(loader + "/build/classes/java/main/mtr/mixin/" + name + ".class");

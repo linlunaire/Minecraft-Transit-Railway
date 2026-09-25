@@ -74,6 +74,7 @@ def compileModel = tasks.register('compileModelCompatibility', JavaCompile) {
 	source 'src/main/java/mtr/mappings/EntityModelMapper.java', 'src/main/java/mtr/mappings/ModelDataWrapper.java',
 		'src/main/java/mtr/mappings/NativeImageMapper.java', '../tests/ModelCompatibilityCheck.java',
 		'src/main/java/mtr/mappings/ModelMapper.java'
+	source 'src/main/java/mtr/mappings/ModelGeometry.java'
 	classpath = configurations.compileClasspath
 	destinationDirectory = modelClasses
 }
@@ -88,7 +89,10 @@ tasks.register('checkModelCompatibility', JavaExec) {
 def renderClasses = layout.buildDirectory.dir('classes/renderCompatibility')
 def compileRender = tasks.register('compileRenderCompatibility', JavaCompile) {
 	source 'src/main/java/mtr/mappings/RenderSnapshot.java', 'src/main/java/mtr/mappings/CapturedVertices.java',
+		'src/main/java/mtr/mappings/ModelGeometry.java',
 		'src/main/java/mtr/mappings/RenderBufferSource.java', 'src/main/java/mtr/mappings/BlockEntityRendererMapper.java',
+		'src/main/java/mtr/mappings/RetainedGeometry.java', 'src/main/java/mtr/mappings/RetainedGeometryRenderer.java',
+		'src/main/java/mtr/mappings/FrameGeometryCache.java',
 		'src/main/java/mtr/mappings/EntityRendererMapper.java', 'src/main/java/mtr/mappings/BlockEntityMapper.java',
 		'src/main/java/mtr/mappings/RenderLayerMapper.java', 'src/main/java/mtr/mappings/VanillaVehicleModels.java',
 		'../tests/RenderCompatibilityCheck.java'
@@ -221,3 +225,51 @@ tasks.register('checkSaveQueueCompatibility', JavaExec) {
 	mainClass = 'mtr.data.SaveQueueCompatibilityCheck'
 }
 compatibilityChecks.configure { dependsOn 'checkSaveQueueCompatibility' }
+
+def retainedGeometryClasses = layout.buildDirectory.dir('classes/retainedGeometryCompatibility')
+def compileRetainedGeometry = tasks.register('compileRetainedGeometryCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/RetainedGeometryCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = retainedGeometryClasses
+}
+tasks.register('checkRetainedGeometryCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks retained mesh submit identity, parent-pose fallback, and shader equivalence without a GPU.'
+	dependsOn compileRetainedGeometry
+	classpath = files(retainedGeometryClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.mappings.RetainedGeometryCompatibilityCheck'
+	args rootProject.projectDir.absolutePath
+}
+compatibilityChecks.configure { dependsOn 'checkRetainedGeometryCompatibility' }
+
+def modelCaptureClasses = layout.buildDirectory.dir('classes/modelCaptureCompatibility')
+def compileModelCapture = tasks.register('compileModelCaptureCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/ModelCaptureCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = modelCaptureClasses
+}
+tasks.register('checkModelCaptureCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks deferred model ownership and bounds allocation for many-car extraction.'
+	dependsOn compileModelCapture
+	classpath = files(modelCaptureClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.mappings.ModelCaptureCompatibilityCheck'
+}
+compatibilityChecks.configure { dependsOn 'checkModelCaptureCompatibility' }
+
+def frameCacheClasses = layout.buildDirectory.dir('classes/frameGeometryCacheCheck')
+def compileFrameCache = tasks.register('compileFrameGeometryCacheCheck', JavaCompile) {
+	source 'src/main/java/mtr/mappings/FrameGeometryCache.java', '../tests/FrameGeometryCacheCheck.java'
+	classpath = files()
+	destinationDirectory = frameCacheClasses
+}
+tasks.register('checkFrameGeometryCache', JavaExec) {
+	group = 'verification'
+	description = 'Stress-checks active working-set retention, linear cache retirement and resource ownership without a GPU.'
+	dependsOn compileFrameCache
+	classpath = files(frameCacheClasses)
+	mainClass = 'mtr.mappings.FrameGeometryCacheCheck'
+}
+compatibilityChecks.configure { dependsOn 'checkFrameGeometryCache' }
