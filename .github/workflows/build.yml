@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches: [master]
-    tags: ['1.21.1-*']
+    tags: ['1.21.1-*', '26.2-*']
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -13,30 +13,43 @@ permissions:
 
 jobs:
   build:
+    name: Minecraft ${{ matrix.minecraft }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - minecraft: "1.21.1"
+            java: "21"
+          - minecraft: "26.2"
+            java: "25"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set up JDK 21
+      - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: ${{ matrix.java }}
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Make Gradle Wrapper executable
-        run: chmod +x ./gradlew
+        run: chmod +x ./gradlew ./versions/26.2/gradlew
+
+      - name: Check version selection
+        shell: pwsh
+        run: ./scripts/tests/build-entry-tests.ps1
 
       - name: Build Fabric and NeoForge JARs
-        run: ./gradlew build
+        run: ./gradlew build -Version="${{ matrix.minecraft }}" --stacktrace
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MTR-1.21.1
-          path: build/release/*.jar
+          name: MTR-${{ matrix.minecraft }}
+          path: build/release/MTR-*-${{ matrix.minecraft }}-*.jar
           if-no-files-found: error

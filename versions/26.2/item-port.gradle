@@ -1,0 +1,13 @@
+rootProject.ext.transformMc26ItemSource = { String source ->
+	def result = source
+	if (source.contains('public class ItemDashboard extends') || source.contains('public class ItemResourcePackCreator extends')) {
+		result = result.replace('import net.minecraft.world.InteractionResultHolder;', 'import net.minecraft.world.InteractionResult;')
+			.replace('InteractionResultHolder<ItemStack> use(', 'InteractionResult use(')
+	}
+	if (source.contains('package mtr.item;') && source.contains('void appendHoverText(')) {
+		result = result.replace('List<Component> tooltip, TooltipFlag tooltipFlag)', 'net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag tooltipFlag)')
+			.replace('tooltip.add(', 'tooltip.accept(')
+			.replace('tooltipContext, tooltip, tooltipFlag);', 'tooltipContext, tooltipDisplay, tooltip, tooltipFlag);')
+	}
+	return result
+}

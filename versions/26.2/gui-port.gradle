@@ -1,0 +1,98 @@
+// Applied to generated shared sources only. Version overlays already use the 26.2 APIs.
+rootProject.ext.transformMc26GuiSource = { String source ->
+	def renamed = source
+		.replaceAll(/\bGuiGraphics\b/, 'GuiGraphicsExtractor')
+		.replace('guiGraphics.drawString(', 'guiGraphics.text(')
+		.replace('guiGraphics.drawCenteredString(', 'guiGraphics.centeredText(')
+		.replace('guiGraphics.hLine(', 'guiGraphics.horizontalLine(')
+		.replace('guiGraphics.vLine(', 'guiGraphics.verticalLine(')
+		.replace('guiGraphics.renderTooltip(', 'guiGraphics.setTooltipForNextFrame(')
+		.replace('guiGraphics.renderComponentTooltip(', 'guiGraphics.setComponentTooltipForNextFrame(')
+		.replace('guiGraphics.blit(', 'guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, ')
+		.replace('guiGraphics.blitSprite(', 'guiGraphics.blitSprite(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, ')
+		.replace('guiGraphics.pose().pushPose()', 'guiGraphics.pose().pushMatrix()')
+		.replace('guiGraphics.pose().popPose()', 'guiGraphics.pose().popMatrix()')
+		.replace('guiGraphics.pose().translate(x + textStart, 0, 0)', 'guiGraphics.pose().translate(x + textStart, 0)')
+		.replace('guiGraphics.pose().scale((float) availableSpace / textWidth, 1, 1)', 'guiGraphics.pose().scale((float) availableSpace / textWidth, 1)')
+		.replaceAll(/\b(client|minecraft|minecraftClient)\.setScreen\(/, '$1.gui.setScreen(')
+		.replaceAll(/\b(client|minecraft|minecraftClient)\.screen\b(?!\()/, '$1.gui.screen()')
+		.replace('Minecraft.getInstance().screen', 'Minecraft.getInstance().gui.screen()')
+		.replace('Minecraft.getInstance().setScreen(', 'Minecraft.getInstance().gui.setScreen(')
+		.replace('Screen.hasShiftDown()', 'net.minecraft.client.Minecraft.getInstance().hasShiftDown()')
+		.replace('Screen.hasControlDown()', 'net.minecraft.client.Minecraft.getInstance().hasControlDown()')
+		.replace('Screen.hasAltDown()', 'net.minecraft.client.Minecraft.getInstance().hasAltDown()')
+
+	if (source.contains('package mtr.screen;')) {
+		// Each migrated blit supplies its own texture and blending pipeline.
+		renamed = renamed.replaceAll(/(?m)^\h*UtilitiesClient\.beginDrawingTexture\([^\r\n]+\);\r?\n/, '')
+		// Screen now initializes these final fields in its constructor.
+		renamed = renamed.replace('\t\tfont = Minecraft.getInstance().font;\n', '')
+			.replace('\t\tminecraft = Minecraft.getInstance();\n', '')
+		// Keep the original event when forwarding to Minecraft, including modifiers and double-clicks.
+		renamed = renamed
+			.replace('boolean mouseClicked(double mouseX, double mouseY, int button) {', '''boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent mc26Event, boolean doubleClick) {
+		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
+		final int button = mc26Event.button();''')
+			.replace('super.mouseClicked(mouseX, mouseY, button)', 'super.mouseClicked(mc26Event, doubleClick)')
+			.replace('super.mouseClicked(mouseX, mouseY, 0)', 'super.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(mouseX, mouseY, new net.minecraft.client.input.MouseButtonInfo(0, mc26Event.modifiers())), doubleClick)')
+			.replace('boolean mouseReleased(double mouseX, double mouseY, int button) {', '''boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent mc26Event) {
+		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
+		final int button = mc26Event.button();''')
+			.replace('super.mouseReleased(mouseX, mouseY, button)', 'super.mouseReleased(mc26Event)')
+			.replace('boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {', '''boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent mc26Event, double deltaX, double deltaY) {
+		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
+		final int button = mc26Event.button();''')
+			.replace('super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY)', 'super.mouseDragged(mc26Event, deltaX, deltaY)')
+
+		// Most screens never use this legacy local; preserve actual GUI matrices where they do.
+		renamed = renamed.replace('final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();', 'final var matrices = guiGraphics.pose();')
+		if (source.contains('class DashboardScreen ')) {
+			renamed = renamed.replace('matrices.pushPose();', 'matrices.pushMatrix();')
+				.replace('matrices.translate(0, 0, 500);', 'guiGraphics.nextStratum();')
+				.replace('matrices.popPose();', 'matrices.popMatrix();')
+		}
+		if (source.contains('class WidgetShorterSlider ')) {
+			renamed = renamed
+				.replace('void renderWidget(GuiGraphicsExtractor', 'void extractWidgetRenderState(GuiGraphicsExtractor')
+				.replace('void onClick(double d, double e) {', 'void onClick(net.minecraft.client.input.MouseButtonEvent mc26Event, boolean doubleClick) {')
+				.replace('super.onClick(d, e)', 'super.onClick(mc26Event, doubleClick)')
+				.replace('void onDrag(double d, double e, double f, double g) {', 'void onDrag(net.minecraft.client.input.MouseButtonEvent mc26Event, double f, double g) {')
+				.replace('super.onDrag(d, e, f, g)', 'super.onDrag(mc26Event, f, g)')
+		}
+		if (source.contains('class WidgetMap ') || source.contains('class WidgetColorSelector ')) {
+			// These are GUI rectangles, not world geometry. Queue them through the GUI extractor.
+			renamed = renamed
+				.replaceAll(/(?m)^import com\.mojang\.blaze3d\.(?:vertex\.(?:BufferBuilder|BufferUploader|Tesselator)|systems\.RenderSystem);\r?\n/, '')
+				.replaceAll(/(?m)^\h*final Tesselator tesselator = Tesselator\.getInstance\(\);\r?\n/, '')
+				.replaceAll(/(?m)^\h*final BufferBuilder buffer = tesselator\.begin\([^\r\n]+\);\r?\n/, '')
+				.replaceAll(/(?m)^\h*(?:UtilitiesClient\.(?:beginDrawingRectangle\(buffer\)|finishDrawingRectangle\(\))|BufferUploader\.drawWithShader\(buffer\.buildOrThrow\(\)\)|RenderSystem\.(?:enableBlend|disableBlend)\(\));\r?\n/, '')
+				.replace('BufferBuilder buffer', 'GuiGraphicsExtractor guiGraphics')
+				.replace('IDrawing.drawRectangle(buffer,', 'mtr.mappings.GuiDrawing.drawRectangle(guiGraphics,')
+				.replace('drawRectangleFromWorldCoords(buffer,', 'drawRectangleFromWorldCoords(guiGraphics,')
+				.replace('drawRectangle(buffer,', 'drawRectangle(guiGraphics,')
+		}
+		if (source.contains('class WidgetMap ')) {
+			renamed = renamed
+				.replaceAll(/(?m)^import net\.minecraft\.client\.renderer\.MultiBufferSource;\r?\n/, '')
+				.replaceAll(/(?m)^\h*final MultiBufferSource\.BufferSource immediate = RenderTrains\.getImmediateBufferSource\(\);\r?\n\h*try \{/, '\t\t{')
+				.replaceAll(/} finally \{\s*immediate\.endBatch\(\);\s*}/, '}')
+				.replace('IDrawing.drawStringWithFont(matrices, textRenderer, immediate,', 'mtr.mappings.GuiDrawing.drawStringWithFont(guiGraphics, textRenderer,')
+		}
+		if (source.contains('class RailwaySignScreen ')) {
+			renamed = renamed
+				.replace('RenderRailwaySign.drawSign(matrices, null, null, font,', 'mtr.mappings.GuiSignDrawing.drawSign(guiGraphics, font,')
+				.replace('selectedIds, Direction.UP, 0, (textureId,', '(textureId,')
+		}
+		if (source.contains('class ResourcePackCreatorScreen ')) {
+			renamed = renamed
+				.replace('hideGui = minecraft.options.hideGui;', 'hideGui = minecraft.gui.hud.isHidden();')
+				.replace('minecraft.options.hideGui = guiCounter != 0 || hideGui;', 'if (minecraft.gui.hud.isHidden() != (guiCounter != 0 || hideGui)) { minecraft.gui.hud.toggle(); }')
+		}
+	}
+	if (source.contains('public class RenderDrivingOverlay ')) {
+		// GUI_TEXTURED and text nodes own blending; extraction must not mutate GPU state.
+		renamed = renamed.replace('import com.mojang.blaze3d.systems.RenderSystem;\n', '')
+			.replaceAll(/(?m)^\h*RenderSystem\.(?:enableBlend|disableBlend)\(\);\r?\n/, '')
+	}
+	return renamed
+}

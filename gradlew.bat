@@ -24,6 +24,12 @@
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
+@rem Route the requested Minecraft version while keeping the usual Gradle command.
+if "%MTR_INTERNAL_GRADLE_WRAPPER%"=="1" goto mtrGradleWrapper
+powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\build-target.ps1" %*
+exit /b %ERRORLEVEL%
+
+:mtrGradleWrapper
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
@@ -78,10 +84,12 @@ set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 if "%ERRORLEVEL%"=="0" goto mainEnd
 
 :fail
+set EXIT_CODE=%ERRORLEVEL%
+if "%EXIT_CODE%"=="0" set EXIT_CODE=1
 rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
 rem the _cmd.exe /c_ return code!
-if  not "" == "%GRADLE_EXIT_CONSOLE%" exit 1
-exit /b 1
+if  not "" == "%GRADLE_EXIT_CONSOLE%" exit %EXIT_CODE%
+exit /b %EXIT_CODE%
 
 :mainEnd
 if "%OS%"=="Windows_NT" endlocal

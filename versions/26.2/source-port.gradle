@@ -1,0 +1,80 @@
+apply from: 'registration-port.gradle'
+apply from: 'gui-port.gradle'
+apply from: 'data-port.gradle'
+apply from: 'block-port.gradle'
+apply from: 'entity-port.gradle'
+apply from: 'item-port.gradle'
+apply from: 'render-port.gradle'
+apply from: 'client-model-port.gradle'
+apply from: 'loader-port.gradle'
+
+// Apply only symbol renames with equivalent 26.2 APIs to generated sources.
+// Behavioral changes belong in the version-specific Java overlays. In particular,
+// CompoundTag defaults and renderer submission cannot be migrated by a global replace.
+rootProject.ext.transformMc26Source = { String source ->
+	def renamed = source.replace('\r\n', '\n')
+		.replaceAll(/\bResourceLocation\b/, "Identifier")
+		.replaceAll(/\breadResourceLocation\b/, "readIdentifier")
+		.replaceAll(/\bwriteResourceLocation\b/, "writeIdentifier")
+		.replace("net.minecraft.client.renderer.RenderType", "net.minecraft.client.renderer.rendertype.RenderType")
+		.replace('net.minecraft.client.renderer.LightTexture', 'net.minecraft.util.LightCoordsUtil')
+		.replaceAll(/\bLightTexture\b/, 'LightCoordsUtil')
+		.replace('Minecraft.getInstance().getTimer()', 'Minecraft.getInstance().getDeltaTracker()')
+		.replace('client.getTimer()', 'client.getDeltaTracker()')
+		.replace('client.cameraEntity', 'client.getCameraEntity()')
+		.replace('Minecraft.getInstance().cameraEntity', 'Minecraft.getInstance().getCameraEntity()')
+		.replace('client.gameRenderer.getMainCamera()', 'client.gameRenderer.mainCamera()')
+		.replace('camera.getPosition()', 'camera.position()')
+		.replace('camera.getYRot()', 'camera.yRot()')
+		.replace('.dimension().location()', '.dimension().identifier()')
+		.replace('net.minecraft.Util', 'net.minecraft.util.Util')
+		.replaceAll(/\.isClientSide\b(?!\s*\()/, '.isClientSide()')
+		.replace('player.displayClientMessage(', 'mtr.mappings.PlayerUtilities.displayClientMessage(player, ')
+	if (source.contains('public interface NetworkUtilities {')) {
+		renamed = renamed.replace('player.getServer()', '((ServerPlayer) player).level().getServer()')
+	}
+	if (source.contains('public class Depot ') || source.contains('public class RenderClock ')) {
+		renamed = renamed.replace('world.getDayTime()', 'world.getOverworldClockTime()')
+			.replace('world.getMaxBuildHeight()', '(world.getMaxY() + 1)')
+	}
+	if (source.contains('public class RailwayDataLoggingModule ')) {
+		renamed = renamed.replace('((NumericTag) tag).getAsNumber()', '((NumericTag) tag).box()')
+	}
+	if (source.contains('public class VehicleRidingClient ')) {
+		renamed = renamed.replace('clientPlayer.absMoveTo(moveX, moveY, moveZ)', 'clientPlayer.absSnapTo(moveX, moveY, moveZ)')
+	}
+	if (source.contains('public class RouteMapGenerator ')) {
+		renamed = renamed.replaceAll(/\b(nativeImage|nativeImageResource)\.getPixelRGBA\(/, 'mtr.mappings.NativeImageMapper.getPixelABGR($1, ')
+			.replace('.setPixelRGBA(', '.setPixelABGR(')
+	}
+	if (source.contains('public class PacketTrainDataGuiServer ')) {
+		renamed = renamed.replace('player.hasPermissions(1)', 'player.permissions().hasPermission(net.minecraft.server.permissions.Permissions.COMMANDS_MODERATOR)')
+	}
+	if (source.contains('public interface IDrawing {')) {
+		renamed = renamed.replace('withFont(Identifier.fromNamespaceAndPath(MTR.MOD_ID, "mtr"))', 'withFont(new net.minecraft.network.chat.FontDescription.Resource(Identifier.fromNamespaceAndPath(MTR.MOD_ID, "mtr")))')
+			.replace('facing.getNormal()', 'facing.getUnitVec3i()')
+			.replace('Narrator.getNarrator().say(newMessage, true)', 'Narrator.getNarrator().say(newMessage, true, 1F)')
+	}
+	if (source.contains('public interface Blocks {')) {
+		['CONCRETE_POWDER', 'CONCRETE', 'WOOL', 'STAINED_GLASS'].each { family ->
+			renamed = renamed.replace("net.minecraft.world.level.block.Blocks.WHITE_${family}", "net.minecraft.world.level.block.Blocks.${family}.white()")
+		}
+	}
+	if (source.contains('public interface KeyMappings {')) {
+		renamed = renamed.replace('"category.mtr.keybinding"', 'MTR_CATEGORY')
+			.replace('public interface KeyMappings {', 'public interface KeyMappings {\n\tKeyMapping.Category MTR_CATEGORY = KeyMapping.Category.register(net.minecraft.resources.Identifier.parse("mtr:keybinding"));')
+	}
+	if (source.contains('extends EntityModel<Entity>')) {
+		renamed = renamed.replace('import net.minecraft.client.model.EntityModel;', 'import mtr.mappings.EntityModelMapper;')
+			.replace('EntityModel<Entity>', 'EntityModelMapper<Entity>')
+	}
+	renamed = rootProject.transformMc26RegistrationSource(renamed)
+	renamed = rootProject.transformMc26GuiSource(renamed)
+	renamed = rootProject.transformMc26DataSource(renamed)
+	renamed = rootProject.transformMc26BlockSource(renamed)
+	renamed = rootProject.transformMc26EntitySource(renamed)
+	renamed = rootProject.transformMc26ItemSource(renamed)
+	renamed = rootProject.transformMc26RenderSource(renamed)
+	renamed = rootProject.transformMc26ClientModelSource(renamed)
+	return rootProject.transformMc26LoaderSource(renamed)
+}

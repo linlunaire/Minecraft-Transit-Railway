@@ -1,0 +1,67 @@
+// Share the client-declared packet inventory without loading MTRClient on a dedicated server.
+def clientInitializer = new File(rootProject.sharedRoot, 'common/src/main/java/mtr/MTRClient.java').getText('UTF-8')
+def clientboundTypes = (clientInitializer =~ /RegistryClient\.registerNetworkReceiver\((PACKET_[A-Z0-9_]+),/).collect { it[1] }
+if (clientboundTypes.isEmpty() || clientboundTypes.size() != clientInitializer.count('RegistryClient.registerNetworkReceiver(') || clientboundTypes.toSet().size() != clientboundTypes.size()) {
+	throw new GradleException('Review changed client packet declarations before generating dedicated-server S2C registration.')
+}
+
+rootProject.ext.transformMc26LoaderSource = { String source ->
+	def result = source.replace('net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper', 'net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper')
+		.replace('KeyBindingHelper.registerKeyBinding(', 'KeyMappingHelper.registerKeyMapping(')
+		.replace('net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup', 'net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab')
+		.replace('FabricItemGroup.builder()', 'FabricCreativeModeTab.builder()')
+		.replace('net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents', 'net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents')
+		.replace('ItemGroupEvents.modifyEntriesEvent(', 'CreativeModeTabEvents.modifyOutputEvent(')
+		.replace('FMLEnvironment.dist', 'FMLEnvironment.getDist()')
+	if (source.contains('public class MTR implements IPacket {')) {
+		def initStart = '\t) {\n'
+		if (result.count(initStart) != 1) throw new GradleException('Review changed MTR initialization before registering S2C payload types.')
+		result = result.replace(initStart, initStart + '\t\tmtr.mappings.NetworkUtilities.registerServerS2CTypes(dev.architectury.platform.Platform.getEnvironment(),\n\t\t\t' + clientboundTypes.join(',\n\t\t\t') + ');\n')
+	}
+	if (source.contains('public class RegistryClientImpl ')) {
+		result = result.replace('import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;', 'import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;')
+			.replace('ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> MTRClient.getStationColor(pos), block);',
+				'BlockColorRegistry.register(java.util.List.of(mtr.mappings.StationColorTintSource.INSTANCE), block);')
+			.replace('RegistryUtilitiesClient.registerBlockColors(new StationColor(), block);', 'RegistryUtilitiesClient.registerBlockColors(mtr.mappings.StationColorTintSource.INSTANCE, block);')
+			.replace('''	private static class StationColor implements BlockColor {
+
+		@Override
+		public int getColor(BlockState blockState, BlockAndTintGetter blockAndTintGetter, BlockPos pos, int i) {
+			return MTRClient.getStationColor(pos);
+		}
+	}
+''', '')
+			.replace('import net.minecraft.client.color.block.BlockColor;\n', '')
+			.replace('import net.minecraft.world.level.BlockAndTintGetter;\n', '')
+	}
+	if (source.contains('public class RegistryImpl ') || source.contains('public class ForgeUtilities ')) {
+		result = result.replace('''return entity.getAddEntityPacket(new ServerEntity(serverLevel, entity, 0, false, packet -> {
+			}));''', 'return mtr.mappings.EntitySpawnPacketMapper.create(entity);')
+	}
+	if (source.contains('public class MTRFabricClient ')) {
+		def start = result.indexOf('\t\tWorldRenderEvents.AFTER_ENTITIES.register(')
+		def end = result.indexOf('\t\tHudRenderCallback.EVENT.register(', start)
+		if (start < 0 || end < 0) throw new GradleException('Review changed legacy Fabric world hooks before migrating them.')
+		// Both loaders now use the same LevelExtractor/LevelRenderer mixins.
+		result = result.substring(0, start) + result.substring(end)
+		result = result.replace('import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;\n', '')
+			.replace('import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;', 'import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;')
+			.replace('HudRenderCallback.EVENT.register((matrices, tickDelta) -> RenderDrivingOverlay.render(matrices));',
+				'HudElementRegistry.addLast(Identifier.parse("mtr:driving_overlay"), (graphics, tickDelta) -> RenderDrivingOverlay.render(graphics));')
+	}
+	if (source.contains('public class MTRForge ')) {
+		result = result.replace('\t\t\tForgeUtilities.renderTickAction(MTRClient::incrementGameTick);\n', '')
+	}
+	if (source.contains('public class ForgeUtilities ')) {
+		// Tick advancement moved into the common extraction hook.
+		result = result.replace('''		@SubscribeEvent
+		public static void onRenderTickEvent(RenderLevelStageEvent event) {
+			if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
+				RENDER_TICK_ACTIONS.forEach(Runnable::run);
+			}
+		}
+
+''', '')
+	}
+	return result
+}
