@@ -414,7 +414,7 @@
 	"gui.mtr.unlimited": "Unlimited",
 	"gui.mtr.unlimited_vehicles": "Unlimited Vehicles",
 	"gui.mtr.untitled": "Untitled",
-	"gui.mtr.use_time_and_wind_sync": "Automatically sync time using the Time & Wind mod",
+	"gui.mtr.use_time_and_wind_sync": "Sync the Overworld with real time (24-hour cycle)",
 	"gui.mtr.used_model_parts": "Used Model Parts",
 	"gui.mtr.vehicle_brightness": "Brightness: %s%%",
 	"gui.mtr.vehicle_cars": "Cars: %s",

@@ -4,7 +4,6 @@ import mtr.MTR;
 import mtr.data.DataCache;
 import mtr.data.RailwayData;
 import mtr.data.Route;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -14,7 +13,10 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.net.BindException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,8 +34,10 @@ public abstract class Webserver {
 
 	private static Server webServer;
 	private static ServerConnector serverConnector;
+	private static final Logger LOGGER = LoggerFactory.getLogger("MTR Web Map");
 
-	public static void init() {
+	public static synchronized void init() {
+		stop();
 		webServer = new Server(new QueuedThreadPool(100, 10, 120));
 		serverConnector = new ServerConnector(webServer);
 		webServer.setConnectors(new Connector[]{serverConnector});
@@ -58,30 +62,51 @@ public abstract class Webserver {
 		context.addServlet(RouteFinderServletHandler.class, "/route");
 	}
 
-	public static void start(Path path) {
-		int port = 8888;
+	public static synchronized void start(Path path) {
+		if (webServer == null) init();
+		if (webServer.isStarted()) return;
+		final int port;
 		try {
-			port = Mth.clamp(Integer.parseInt(String.join("", Files.readAllLines(path)).replaceAll("\\D", "")), 1025, 65535);
-		} catch (Exception ignored) {
-			try {
-				Files.write(path, Collections.singleton(String.valueOf(port)));
-			} catch (Exception e) {
-				e.printStackTrace();
+			if (!Files.exists(path)) {
+				Files.createDirectories(path.toAbsolutePath().getParent());
+				Files.writeString(path, "8888\n");
 			}
+			port = Integer.parseInt(Files.readString(path).trim());
+			if (port != 0 && (port < 1025 || port > 65535)) throw new IllegalArgumentException("Expected 0 or a port from 1025 to 65535");
+		} catch (Exception e) {
+			LOGGER.error("Web map not started: invalid or unreadable port file {}. Use 0 to disable it or an integer from 1025 to 65535. File left unchanged.", path.toAbsolutePath(), e);
+			return;
+		}
+		if (port == 0) {
+			LOGGER.info("Web map disabled by {} (port 0).", path.toAbsolutePath());
+			return;
 		}
 		serverConnector.setPort(port);
 		try {
+			// Bind before starting the servlet context/thread pool. The OS remains the
+			// authority; checking whether a port is free first would introduce a race.
+			serverConnector.open();
 			webServer.start();
 		} catch (Exception e) {
-			e.printStackTrace();
+			stop();
+			Throwable cause = e;
+			while (cause.getCause() != null && !(cause instanceof BindException)) cause = cause.getCause();
+			if (cause instanceof BindException) {
+				LOGGER.warn("Web map could not bind port {}: {}. Minecraft can continue, but the web map is unavailable. Set a free port in {} (or 0 to disable) and restart. No alternate port was opened.", port, cause.getMessage(), path.toAbsolutePath());
+			} else {
+				LOGGER.error("Web map startup failed on port {}. Check {}; Minecraft can continue without the web map.", port, path.toAbsolutePath(), e);
+			}
 		}
 	}
 
-	public static void stop() {
+	public static synchronized void stop() {
+		if (webServer == null) return;
 		try {
 			webServer.stop();
+			// A connector opened before Server.start() also needs closing if startup fails.
+			serverConnector.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("Could not completely stop the web map", e);
 		}
 	}
 }

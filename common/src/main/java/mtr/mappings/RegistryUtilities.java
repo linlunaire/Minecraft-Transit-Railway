@@ -33,6 +33,11 @@ public interface RegistryUtilities {
 		return new BlockEntityType<>(supplier::supplier, Collections.singleton(block));
 	}
 
+	/** Only for factories whose entity type does not depend on per-block constructor settings. */
+	static <T extends BlockEntityMapper> BlockEntityType<T> getBlockEntityTypeWithInheritedBlocks(Utilities.TileEntitySupplier<T> supplier, Block block) {
+		return new BlockEntityTypeMapper<>(supplier::supplier, block);
+	}
+
 	static void registerCommand(Consumer<CommandDispatcher<CommandSourceStack>> callback) {
 		CommandRegistrationEvent.EVENT.register((dispatcher, dedicated, commandSelection) -> callback.accept(dispatcher));
 	}

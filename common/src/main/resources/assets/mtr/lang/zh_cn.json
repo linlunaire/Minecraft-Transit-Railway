@@ -414,7 +414,7 @@
 	"gui.mtr.unlimited": "无限",
 	"gui.mtr.unlimited_vehicles": "无限次车辆",
 	"gui.mtr.untitled": "未命名",
-	"gui.mtr.use_time_and_wind_sync": "使用 Time & Wind 模组自动同步时间",
+	"gui.mtr.use_time_and_wind_sync": "将主世界与现实时间同步（24 小时周期）",
 	"gui.mtr.used_model_parts": "已选择模型部件",
 	"gui.mtr.vehicle_brightness": "亮度：%s%%",
 	"gui.mtr.vehicle_cars": "车节数量：%s",

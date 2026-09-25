@@ -37,6 +37,22 @@ Use **Java 25** and the MTR JAR for your loader. Place MTR and the dependencies 
 
 Use matching MTR versions on the server and clients.
 
+### Server configuration
+
+The optional web map uses the port in `config/mtr_webserver_port.txt` (default
+`8888`). Use a free port from `1025` to `65535`, or `0` to disable the web map,
+then restart. A port conflict does not stop Minecraft, but the map remains
+unavailable; MTR does not take over another process or choose an alternate port.
+
+The Overworld time-sync option uses Minecraft 26.2's native clock API; Time &
+Wind is not required. The saved option key is retained for existing worlds.
+A 24-hour cycle assumes 20 TPS and default day/night multipliers. On Youer,
+custom Purpur `gameplay-mechanics.daylight-cycle-ticks.daytime` / `nighttime`
+values also affect progression; leave both at `12000` for this option's standard cycle. Disabling live sync
+restores its previous clock rate/pause unless another owner changed them.
+After a restart, the earlier in-memory settings are unavailable, so disabling
+an unchanged saved real-time rate falls back to the normal rate.
+
 **Optional:** [ANTE](https://github.com/linlunaire/mtr-ante) adds custom models, scripting and rail tools. Choose a compatible build.
 
 > [!IMPORTANT]

@@ -22,7 +22,8 @@ public interface BlockEntityTypes {
 	RegistryObject<BlockEntityType<BlockPSDDoor.TileEntityPSDDoor>> PSD_DOOR_1_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityType((pos, state) -> new BlockPSDDoor.TileEntityPSDDoor(0, pos, state), Blocks.PSD_DOOR_1.get()));
 	RegistryObject<BlockEntityType<BlockPSDDoor.TileEntityPSDDoor>> PSD_DOOR_2_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityType((pos, state) -> new BlockPSDDoor.TileEntityPSDDoor(1, pos, state), Blocks.PSD_DOOR_2.get()));
 	RegistryObject<BlockEntityType<BlockPSDTop.TileEntityPSDTop>> PSD_TOP_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityType(BlockPSDTop.TileEntityPSDTop::new, Blocks.PSD_TOP.get()));
-	RegistryObject<BlockEntityType<BlockAPGGlass.TileEntityAPGGlass>> APG_GLASS_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityType(BlockAPGGlass.TileEntityAPGGlass::new, Blocks.APG_GLASS.get()));
+	// Legacy addons inherit this fixed factory (for example JCM's APGGlassDRL).
+	RegistryObject<BlockEntityType<BlockAPGGlass.TileEntityAPGGlass>> APG_GLASS_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityTypeWithInheritedBlocks(BlockAPGGlass.TileEntityAPGGlass::new, Blocks.APG_GLASS.get()));
 	RegistryObject<BlockEntityType<BlockAPGDoor.TileEntityAPGDoor>> APG_DOOR_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityType(BlockAPGDoor.TileEntityAPGDoor::new, Blocks.APG_DOOR.get()));
 	RegistryObject<BlockEntityType<BlockPIDS1.TileEntityBlockPIDS1>> PIDS_1_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityType(BlockPIDS1.TileEntityBlockPIDS1::new, Blocks.PIDS_1.get()));
 	RegistryObject<BlockEntityType<BlockPIDS2.TileEntityBlockPIDS2>> PIDS_2_TILE_ENTITY = new RegistryObject<>(() -> RegistryUtilities.getBlockEntityType(BlockPIDS2.TileEntityBlockPIDS2::new, Blocks.PIDS_2.get()));

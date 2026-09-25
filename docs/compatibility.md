@@ -20,6 +20,9 @@ their implementations live in `tests/`.
 | Loader hooks | Configured mixins and callback descriptors checked against actual game bytecode |
 | Screens | Screen lifecycle, background ownership and one blur per frame |
 | Save queues | FIFO ordering, duplicate and missing IDs, retained files and failure preservation |
+| Web map lifecycle | Real loopback HTTP, occupied-port cleanup/recovery, repeated init/start/stop, disabled/invalid configuration and partial-start failures |
+| Real-time synchronization | Actual 26.2 clock progression and packets, wall-clock conversion, dimension guards and no plugin-overridable command dispatch |
+| Addon block entities | Fixed-factory APG inheritance, original/custom state retention, save/load and rejection of unrelated or overridden factories |
 
 The resource checks use vanilla registry projections where a running mod registry
 would otherwise be required. Networking uses a loader registration adapter but

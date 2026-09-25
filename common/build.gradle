@@ -273,3 +273,51 @@ tasks.register('checkFrameGeometryCache', JavaExec) {
 	mainClass = 'mtr.mappings.FrameGeometryCacheCheck'
 }
 compatibilityChecks.configure { dependsOn 'checkFrameGeometryCache' }
+
+def webserverClasses = layout.buildDirectory.dir('classes/webserverCompatibility')
+tasks.register('compileWebserverCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/WebserverCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = webserverClasses
+}
+tasks.register('checkWebserverCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks real loopback Jetty startup, occupied ports and lifecycle cleanup without a game server.'
+	dependsOn 'compileWebserverCompatibility'
+	classpath = files(webserverClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.servlet.WebserverCompatibilityCheck'
+}
+compatibilityChecks.configure { dependsOn 'checkWebserverCompatibility' }
+
+def realTimeSyncClasses = layout.buildDirectory.dir('classes/realTimeSyncCompatibility')
+tasks.register('compileRealTimeSyncCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/RealTimeSyncCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = realTimeSyncClasses
+}
+tasks.register('checkRealTimeSyncCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks native 26.2 real-time clocks and rejects plugin-overridable command dispatch.'
+	dependsOn 'compileRealTimeSyncCompatibility'
+	classpath = files(realTimeSyncClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.RealTimeSyncCompatibilityCheck'
+}
+compatibilityChecks.configure { dependsOn 'checkRealTimeSyncCompatibility' }
+
+def blockEntityExtensionClasses = layout.buildDirectory.dir('classes/blockEntityExtensionCompatibility')
+tasks.register('compileBlockEntityExtensionCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/BlockEntityExtensionCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = blockEntityExtensionClasses
+}
+tasks.register('checkBlockEntityExtensionCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks inherited addon block-entity factories against actual 26.2 state validation.'
+	dependsOn 'compileBlockEntityExtensionCompatibility'
+	classpath = files(blockEntityExtensionClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.mappings.BlockEntityExtensionCompatibilityCheck'
+}
+compatibilityChecks.configure { dependsOn 'checkBlockEntityExtensionCompatibility' }
