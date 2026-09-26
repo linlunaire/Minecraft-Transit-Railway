@@ -87,7 +87,7 @@ public class BlockPSDTop extends BlockDirectionalMapper implements EntityBlockMa
 		return Items.PSD_GLASS_1.get();
 	}
 
-	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader blockGetter, BlockPos blockPos, BlockState blockState, boolean includeData) {
+	public ItemStack getCloneItemStack(BlockGetter blockGetter, BlockPos blockPos, BlockState blockState) {
 		return new ItemStack(asItem());
 	}
 
@@ -102,7 +102,7 @@ public class BlockPSDTop extends BlockDirectionalMapper implements EntityBlockMa
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
 		if (direction == Direction.DOWN && IBlock.getStatePropertySafe(state, PERSISTENT) == EnumPersistent.NONE && !(newState.getBlock() instanceof BlockPSDAPGBase)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {

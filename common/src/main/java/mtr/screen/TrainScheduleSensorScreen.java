@@ -4,7 +4,7 @@ import mtr.block.BlockTrainScheduleSensor;
 import mtr.mappings.Text;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import mtr.mappings.Tuple;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 

@@ -97,26 +97,26 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 	public Siding(CompoundTag compoundTag) {
 		super(compoundTag);
 
-		railLength = RailwayData.round(mtr.mappings.CompoundTagMapper.getFloat(compoundTag, KEY_RAIL_LENGTH), 3);
-		setTrainDetails(mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_TRAIN_ID), mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_BASE_TRAIN_TYPE), false);
-		unlimitedTrains = transportMode.continuousMovement || mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_UNLIMITED_TRAINS);
-		maxTrains = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_MAX_TRAINS);
-		isManual = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_IS_MANUAL);
-		maxManualSpeed = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_MAX_MANUAL_SPEED);
-		repeatIndex1 = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_REPEAT_INDEX_1);
-		repeatIndex2 = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_REPEAT_INDEX_2);
+		railLength = RailwayData.round(compoundTag.getFloat(KEY_RAIL_LENGTH), 3);
+		setTrainDetails(compoundTag.getString(KEY_TRAIN_ID), compoundTag.getString(KEY_BASE_TRAIN_TYPE), false);
+		unlimitedTrains = transportMode.continuousMovement || compoundTag.getBoolean(KEY_UNLIMITED_TRAINS);
+		maxTrains = compoundTag.getInt(KEY_MAX_TRAINS);
+		isManual = compoundTag.getBoolean(KEY_IS_MANUAL);
+		maxManualSpeed = compoundTag.getInt(KEY_MAX_MANUAL_SPEED);
+		repeatIndex1 = compoundTag.getInt(KEY_REPEAT_INDEX_1);
+		repeatIndex2 = compoundTag.getInt(KEY_REPEAT_INDEX_2);
 		accelerationConstant = transportMode.continuousMovement ? Train.MAX_ACCELERATION : Train.ACCELERATION_DEFAULT;
 
-		final CompoundTag tagPath = compoundTag.getCompoundOrEmpty(KEY_PATH);
-		final int pathCount = tagPath.keySet().size();
+		final CompoundTag tagPath = compoundTag.getCompound(KEY_PATH);
+		final int pathCount = tagPath.getAllKeys().size();
 		for (int i = 0; i < pathCount; i++) {
-			path.add(new PathData(tagPath.getCompoundOrEmpty(KEY_PATH + i)));
+			path.add(new PathData(tagPath.getCompound(KEY_PATH + i)));
 		}
 
 		generateTimeSegments(path, timeSegments, platformTimes);
 
-		final CompoundTag tagTrains = compoundTag.getCompoundOrEmpty(KEY_TRAINS);
-		tagTrains.keySet().forEach(key -> trains.add(new TrainServer(id, railLength, timeSegments, path, distances, repeatIndex1, repeatIndex2, accelerationConstant, isManual, maxManualSpeed, dwellTime, tagTrains.getCompoundOrEmpty(key))));
+		final CompoundTag tagTrains = compoundTag.getCompound(KEY_TRAINS);
+		tagTrains.getAllKeys().forEach(key -> trains.add(new TrainServer(id, railLength, timeSegments, path, distances, repeatIndex1, repeatIndex2, accelerationConstant, isManual, maxManualSpeed, dwellTime, tagTrains.getCompound(key))));
 		generateDistances();
 	}
 

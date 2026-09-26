@@ -9,7 +9,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.TickableSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 
 public class LoopingSoundInstance extends SoundInstanceMapper implements TickableSoundInstance {
@@ -17,7 +17,7 @@ public class LoopingSoundInstance extends SoundInstanceMapper implements Tickabl
 	private static final int MAX_DISTANCE = 32;
 
 	public LoopingSoundInstance(String soundId) {
-		super(RegistryUtilities.createSoundEvent(Identifier.fromNamespaceAndPath(MTR.MOD_ID, soundId)), SoundSource.BLOCKS);
+		super(RegistryUtilities.createSoundEvent(ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, soundId)), SoundSource.BLOCKS);
 		looping = true;
 	}
 

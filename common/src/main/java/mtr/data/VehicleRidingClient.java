@@ -11,7 +11,7 @@ import mtr.render.TrainRendererBase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -40,13 +40,13 @@ public class VehicleRidingClient {
 	private final Map<UUID, Float> newPercentagesZ = new HashMap<>();
 	private final Map<UUID, Vec3> riderPositions = new HashMap<>();
 	private final Set<UUID> ridingEntities;
-	private final Identifier packetId;
+	private final ResourceLocation packetId;
 
 	private static final float VEHICLE_WALKING_SPEED_MULTIPLIER = 0.25F;
 	private static final int VEHICLE_PERCENTAGE_UPDATE_INTERVAL = 20;
 	private static final boolean DEBUG_SKIP_RENDER_TRAIN_AND_PLAYERS = false;
 
-	public VehicleRidingClient(Set<UUID> ridingEntities, Identifier packetId) {
+	public VehicleRidingClient(Set<UUID> ridingEntities, ResourceLocation packetId) {
 		this.ridingEntities = ridingEntities;
 		this.packetId = packetId;
 	}
@@ -150,7 +150,7 @@ public class VehicleRidingClient {
 				clientPlayer.setDeltaMovement(0, 0, 0);
 				clientPlayer.setSpeed(0);
 				if (MTRClient.getGameTick() > 40) {
-					clientPlayer.absSnapTo(moveX, moveY, moveZ);
+					clientPlayer.absMoveTo(moveX, moveY, moveZ);
 				}
 			}
 

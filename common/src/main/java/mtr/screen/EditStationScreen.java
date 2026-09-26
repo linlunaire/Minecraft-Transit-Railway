@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.client.ClientData;
@@ -125,21 +125,21 @@ public class EditStationScreen extends EditNameColorScreenBase<Station> {
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		final var matrices = guiGraphics.pose();
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
 			renderTextFields(guiGraphics);
 
-			guiGraphics.verticalLine( width / 2, EXIT_PANELS_START - SQUARE_SIZE, height, ARGB_WHITE_TRANSLUCENT);
+			guiGraphics.vLine( width / 2, EXIT_PANELS_START - SQUARE_SIZE, height, ARGB_WHITE_TRANSLUCENT);
 
 			exitParentList.render(guiGraphics, font);
 			exitDestinationList.render(guiGraphics, font);
 
-			guiGraphics.centeredText(font, stationZoneText, width / 8 * 7, TEXT_PADDING, ARGB_WHITE);
-			guiGraphics.centeredText(font, exitParentsText, width / 4, EXIT_PANELS_START - SQUARE_SIZE + TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.drawCenteredString(font, stationZoneText, width / 8 * 7, TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.drawCenteredString(font, exitParentsText, width / 4, EXIT_PANELS_START - SQUARE_SIZE + TEXT_PADDING, ARGB_WHITE);
 			if (parentExists()) {
-				guiGraphics.centeredText(font, exitDestinationsText, 3 * width / 4, EXIT_PANELS_START - SQUARE_SIZE + TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.drawCenteredString(font, exitDestinationsText, 3 * width / 4, EXIT_PANELS_START - SQUARE_SIZE + TEXT_PADDING, ARGB_WHITE);
 			}
 
 			super.render(guiGraphics, mouseX, mouseY, delta);

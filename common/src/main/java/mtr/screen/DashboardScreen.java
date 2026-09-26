@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.client.ClientData;
@@ -13,7 +13,7 @@ import mtr.packet.PacketTrainDataGuiClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.Button;
-import mtr.mappings.Tuple;
+import net.minecraft.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -147,17 +147,17 @@ public class DashboardScreen extends ScreenMapper implements IGui, IPacket {
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		final var matrices = guiGraphics.pose();
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
 			widgetMap.render(guiGraphics, mouseX, mouseY, delta);
-			matrices.pushMatrix();
-			guiGraphics.nextStratum();
+			matrices.pushPose();
+			matrices.translate(0, 0, 500);
 			guiGraphics.fill( 0, 0, PANEL_WIDTH, height, ARGB_BACKGROUND);
 			dashboardList.render(guiGraphics, font);
 			super.render(guiGraphics, mouseX, mouseY, delta);
-			matrices.popMatrix();
+			matrices.popPose();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

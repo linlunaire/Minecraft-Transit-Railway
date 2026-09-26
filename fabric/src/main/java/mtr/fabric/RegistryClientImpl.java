@@ -6,18 +6,19 @@ import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.EntityRendererMapper;
 import mtr.mappings.FabricRegistryUtilities;
 import mtr.mappings.NetworkUtilities;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockColorRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -29,6 +30,14 @@ import java.util.function.Function;
 
 public class RegistryClientImpl {
 
+	public static void registerBlockRenderType(RenderType type, Block block) {
+		BlockRenderLayerMap.INSTANCE.putBlock(block, type);
+	}
+
+	public static void registerItemModelPredicate(String id, Item item, String tag) {
+		FabricRegistryUtilities.registerItemModelPredicate(id, item, tag);
+	}
+
 	public static <T extends BlockEntityMapper> void registerTileEntityRenderer(BlockEntityType<T> type, Function<BlockEntityRenderDispatcher, BlockEntityRendererMapper<T>> function) {
 		FabricRegistryUtilities.registerTileEntityRenderer(type, function);
 	}
@@ -38,14 +47,14 @@ public class RegistryClientImpl {
 	}
 
 	public static void registerKeyBinding(KeyMapping keyMapping) {
-		KeyMappingHelper.registerKeyMapping(keyMapping);
+		KeyBindingHelper.registerKeyBinding(keyMapping);
 	}
 
 	public static void registerBlockColors(Block block) {
-		BlockColorRegistry.register(java.util.List.of(mtr.mappings.StationColorTintSource.INSTANCE), block);
+		ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> MTRClient.getStationColor(pos), block);
 	}
 
-	public static void registerNetworkReceiver(Identifier resourceLocation, Consumer<FriendlyByteBuf> consumer) {
+	public static void registerNetworkReceiver(ResourceLocation resourceLocation, Consumer<FriendlyByteBuf> consumer) {
 		NetworkUtilities.registerReceiverS2C(resourceLocation, (packet, context) -> consumer.accept((FriendlyByteBuf) packet));
 	}
 
@@ -61,7 +70,7 @@ public class RegistryClientImpl {
 		ClientTickEvents.START_CLIENT_TICK.register(consumer::accept);
 	}
 
-	public static void sendToServer(Identifier id, FriendlyByteBuf packet) {
+	public static void sendToServer(ResourceLocation id, FriendlyByteBuf packet) {
 		NetworkUtilities.sendToServer(id, packet);
 	}
 }

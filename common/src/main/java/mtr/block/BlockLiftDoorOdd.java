@@ -17,8 +17,8 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 public class BlockLiftDoorOdd extends BlockPSDAPGDoorBase implements ITripleBlock {
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
-		return ITripleBlock.updateShape(state, direction, newState.is(this), () -> super.updateShape(state, world, scheduledTicks, pos, direction, posFrom, newState, random));
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+		return ITripleBlock.updateShape(state, direction, newState.is(this), () -> super.updateShape(state, direction, newState, world, pos, posFrom));
 	}
 
 	@Override

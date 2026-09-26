@@ -8,9 +8,9 @@ import mtr.data.*;
 import mtr.mappings.Utilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import mtr.mappings.Tuple;
+import net.minecraft.util.Tuple;
 
 import java.io.IOException;
 import java.util.*;
@@ -761,7 +761,7 @@ public class RouteMapGenerator implements IGui {
 	}
 
 	private static void drawResource(NativeImage nativeImage, String resource, int x, int y, int width, int height, boolean flipX, float v1, float v2, int color, boolean useActualColor) throws IOException {
-		final NativeImage nativeImageResource = NativeImage.read(NativeImage.Format.RGBA, Utilities.getInputStream(Minecraft.getInstance().getResourceManager().getResource(Identifier.fromNamespaceAndPath(MTR.MOD_ID, resource))));
+		final NativeImage nativeImageResource = NativeImage.read(NativeImage.Format.RGBA, Utilities.getInputStream(Minecraft.getInstance().getResourceManager().getResource(ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, resource))));
 		final int resourceWidth = nativeImageResource.getWidth();
 		final int resourceHeight = nativeImageResource.getHeight();
 		for (int drawX = 0; drawX < width; drawX++) {
@@ -776,10 +776,10 @@ public class RouteMapGenerator implements IGui {
 				final float percentY1 = ceilY - pixelY;
 				final float percentX2 = pixelX - floorX;
 				final float percentY2 = pixelY - floorY;
-				final int pixel1 = mtr.mappings.NativeImageMapper.getPixelABGR(nativeImageResource, Mth.clamp(floorX, 0, resourceWidth - 1), Mth.clamp(floorY, 0, resourceHeight - 1));
-				final int pixel2 = mtr.mappings.NativeImageMapper.getPixelABGR(nativeImageResource, Mth.clamp(ceilX, 0, resourceWidth - 1), Mth.clamp(floorY, 0, resourceHeight - 1));
-				final int pixel3 = mtr.mappings.NativeImageMapper.getPixelABGR(nativeImageResource, Mth.clamp(floorX, 0, resourceWidth - 1), Mth.clamp(ceilY, 0, resourceHeight - 1));
-				final int pixel4 = mtr.mappings.NativeImageMapper.getPixelABGR(nativeImageResource, Mth.clamp(ceilX, 0, resourceWidth - 1), Mth.clamp(ceilY, 0, resourceHeight - 1));
+				final int pixel1 = nativeImageResource.getPixelRGBA(Mth.clamp(floorX, 0, resourceWidth - 1), Mth.clamp(floorY, 0, resourceHeight - 1));
+				final int pixel2 = nativeImageResource.getPixelRGBA(Mth.clamp(ceilX, 0, resourceWidth - 1), Mth.clamp(floorY, 0, resourceHeight - 1));
+				final int pixel3 = nativeImageResource.getPixelRGBA(Mth.clamp(floorX, 0, resourceWidth - 1), Mth.clamp(ceilY, 0, resourceHeight - 1));
+				final int pixel4 = nativeImageResource.getPixelRGBA(Mth.clamp(ceilX, 0, resourceWidth - 1), Mth.clamp(ceilY, 0, resourceHeight - 1));
 				final int newColor;
 				if (useActualColor) {
 					newColor = invertColor(pixel1);
@@ -799,7 +799,7 @@ public class RouteMapGenerator implements IGui {
 		if (RailwayData.isBetween(x, 0, nativeImage.getWidth() - 1) && RailwayData.isBetween(y, 0, nativeImage.getHeight() - 1)) {
 			final float percent = (float) ((color >> 24) & 0xFF) / 0xFF;
 			if (percent > 0) {
-				final int existingPixel = mtr.mappings.NativeImageMapper.getPixelABGR(nativeImage, x, y);
+				final int existingPixel = nativeImage.getPixelRGBA(x, y);
 				final boolean existingTransparent = ((existingPixel >> 24) & 0xFF) == 0;
 				final int r1 = existingTransparent ? 0xFF : (existingPixel & 0xFF);
 				final int g1 = existingTransparent ? 0xFF : ((existingPixel >> 8) & 0xFF);
@@ -816,7 +816,7 @@ public class RouteMapGenerator implements IGui {
 
 	private static void drawPixelSafe(NativeImage nativeImage, int x, int y, int color) {
 		if (RailwayData.isBetween(x, 0, nativeImage.getWidth() - 1) && RailwayData.isBetween(y, 0, nativeImage.getHeight() - 1)) {
-			nativeImage.setPixelABGR(x, y, invertColor(color));
+			nativeImage.setPixelRGBA(x, y, invertColor(color));
 		}
 	}
 
@@ -827,8 +827,8 @@ public class RouteMapGenerator implements IGui {
 	private static void clearColor(NativeImage nativeImage, int color) {
 		for (int x = 0; x < nativeImage.getWidth(); x++) {
 			for (int y = 0; y < nativeImage.getHeight(); y++) {
-				if (mtr.mappings.NativeImageMapper.getPixelABGR(nativeImage, x, y) == color) {
-					nativeImage.setPixelABGR(x, y, 0);
+				if (nativeImage.getPixelRGBA(x, y) == color) {
+					nativeImage.setPixelRGBA(x, y, 0);
 				}
 			}
 		}

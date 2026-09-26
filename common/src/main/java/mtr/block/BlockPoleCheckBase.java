@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
 
-public abstract class BlockPoleCheckBase extends BlockDirectionalMapper implements mtr.mappings.BlockTooltip {
+public abstract class BlockPoleCheckBase extends BlockDirectionalMapper {
 
 	public BlockPoleCheckBase(Properties settings) {
 		super(settings);

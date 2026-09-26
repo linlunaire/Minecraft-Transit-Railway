@@ -16,7 +16,7 @@ public abstract class BlockPSDAPGBase extends BlockDirectionalDoubleBlockBase {
 		super(Properties.of().mapColor(MapColor.COLOR_GRAY).requiresCorrectToolForDrops().strength(2).noOcclusion());
 	}
 
-	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader blockGetter, BlockPos blockPos, BlockState blockState, boolean includeData) {
+	public ItemStack getCloneItemStack(BlockGetter blockGetter, BlockPos blockPos, BlockState blockState) {
 		return new ItemStack(asItem());
 	}
 

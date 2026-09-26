@@ -2,6 +2,7 @@ package mtr.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import mtr.MTRClient;
 import mtr.client.TrainClientRegistry;
 import mtr.client.TrainProperties;
@@ -13,11 +14,16 @@ import mtr.mappings.UtilitiesClient;
 import mtr.model.ModelBogie;
 import mtr.model.ModelCableCarGrip;
 import mtr.model.ModelTrainBase;
-import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.Minecart;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.StringUtils;
@@ -36,10 +42,10 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 	public final String gangwayConnectionId;
 	public final String trainBarrierId;
 
-
-
-
-	private static final Map<String, Identifier> TEXTURE_LOCATIONS = new HashMap<>();
+	private static final EntityModel<Minecart> MODEL_MINECART = UtilitiesClient.getMinecartModel();
+	private static final EntityModel<Boat> MODEL_BOAT = UtilitiesClient.getBoatModel();
+	private static final Long2ObjectOpenHashMap<FakeBoat> BOATS = new Long2ObjectOpenHashMap<>();
+	private static final Map<String, ResourceLocation> TEXTURE_LOCATIONS = new HashMap<>();
 	private static final ModelCableCarGrip MODEL_CABLE_CAR_GRIP = new ModelCableCarGrip();
 	private static final ModelBogie MODEL_BOGIE = new ModelBogie();
 
@@ -84,7 +90,7 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 		UtilitiesClient.rotateY(matrices, (float) Math.PI + yaw);
 		UtilitiesClient.rotateX(matrices, (float) Math.PI + (hasPitch ? pitch : 0));
 
-		final int light = LightCoordsUtil.pack(world.getBrightness(LightLayer.BLOCK, posAverage), world.getBrightness(LightLayer.SKY, posAverage));
+		final int light = LightTexture.pack(world.getBrightness(LightLayer.BLOCK, posAverage), world.getBrightness(LightLayer.SKY, posAverage));
 
 		if (model == null || textureId == null) {
 			final boolean isBoat = train.transportMode == TransportMode.BOAT;
@@ -92,11 +98,23 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 			matrices.translate(0, isBoat ? 0.875 : 0.5, 0);
 			UtilitiesClient.rotateYDegrees(matrices, 90);
 
-			mtr.mappings.VanillaVehicleModels.render(isBoat, train.id,
-				(train.getSpeed() + Train.ACCELERATION_DEFAULT) * (doorLeftValue == 0 && doorRightValue == 0 ? lastFrameDuration : 0),
-				matrices, vertexConsumers, resolveTexture(textureId, textureId -> textureId + ".png"), light);
+			final EntityModel<? extends Entity> model = isBoat ? MODEL_BOAT : MODEL_MINECART;
+			final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(model.renderType(resolveTexture(textureId, textureId -> textureId + ".png")));
+
+			if (isBoat) {
+				FakeBoat boat = BOATS.get(train.id);
+				if (boat == null) {
+					boat = new FakeBoat();
+					BOATS.put(train.id, boat);
+				}
+				MODEL_BOAT.setupAnim(boat, (train.getSpeed() + Train.ACCELERATION_DEFAULT) * (doorLeftValue == 0 && doorRightValue == 0 ? lastFrameDuration : 0), 0, -0.1F, 0, 0);
+			} else {
+				model.setupAnim(null, 0, 0, -0.1F, 0, 0);
+			}
+
+			model.renderToBuffer(matrices, vertexConsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 		} else if (!textureId.isEmpty()) {
-			final boolean renderDetails = MTRClient.isReplayMod() || posAverage.distSqr(camera.blockPosition()) <= RenderTrains.DETAIL_RADIUS_SQUARED;
+			final boolean renderDetails = MTRClient.isReplayMod() || posAverage.distSqr(camera.getBlockPosition()) <= RenderTrains.DETAIL_RADIUS_SQUARED;
 			model.render(matrices, vertexConsumers, train, resolveTexture(textureId, textureId -> textureId + ".png"), light, doorLeftValue, doorRightValue, train.isDoorOpening(), carIndex, train.trainCars, !train.isReversed(), train.getIsOnRoute(), isTranslucentBatch, renderDetails, atPlatform);
 
 			if (trainProperties.bogiePosition != 0 && !isTranslucentBatch) {
@@ -129,11 +147,11 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 	}
 
 	public static void removeTrainFromCache(long trainId) {
-		mtr.mappings.VanillaVehicleModels.removeTrain(trainId);
+		BOATS.remove(trainId);
 	}
 
 	public static void clearTrainCache() {
-		mtr.mappings.VanillaVehicleModels.clearTrains();
+		BOATS.clear();
 	}
 
 	public static void clearTextureCache() {
@@ -149,7 +167,7 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 
 		final TrainProperties trainProperties = train.getTrainProperties();
 
-		final int light = LightCoordsUtil.pack(world.getBrightness(LightLayer.BLOCK, posAverage), world.getBrightness(LightLayer.SKY, posAverage));
+		final int light = LightTexture.pack(world.getBrightness(LightLayer.BLOCK, posAverage), world.getBrightness(LightLayer.SKY, posAverage));
 
 		if (!gangwayConnectionId.isEmpty()) {
 			final VertexConsumer vertexConsumerExterior = vertexConsumers.getBuffer(MoreRenderLayers.getExterior(getConnectorTextureString(true, "exterior")));
@@ -189,7 +207,7 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 			return;
 		}
 
-		final int light = LightCoordsUtil.pack(world.getBrightness(LightLayer.BLOCK, posAverage), world.getBrightness(LightLayer.SKY, posAverage));
+		final int light = LightTexture.pack(world.getBrightness(LightLayer.BLOCK, posAverage), world.getBrightness(LightLayer.SKY, posAverage));
 
 		final VertexConsumer vertexConsumerExterior = vertexConsumers.getBuffer(MoreRenderLayers.getExterior(getConnectorTextureString(false, "exterior")));
 		drawTexture(matrices, vertexConsumerExterior, thisPos2, prevPos3, prevPos4, thisPos1, light);
@@ -200,9 +218,9 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 		matrices.popPose();
 	}
 
-	public Identifier resolveTexture(String textureId, Function<String, String> formatter) {
+	public ResourceLocation resolveTexture(String textureId, Function<String, String> formatter) {
 		final String textureString = formatter.apply(textureId);
-		final Identifier id = getTextureLocation(textureString);
+		final ResourceLocation id = getTextureLocation(textureString);
 		final boolean available;
 
 		if (RenderTrains.AVAILABLE_TEXTURES.contains(textureString)) {
@@ -225,12 +243,12 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 		}
 	}
 
-	private Identifier getConnectorTextureString(boolean isConnector, String partName) {
+	private ResourceLocation getConnectorTextureString(boolean isConnector, String partName) {
 		return resolveTexture(isConnector ? gangwayConnectionId : trainBarrierId, textureId -> textureId + "_" + (isConnector ? "connector" : "barrier") + "_" + partName + ".png");
 	}
 
-	private static Identifier getTextureLocation(String texture) {
-		return TEXTURE_LOCATIONS.computeIfAbsent(texture, Identifier::parse);
+	private static ResourceLocation getTextureLocation(String texture) {
+		return TEXTURE_LOCATIONS.computeIfAbsent(texture, ResourceLocation::parse);
 	}
 
 	private static void drawTexture(PoseStack matrices, VertexConsumer vertexConsumer, Vec3 pos1, Vec3 pos2, Vec3 pos3, Vec3 pos4, int light) {
@@ -241,4 +259,18 @@ public class JonModelTrainRenderer extends TrainRendererBase implements IGui {
 		return path == null ? null : path.toLowerCase(Locale.ENGLISH).split("\\.png")[0];
 	}
 
+	private static class FakeBoat extends Boat {
+
+		private float progress;
+
+		public FakeBoat() {
+			super(EntityType.BOAT, null);
+		}
+
+		@Override
+		public float getRowingTime(int paddle, float newProgress) {
+			progress += newProgress;
+			return progress;
+		}
+	}
 }

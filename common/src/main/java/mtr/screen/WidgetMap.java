@@ -1,7 +1,11 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.Tesselator;
 import mtr.client.ClientData;
 import mtr.client.IDrawing;
 import mtr.data.*;
@@ -16,9 +20,10 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
-import mtr.mappings.Tuple;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ConcurrentModificationException;
@@ -79,8 +84,12 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		final var matrices = guiGraphics.pose();
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
+		final Tesselator tesselator = Tesselator.getInstance();
+		final BufferBuilder buffer = tesselator.begin(com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS, com.mojang.blaze3d.vertex.DefaultVertexFormat.POSITION_COLOR);
+		UtilitiesClient.beginDrawingRectangle(buffer);
+		RenderSystem.enableBlend();
 
 		final Tuple<Integer, Integer> topLeft = coordsToWorldPos(0, 0);
 		final Tuple<Integer, Integer> bottomRight = coordsToWorldPos(width, height);
@@ -90,7 +99,7 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 				if (world != null) {
 					final BlockPos blockPos = RailwayData.newBlockPos(i, world.getHeight(Heightmap.Types.MOTION_BLOCKING, i, j) - 1, j);
 					final int color = divideColorRGB(world.getBlockState(blockPos).getMapColor(world, blockPos).col, 2);
-					drawRectangleFromWorldCoords(guiGraphics, i, j, i + increment, j + increment, ARGB_BLACK | color);
+					drawRectangleFromWorldCoords(buffer, i, j, i + increment, j + increment, ARGB_BLACK | color);
 				}
 			}
 		}
@@ -99,43 +108,46 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 
 		try {
 			if (showStations) {
-				ClientData.DATA_CACHE.getPosToPlatforms(transportMode).forEach((platformPos, platforms) -> drawRectangleFromWorldCoords(guiGraphics, platformPos.getX(), platformPos.getZ(), platformPos.getX() + 1, platformPos.getZ() + 1, ARGB_WHITE));
+				ClientData.DATA_CACHE.getPosToPlatforms(transportMode).forEach((platformPos, platforms) -> drawRectangleFromWorldCoords(buffer, platformPos.getX(), platformPos.getZ(), platformPos.getX() + 1, platformPos.getZ() + 1, ARGB_WHITE));
 				for (final Station station : ClientData.STATIONS) {
 					if (AreaBase.nonNullCorners(station)) {
-						drawRectangleFromWorldCoords(guiGraphics, station.corner1, station.corner2, ARGB_BLACK_TRANSLUCENT + station.color);
+						drawRectangleFromWorldCoords(buffer, station.corner1, station.corner2, ARGB_BLACK_TRANSLUCENT + station.color);
 					}
 				}
-				mouseOnSavedRail(mouseWorldPos, (savedRail, x1, z1, x2, z2) -> drawRectangleFromWorldCoords(guiGraphics, x1, z1, x2, z2, ARGB_WHITE), true);
+				mouseOnSavedRail(mouseWorldPos, (savedRail, x1, z1, x2, z2) -> drawRectangleFromWorldCoords(buffer, x1, z1, x2, z2, ARGB_WHITE), true);
 			} else {
-				ClientData.DATA_CACHE.getPosToSidings(transportMode).forEach((sidingPos, sidings) -> drawRectangleFromWorldCoords(guiGraphics, sidingPos.getX(), sidingPos.getZ(), sidingPos.getX() + 1, sidingPos.getZ() + 1, ARGB_WHITE));
+				ClientData.DATA_CACHE.getPosToSidings(transportMode).forEach((sidingPos, sidings) -> drawRectangleFromWorldCoords(buffer, sidingPos.getX(), sidingPos.getZ(), sidingPos.getX() + 1, sidingPos.getZ() + 1, ARGB_WHITE));
 				for (final Depot depot : ClientData.DEPOTS) {
 					if (depot.isTransportMode(transportMode) && AreaBase.nonNullCorners(depot)) {
-						drawRectangleFromWorldCoords(guiGraphics, depot.corner1, depot.corner2, ARGB_BLACK_TRANSLUCENT + depot.color);
+						drawRectangleFromWorldCoords(buffer, depot.corner1, depot.corner2, ARGB_BLACK_TRANSLUCENT + depot.color);
 					}
 				}
-				mouseOnSavedRail(mouseWorldPos, (savedRail, x1, z1, x2, z2) -> drawRectangleFromWorldCoords(guiGraphics, x1, z1, x2, z2, ARGB_WHITE), false);
+				mouseOnSavedRail(mouseWorldPos, (savedRail, x1, z1, x2, z2) -> drawRectangleFromWorldCoords(buffer, x1, z1, x2, z2, ARGB_WHITE), false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		if (mapState == MapState.EDITING_AREA && drawArea1 != null && drawArea2 != null) {
-			drawRectangleFromWorldCoords(guiGraphics, drawArea1, drawArea2, ARGB_WHITE_TRANSLUCENT);
+			drawRectangleFromWorldCoords(buffer, drawArea1, drawArea2, ARGB_WHITE_TRANSLUCENT);
 		}
 
 		if (player != null) {
 			drawFromWorldCoords(player.getX(), player.getZ(), (x1, y1) -> {
-				drawRectangle(guiGraphics, x1 - 2, y1 - 3, x1 + 2, y1 + 3, ARGB_WHITE);
-				drawRectangle(guiGraphics, x1 - 3, y1 - 2, x1 + 3, y1 + 2, ARGB_WHITE);
-				drawRectangle(guiGraphics, x1 - 2, y1 - 2, x1 + 2, y1 + 2, ARGB_BLUE);
+				drawRectangle(buffer, x1 - 2, y1 - 3, x1 + 2, y1 + 3, ARGB_WHITE);
+				drawRectangle(buffer, x1 - 3, y1 - 2, x1 + 3, y1 + 2, ARGB_WHITE);
+				drawRectangle(buffer, x1 - 2, y1 - 2, x1 + 2, y1 + 2, ARGB_BLUE);
 			});
 		}
 
+		BufferUploader.drawWithShader(buffer.buildOrThrow());
+		RenderSystem.disableBlend();
+		UtilitiesClient.finishDrawingRectangle();
 
 		if (mapState == MapState.EDITING_AREA) {
-			guiGraphics.text( textRenderer, Text.translatable("gui.mtr.edit_area").getString(), x + TEXT_PADDING, y + TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.drawString( textRenderer, Text.translatable("gui.mtr.edit_area").getString(), x + TEXT_PADDING, y + TEXT_PADDING, ARGB_WHITE);
 		} else if (mapState == MapState.EDITING_ROUTE) {
-			guiGraphics.text( textRenderer, Text.translatable("gui.mtr.edit_route").getString(), x + TEXT_PADDING, y + TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.drawString( textRenderer, Text.translatable("gui.mtr.edit_route").getString(), x + TEXT_PADDING, y + TEXT_PADDING, ARGB_WHITE);
 		}
 
 		if (scale >= 8) {
@@ -150,33 +162,34 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 			}
 		}
 
-		{
+		final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
+		try {
 			if (showStations) {
 				for (final Station station : ClientData.STATIONS) {
 					if (canDrawAreaText(station)) {
 						final BlockPos pos = station.getCenter();
 						final String stationString = String.format("%s|(%s)", station.name, Text.translatable("gui.mtr.zone_number", station.zone).getString());
-						drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> mtr.mappings.GuiDrawing.drawStringWithFont(guiGraphics, textRenderer, stationString, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
+						drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> IDrawing.drawStringWithFont(matrices, textRenderer, immediate, stationString, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
 					}
 				}
 			} else {
 				for (final Depot depot : ClientData.DEPOTS) {
 					if (canDrawAreaText(depot)) {
 						final BlockPos pos = depot.getCenter();
-						drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> mtr.mappings.GuiDrawing.drawStringWithFont(guiGraphics, textRenderer, depot.name, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
+						drawFromWorldCoords(pos.getX(), pos.getZ(), (x1, y1) -> IDrawing.drawStringWithFont(matrices, textRenderer, immediate, depot.name, x + x1.floatValue(), y + y1.floatValue(), MAX_LIGHT_GLOWING));
 					}
 				}
 			}
+		} finally {
+			immediate.endBatch();
 		}
 
 		final String mousePosText = String.format("(%s, %s)", RailwayData.round(mouseWorldPos.getA(), 1), RailwayData.round(mouseWorldPos.getB(), 1));
-		guiGraphics.text( textRenderer, mousePosText, x + width - TEXT_PADDING - textRenderer.width(mousePosText), y + TEXT_PADDING, ARGB_WHITE);
+		guiGraphics.drawString( textRenderer, mousePosText, x + width - TEXT_PADDING - textRenderer.width(mousePosText), y + TEXT_PADDING, ARGB_WHITE);
 	}
 
 	@Override
-	public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent mc26Event, double deltaX, double deltaY) {
-		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
-		final int button = mc26Event.button();
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
 		if (mapState == MapState.EDITING_AREA) {
 			drawArea2 = coordsToWorldPos((int) Math.round(mouseX - x), (int) Math.round(mouseY - y));
 			if (drawArea1.getA().equals(drawArea2.getA())) {
@@ -194,9 +207,7 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 	}
 
 	@Override
-	public boolean mouseReleased(net.minecraft.client.input.MouseButtonEvent mc26Event) {
-		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
-		final int button = mc26Event.button();
+	public boolean mouseReleased(double mouseX, double mouseY, int button) {
 		if (mapState == MapState.EDITING_AREA) {
 			onDrawCornersMouseRelease.run();
 		}
@@ -204,9 +215,7 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 	}
 
 	@Override
-	public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent mc26Event, boolean doubleClick) {
-		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
-		final int button = mc26Event.button();
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		if (isMouseOver(mouseX, mouseY)) {
 			if (ClientData.hasPermission()) {
 				if (mapState == MapState.EDITING_AREA) {
@@ -334,25 +343,25 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 		}
 	}
 
-	private void drawRectangleFromWorldCoords(GuiGraphicsExtractor guiGraphics, Tuple<Integer, Integer> corner1, Tuple<Integer, Integer> corner2, int color) {
-		drawRectangleFromWorldCoords(guiGraphics, corner1.getA(), corner1.getB(), corner2.getA(), corner2.getB(), color);
+	private void drawRectangleFromWorldCoords(BufferBuilder buffer, Tuple<Integer, Integer> corner1, Tuple<Integer, Integer> corner2, int color) {
+		drawRectangleFromWorldCoords(buffer, corner1.getA(), corner1.getB(), corner2.getA(), corner2.getB(), color);
 	}
 
-	private void drawRectangleFromWorldCoords(GuiGraphicsExtractor guiGraphics, double posX1, double posZ1, double posX2, double posZ2, int color) {
+	private void drawRectangleFromWorldCoords(BufferBuilder buffer, double posX1, double posZ1, double posX2, double posZ2, int color) {
 		final double x1 = (posX1 - centerX) * scale + width / 2D;
 		final double z1 = (posZ1 - centerY) * scale + height / 2D;
 		final double x2 = (posX2 - centerX) * scale + width / 2D;
 		final double z2 = (posZ2 - centerY) * scale + height / 2D;
-		drawRectangle(guiGraphics, x1, z1, x2, z2, color);
+		drawRectangle(buffer, x1, z1, x2, z2, color);
 	}
 
-	private void drawRectangle(GuiGraphicsExtractor guiGraphics, double xA, double yA, double xB, double yB, int color) {
+	private void drawRectangle(BufferBuilder buffer, double xA, double yA, double xB, double yB, int color) {
 		final double x1 = Math.min(xA, xB);
 		final double y1 = Math.min(yA, yB);
 		final double x2 = Math.max(xA, xB);
 		final double y2 = Math.max(yA, yB);
 		if (x1 < width && y1 < height && x2 >= 0 && y2 >= 0) {
-			mtr.mappings.GuiDrawing.drawRectangle(guiGraphics, x + Math.max(0, x1), y + y1, x + x2, y + y2, color);
+			IDrawing.drawRectangle(buffer, x + Math.max(0, x1), y + y1, x + x2, y + y2, color);
 		}
 	}
 
@@ -360,11 +369,11 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 		return areaBase.getCenter() != null && scale >= 80F / Math.max(Math.abs(areaBase.corner1.getA() - areaBase.corner2.getA()), Math.abs(areaBase.corner1.getB() - areaBase.corner2.getB()));
 	}
 
-	private void drawSavedRail(net.minecraft.client.gui.GuiGraphicsExtractor guiGraphics, BlockPos savedRailPos, List<? extends SavedRailBase> savedRails) {
+	private void drawSavedRail(net.minecraft.client.gui.GuiGraphics guiGraphics, BlockPos savedRailPos, List<? extends SavedRailBase> savedRails) {
 		final int savedRailCount = savedRails.size();
 		for (int i = 0; i < savedRailCount; i++) {
 			final int index = i;
-			drawFromWorldCoords(savedRailPos.getX() + 0.5, savedRailPos.getZ() + (i + 0.5) / savedRailCount, (x1, y1) -> guiGraphics.centeredText( textRenderer, savedRails.get(index).name, x + x1.intValue(), y + y1.intValue() - TEXT_HEIGHT / 2, ARGB_WHITE));
+			drawFromWorldCoords(savedRailPos.getX() + 0.5, savedRailPos.getZ() + (i + 0.5) / savedRailCount, (x1, y1) -> guiGraphics.drawCenteredString( textRenderer, savedRails.get(index).name, x + x1.intValue(), y + y1.intValue() - TEXT_HEIGHT / 2, ARGB_WHITE));
 		}
 	}
 

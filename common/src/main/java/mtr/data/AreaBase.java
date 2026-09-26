@@ -4,7 +4,7 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import mtr.mappings.Tuple;
+import net.minecraft.util.Tuple;
 import org.msgpack.core.MessagePacker;
 import org.msgpack.value.Value;
 
@@ -47,7 +47,7 @@ public abstract class AreaBase extends NameColorDataBase {
 	@Deprecated
 	public AreaBase(CompoundTag compoundTag) {
 		super(compoundTag);
-		setCorners(mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_X_MIN), mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_Z_MIN), mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_X_MAX), mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_Z_MAX));
+		setCorners(compoundTag.getInt(KEY_X_MIN), compoundTag.getInt(KEY_Z_MIN), compoundTag.getInt(KEY_X_MAX), compoundTag.getInt(KEY_Z_MAX));
 	}
 
 	public AreaBase(FriendlyByteBuf packet) {

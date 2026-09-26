@@ -21,7 +21,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
 
-public class BlockGlassFence extends BlockDirectionalDoubleBlockBase implements mtr.mappings.BlockTooltip {
+public class BlockGlassFence extends BlockDirectionalDoubleBlockBase {
 
 	public static final IntegerProperty NUMBER = IntegerProperty.create("number", 1, 7);
 

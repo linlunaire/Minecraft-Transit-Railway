@@ -59,17 +59,17 @@ public abstract class BlockTrainSensorBase extends BlockMapper implements Entity
 
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
-			final long[] routeIdsArray = mtr.mappings.CompoundTagMapper.getLongArray(compoundTag, KEY_ROUTE_IDS);
+			final long[] routeIdsArray = compoundTag.getLongArray(KEY_ROUTE_IDS);
 			for (final long routeId : routeIdsArray) {
 				filterRouteIds.add(routeId);
 			}
-			stoppedOnly = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_STOPPED_ONLY);
-			movingOnly = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_MOVING_ONLY);
+			stoppedOnly = compoundTag.getBoolean(KEY_STOPPED_ONLY);
+			movingOnly = compoundTag.getBoolean(KEY_MOVING_ONLY);
 		}
 
 		@Override
 		public void writeCompoundTag(CompoundTag compoundTag) {
-			mtr.mappings.CompoundTagMapper.putLongArray(compoundTag, KEY_ROUTE_IDS, new ArrayList<>(filterRouteIds));
+			compoundTag.putLongArray(KEY_ROUTE_IDS, new ArrayList<>(filterRouteIds));
 			compoundTag.putBoolean(KEY_STOPPED_ONLY, stoppedOnly);
 			compoundTag.putBoolean(KEY_MOVING_ONLY, movingOnly);
 		}

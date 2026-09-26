@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -18,9 +18,9 @@ import mtr.render.RenderTrains;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.util.LightCoordsUtil;
-import mtr.mappings.RenderBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -369,11 +369,11 @@ public class ResourcePackCreatorScreen extends ScreenMapper implements IResource
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		final var matrices = guiGraphics.pose();
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
 		try {
 			if (guiCounter == 0 && minecraft != null) {
-				hideGui = minecraft.gui.hud.isHidden();
+				hideGui = minecraft.options.hideGui;
 				guiGraphics.fill( 0, 0, width, height, ARGB_BLACK);
 			}
 
@@ -385,16 +385,16 @@ public class ResourcePackCreatorScreen extends ScreenMapper implements IResource
 			super.render(guiGraphics, mouseX, mouseY, delta);
 
 			if (isEditing()) {
-				guiGraphics.centeredText(font, Text.translatable("gui.mtr.editing_part", RenderTrains.creatorProperties.getPropertiesPartsArray().get(editingPartIndex).getAsJsonObject().get(KEY_PROPERTIES_NAME).getAsString()), PANEL_WIDTH / 2, TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.drawCenteredString(font, Text.translatable("gui.mtr.editing_part", RenderTrains.creatorProperties.getPropertiesPartsArray().get(editingPartIndex).getAsJsonObject().get(KEY_PROPERTIES_NAME).getAsString()), PANEL_WIDTH / 2, TEXT_PADDING, ARGB_WHITE);
 				if (colorSelectorDisplay.visible) {
-					guiGraphics.text(font, Text.translatable(colorSelectorDisplayCjk.visible ? "gui.mtr.part_display_text_color_cjk" : "gui.mtr.part_display_text_color"), TEXT_PADDING, SQUARE_SIZE * 13 / 2 + TEXT_PADDING, ARGB_WHITE);
+					guiGraphics.drawString(font, Text.translatable(colorSelectorDisplayCjk.visible ? "gui.mtr.part_display_text_color_cjk" : "gui.mtr.part_display_text_color"), TEXT_PADDING, SQUARE_SIZE * 13 / 2 + TEXT_PADDING, ARGB_WHITE);
 				}
-				guiGraphics.centeredText(font, Text.translatable("gui.mtr.part_positions"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 3 + TEXT_PADDING, ARGB_WHITE);
-				guiGraphics.centeredText(font, Text.translatable("gui.mtr.part_whitelisted_cars"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 4 + TEXT_PADDING * 2 + TEXT_HEIGHT + TEXT_FIELD_PADDING, ARGB_WHITE);
-				guiGraphics.centeredText(font, Text.translatable("gui.mtr.part_blacklisted_cars"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 5 + TEXT_PADDING * 3 + TEXT_HEIGHT * 2 + TEXT_FIELD_PADDING * 2, ARGB_WHITE);
+				guiGraphics.drawCenteredString(font, Text.translatable("gui.mtr.part_positions"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 3 + TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.drawCenteredString(font, Text.translatable("gui.mtr.part_whitelisted_cars"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 4 + TEXT_PADDING * 2 + TEXT_HEIGHT + TEXT_FIELD_PADDING, ARGB_WHITE);
+				guiGraphics.drawCenteredString(font, Text.translatable("gui.mtr.part_blacklisted_cars"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 5 + TEXT_PADDING * 3 + TEXT_HEIGHT * 2 + TEXT_FIELD_PADDING * 2, ARGB_WHITE);
 			} else {
-				guiGraphics.centeredText(font, Text.translatable("gui.mtr.available_model_parts"), PANEL_WIDTH / 2, TEXT_PADDING, ARGB_WHITE);
-				guiGraphics.centeredText(font, Text.translatable("gui.mtr.used_model_parts"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 7 / 2 + TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.drawCenteredString(font, Text.translatable("gui.mtr.available_model_parts"), PANEL_WIDTH / 2, TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.drawCenteredString(font, Text.translatable("gui.mtr.used_model_parts"), width - PANEL_WIDTH / 2, SQUARE_SIZE * 7 / 2 + TEXT_PADDING, ARGB_WHITE);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -421,9 +421,7 @@ public class ResourcePackCreatorScreen extends ScreenMapper implements IResource
 	}
 
 	@Override
-	public boolean mouseDragged(net.minecraft.client.input.MouseButtonEvent mc26Event, double deltaX, double deltaY) {
-		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
-		final int button = mc26Event.button();
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
 		if (mouseX >= PANEL_WIDTH && mouseX < width - PANEL_WIDTH && mouseY < height - TEXT_HEIGHT - SQUARE_SIZE * 3) {
 			if (button == 0) {
 				final Vec3 movement = new Vec3(0, deltaY * MOUSE_SCALE * scale, deltaX * MOUSE_SCALE * scale).yRot(yaw).zRot(roll);
@@ -434,7 +432,7 @@ public class ResourcePackCreatorScreen extends ScreenMapper implements IResource
 				roll -= (float) deltaY * MOUSE_SCALE * scale * Math.cos(yaw);
 			}
 		}
-		return super.mouseDragged(mc26Event, deltaX, deltaY);
+		return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 	}
 
 	@Override
@@ -669,18 +667,18 @@ public class ResourcePackCreatorScreen extends ScreenMapper implements IResource
 		if (guiCounter > 0) {
 			guiCounter--;
 			final Minecraft minecraft = Minecraft.getInstance();
-			if (minecraft.gui.hud.isHidden() != (guiCounter != 0 || hideGui)) { minecraft.gui.hud.toggle(); }
+			minecraft.options.hideGui = guiCounter != 0 || hideGui;
 
 			matrices.pushPose();
-			final RenderBufferSource immediate = RenderBufferSource.current().immediate();
-			IDrawing.drawTexture(matrices, immediate.getBuffer(net.minecraft.client.renderer.rendertype.RenderTypes.solidMovingBlock()), Integer.MIN_VALUE, Integer.MAX_VALUE, -256, Integer.MAX_VALUE, Integer.MIN_VALUE, -256, Direction.UP, ARGB_BLACK, 0);
+			final MultiBufferSource.BufferSource immediate = minecraft.renderBuffers().bufferSource();
+			IDrawing.drawTexture(matrices, immediate.getBuffer(RenderType.solid()), Integer.MIN_VALUE, Integer.MAX_VALUE, -256, Integer.MAX_VALUE, Integer.MIN_VALUE, -256, Direction.UP, ARGB_BLACK, 0);
 			immediate.endBatch();
 			matrices.translate(0, 0, -scale);
 			UtilitiesClient.rotateYDegrees(matrices, 90);
 			UtilitiesClient.rotateXDegrees(matrices, 180);
 			UtilitiesClient.rotateY(matrices, yaw);
 			UtilitiesClient.rotateZ(matrices, roll);
-			final int light = LightCoordsUtil.pack(0, (int) Math.round(brightness / 100D * 0x0F));
+			final int light = LightTexture.pack(0, (int) Math.round(brightness / 100D * 0x0F));
 			for (int i = 0; i < cars; i++) {
 				matrices.pushPose();
 				matrices.translate(0, 0, (i - (cars - 1) / 2F) * (RenderTrains.creatorProperties.getLength() + 1) + translation);

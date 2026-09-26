@@ -5,18 +5,18 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import mtr.render.MoreRenderLayers;
-import mtr.mappings.EntityModelMapper;
-import mtr.mappings.RenderBufferSource;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
-public class ModelDoorOverlayTop extends EntityModelMapper<Entity> {
+public class ModelDoorOverlayTop extends EntityModel<Entity> {
 
 	private final ModelMapper bb_main;
 	private final ModelMapper outer_roof_2_r1;
 	private final ModelMapper outer_roof_1_r1;
 
-	private static final Identifier TEXTURE_ID = Identifier.parse("mtr:textures/block/sign/door_overlay_sp1900_top.png");
+	private static final ResourceLocation TEXTURE_ID = ResourceLocation.parse("mtr:textures/block/sign/door_overlay_sp1900_top.png");
 
 	public ModelDoorOverlayTop() {
 		final int textureWidth = 24;
@@ -52,7 +52,7 @@ public class ModelDoorOverlayTop extends EntityModelMapper<Entity> {
 	public final void renderToBuffer(PoseStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
 	}
 
-	public void render(PoseStack matrices, RenderBufferSource vertexConsumers, int light, int position) {
+	public void render(PoseStack matrices, MultiBufferSource vertexConsumers, int light, int position) {
 		ModelTrainBase.renderMirror(bb_main, matrices, vertexConsumers.getBuffer(MoreRenderLayers.getExterior(TEXTURE_ID)), light / 4 * 3, position);
 	}
 }

@@ -1,73 +1,53 @@
-<div align="center">
-  <img src="fabric/src/main/resources/icon.png" alt="Minecraft Transit Railway" width="128">
+# Minecraft Transit Railway 3.3.2（Minecraft 1.21.1）
 
-  <h1>Minecraft Transit Railway</h1>
+这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植版。本 tag 保留 Java 21 / Gradle 8.14.5 构建基线；后续 26.2 工作在 master 延续。
 
-  <p>Automated trains, stations, signalling and passenger information displays.</p>
-  <p>A community-maintained <strong>MTR 3</strong> port for Fabric and NeoForge.</p>
+MTR 以香港 MTR、伦敦地铁和纽约地铁为灵感，提供自动列车、轨道、车站、PIDS、缆车、船只与飞机等内容，用于建设可实际运行的交通网络。
 
-  <p>
-    <img src="https://img.shields.io/badge/Minecraft-26.2-62B47A?style=flat-square" alt="Minecraft 26.2">
-    <img src="https://img.shields.io/badge/Java-25-ED8B00?style=flat-square" alt="Java 25">
-    <img src="https://img.shields.io/badge/Loaders-Fabric%20%7C%20NeoForge-5C6BC0?style=flat-square" alt="Fabric and NeoForge">
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-4C9CA6?style=flat-square" alt="MIT License"></a>
-  </p>
+> 这是测试版，不是上游官方发布渠道。升级现有存档或部署服务器前，请完整备份世界与配置文件。
 
-  <p>
-    <a href="#installation">Installation</a> &nbsp;·&nbsp;
-    <a href="#build">Build</a> &nbsp;·&nbsp;
-    <a href="https://github.com/linlunaire/Minecraft-Transit-Railway/issues">Issues</a> &nbsp;·&nbsp;
-    <a href="https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway">Upstream</a>
-  </p>
-</div>
+## 支持版本
 
----
+| Minecraft | 加载器 | 构建版本   |
+| --- | --- |------------|
+| 1.21.1 | Fabric | beta |
+| 1.21.1 | NeoForge | beta |
 
-> [!NOTE]
-> `master` targets **Minecraft 26.2 only**. For Minecraft **1.21.1**, use the source and build instructions at [`1.21.1-3.3.2`](https://github.com/linlunaire/Minecraft-Transit-Railway/tree/1.21.1-3.3.2).
+### Fabric
 
-## Installation
+需要：
 
-Use **Java 25** and the MTR JAR for your loader. Place MTR and the dependencies for **Minecraft 26.2** in `mods/`:
+- [Fabric API](https://modrinth.com/mod/fabric-api)
+- [Architectury API](https://modrinth.com/mod/architectury-api)
 
-| Loader | Required dependencies |
-| :--- | :--- |
-| **Fabric** | [Fabric API](https://modrinth.com/mod/fabric-api) · [Architectury API](https://modrinth.com/mod/architectury-api) |
-| **NeoForge** | [Architectury API](https://modrinth.com/mod/architectury-api) |
+### NeoForge
 
-Use matching MTR versions on the server and clients.
+需要：
 
-**Optional:** [ANTE](https://github.com/linlunaire/mtr-ante) adds custom models, scripting and rail tools. Choose a compatible build.
+- [Architectury API](https://modrinth.com/mod/architectury-api)
 
-> [!IMPORTANT]
-> Back up worlds, configuration and resource packs before upgrading. Test existing worlds on a copy first.
+## 从源码构建
 
-## Build
+环境要求：
 
-Set `JAVA_HOME` to **JDK 25**, then run from the repository root:
+- JDK 21
+- 项目自带的 Gradle Wrapper（Gradle 8.14.5）
 
-```sh
+Windows：
+
+```powershell
 .\gradlew.bat build
 ```
 
-The build runs compatibility checks and produces both loader JARs:
+成功后，JAR 位于 `build/release/`
 
-```text
-build/release/
-├── MTR-fabric-26.2-3.3.2.jar
-└── MTR-neoforge-26.2-3.3.2.jar
-```
+## 当前移植状态
 
-## Development
+- 本地开发客户端已完成启动与资源加载验证。
+- 建议在使用前测试既有存档、多人联机、PIDS、列车、轨道和资源包工作流。
 
-Shared code and assets live in `common/`; loader integrations live in `fabric/` and `neoforge/`.
+## 上游与许可证
 
-See [`gradle.properties`](gradle.properties) for dependency versions and [compatibility checks](docs/compatibility.md) for the tests in `tests/`.
+本项目基于上游 [Minecraft-Transit-Railway/Minecraft-Transit-Railway](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway)。原作者和贡献者信息保留在源码与模组元数据中。
 
-Report fork-specific problems in [Issues](https://github.com/linlunaire/Minecraft-Transit-Railway/issues), including loader and mod versions, logs and reproduction steps.
-
-## Credits & license
-
-Based on [Minecraft Transit Railway](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) by **Jonathan Ho** and its contributors. This is an independent community fork, not an official MTR release.
-
-Code: [MIT](LICENSE). Bundled Noto fonts: [SIL Open Font License](https://openfontlicense.org/). Original attribution and third-party notices are retained.
+项目遵循 [MIT License](LICENSE)。随模组分发的 Noto 字体遵循 [SIL Open Font License](https://openfontlicense.org/)。

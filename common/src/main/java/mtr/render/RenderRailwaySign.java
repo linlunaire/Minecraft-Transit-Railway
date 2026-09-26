@@ -16,11 +16,11 @@ import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import mtr.mappings.RenderBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -28,14 +28,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign> extends BlockEntityRendererMapper<T> implements IBlock, IGui, IDrawing {
-	private static final Identifier WHITE_TEXTURE = Identifier.parse("mtr:textures/block/white.png");
+	private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.parse("mtr:textures/block/white.png");
 
 	public RenderRailwaySign(BlockEntityRenderDispatcher dispatcher) {
 		super(dispatcher);
 	}
 
 	@Override
-	public void render(T entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
+	public void render(T entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
 		final BlockGetter world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -106,11 +106,11 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 	}
 
 	@Override
-	public boolean shouldRenderOffScreen() {
+	public boolean shouldRenderOffScreen(T blockEntity) {
 		return true;
 	}
 
-	public static void drawSign(PoseStack matrices, RenderBufferSource vertexConsumers, StoredMatrixTransformations storedMatrixTransformations, Font textRenderer, BlockPos pos, String signId, float x, float y, float size, float maxWidthLeft, float maxWidthRight, Set<Long> selectedIds, Direction facing, int backgroundColor, DrawTexture drawTexture) {
+	public static void drawSign(PoseStack matrices, MultiBufferSource vertexConsumers, StoredMatrixTransformations storedMatrixTransformations, Font textRenderer, BlockPos pos, String signId, float x, float y, float size, float maxWidthLeft, float maxWidthRight, Set<Long> selectedIds, Direction facing, int backgroundColor, DrawTexture drawTexture) {
 		if (RenderTrains.shouldNotRender(pos, RenderTrains.maxTrainRenderDistance, facing)) {
 			return;
 		}
@@ -240,7 +240,7 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 				final float start = flipCustomText ? x - (isSmall ? 0 : fixedMargin) : x + size + (isSmall ? 0 : fixedMargin);
 				if (vertexConsumers == null) {
 					if (!RenderTrains.shouldNotRender(pos, RenderTrains.maxTrainRenderDistance / 2, null)) {
-						final RenderBufferSource immediate = RenderTrains.getImmediateBufferSource();
+						final MultiBufferSource.BufferSource immediate = RenderTrains.getImmediateBufferSource();
 						try {
 							IDrawing.drawStringWithFont(matrices, textRenderer, immediate, isExit || isLine ? "..." : sign.customText, flipCustomText ? HorizontalAlignment.RIGHT : HorizontalAlignment.LEFT, VerticalAlignment.TOP, start, y + fixedMargin, maxWidth, size - fixedMargin * 2, 0.01F, ARGB_WHITE, false, MAX_LIGHT_GLOWING, null);
 						} finally {
@@ -297,6 +297,6 @@ public class RenderRailwaySign<T extends BlockRailwaySign.TileEntityRailwaySign>
 
 	@FunctionalInterface
 	public interface DrawTexture {
-		void drawTexture(Identifier textureId, float x, float y, float size, boolean flipTexture);
+		void drawTexture(ResourceLocation textureId, float x, float y, float size, boolean flipTexture);
 	}
 }

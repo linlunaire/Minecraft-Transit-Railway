@@ -34,17 +34,17 @@ public interface IPIDS extends IBlock {
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
 			for (int i = 0; i < getMaxArrivals() * getLinesPerArrival(); i++) {
-				messages[i] = mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_MESSAGE + i);
+				messages[i] = compoundTag.getString(KEY_MESSAGE + i);
 			}
 			for (int i = 0; i < getMaxArrivals(); i++) {
-				hideArrival[i] = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_HIDE_ARRIVAL + i);
+				hideArrival[i] = compoundTag.getBoolean(KEY_HIDE_ARRIVAL + i);
 			}
 			platformIds.clear();
-			final long[] platformIdsArray = mtr.mappings.CompoundTagMapper.getLongArray(compoundTag, KEY_PLATFORM_IDS);
+			final long[] platformIdsArray = compoundTag.getLongArray(KEY_PLATFORM_IDS);
 			for (final long platformId : platformIdsArray) {
 				platformIds.add(platformId);
 			}
-			displayPage = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_DISPLAY_PAGE);
+			displayPage = compoundTag.getInt(KEY_DISPLAY_PAGE);
 		}
 
 		@Override
@@ -55,7 +55,7 @@ public interface IPIDS extends IBlock {
 			for (int i = 0; i < getMaxArrivals(); i++) {
 				compoundTag.putBoolean(KEY_HIDE_ARRIVAL + i, hideArrival[i]);
 			}
-			mtr.mappings.CompoundTagMapper.putLongArray(compoundTag, KEY_PLATFORM_IDS, new ArrayList<>(platformIds));
+			compoundTag.putLongArray(KEY_PLATFORM_IDS, new ArrayList<>(platformIds));
 			compoundTag.putInt(KEY_DISPLAY_PAGE, displayPage);
 		}
 

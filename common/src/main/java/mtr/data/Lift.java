@@ -302,7 +302,7 @@ public abstract class Lift extends NameColorDataBase implements IPacket {
 					currentPositionY = targetFloor;
 					liftInstructions.arrived();
 
-					if (!world.isClientSide()) {
+					if (!world.isClientSide) {
 						final BlockEntity blockEntity = world.getBlockEntity(getBlockPos());
 						if (blockEntity instanceof BlockLiftTrackFloor.TileEntityLiftTrackFloor && ((BlockLiftTrackFloor.TileEntityLiftTrackFloor) blockEntity).getShouldDing()) {
 							world.playSound(null, getBlockPos(), Utilities.unwrapSoundEvent(SoundEvents.NOTE_BLOCK_PLING), SoundSource.BLOCKS, 16, 2);
@@ -352,7 +352,7 @@ public abstract class Lift extends NameColorDataBase implements IPacket {
 				final BlockEntity entity1 = world.getBlockEntity(checkPos);
 				final BlockEntity entity2 = world.getBlockEntity(checkPos.above());
 				if (entity1 instanceof BlockPSDAPGDoorBase.TileEntityPSDAPGDoorBase && entity2 instanceof BlockPSDAPGDoorBase.TileEntityPSDAPGDoorBase && IBlock.getStatePropertySafe(world, checkPos, BlockPSDAPGDoorBase.UNLOCKED) && IBlock.getStatePropertySafe(world, checkPos.above(), BlockPSDAPGDoorBase.UNLOCKED)) {
-					if (!world.isClientSide()) {
+					if (!world.isClientSide) {
 						((BlockPSDAPGDoorBase.TileEntityPSDAPGDoorBase) entity1).setOpen(Math.min(Math.round(doorValue), DOOR_MAX));
 						((BlockPSDAPGDoorBase.TileEntityPSDAPGDoorBase) entity2).setOpen(Math.min(Math.round(doorValue), DOOR_MAX));
 					}

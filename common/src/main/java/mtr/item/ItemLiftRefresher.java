@@ -32,7 +32,7 @@ public class ItemLiftRefresher extends ItemWithCreativeTabBase {
 
 	@Override
 	public InteractionResult useOn(UseOnContext context) {
-		if (!context.getLevel().isClientSide()) {
+		if (!context.getLevel().isClientSide) {
 			return refreshLift(context.getLevel(), context.getClickedPos(), context.getPlayer(), 0, 0, 2, 2, false, null);
 		} else {
 			return super.useOn(context);
@@ -90,7 +90,7 @@ public class ItemLiftRefresher extends ItemWithCreativeTabBase {
 			final InteractionResult result;
 			if (floors.isEmpty() || firstFloor == null || facing == null) {
 				if (player != null) {
-					mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.no_lift_tracks_floor_found"), true);
+					player.displayClientMessage(Text.translatable("gui.mtr.no_lift_tracks_floor_found"), true);
 				}
 				result = InteractionResult.FAIL;
 			} else {
@@ -121,7 +121,7 @@ public class ItemLiftRefresher extends ItemWithCreativeTabBase {
 			return result;
 		} else {
 			if (player != null) {
-				mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.lift_track_required"), true);
+				player.displayClientMessage(Text.translatable("gui.mtr.lift_track_required"), true);
 			}
 			return InteractionResult.FAIL;
 		}

@@ -2,7 +2,7 @@ package mtr.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import mtr.mappings.Tuple;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -53,7 +53,7 @@ public abstract class BlockStationNameTallBase extends BlockStationNameBase impl
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
 		if ((direction == Direction.UP && IBlock.getStatePropertySafe(state, THIRD) != EnumThird.UPPER || direction == Direction.DOWN && IBlock.getStatePropertySafe(state, THIRD) != EnumThird.LOWER) && !newState.is(this)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {
@@ -76,7 +76,7 @@ public abstract class BlockStationNameTallBase extends BlockStationNameBase impl
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-		if (!world.isClientSide()) {
+		if (!world.isClientSide) {
 			final Direction facing = IBlock.getStatePropertySafe(state, FACING);
 			world.setBlock(pos.above(), defaultBlockState().setValue(FACING, facing).setValue(METAL, true).setValue(THIRD, EnumThird.MIDDLE), 3);
 			world.setBlock(pos.above(2), defaultBlockState().setValue(FACING, facing).setValue(METAL, true).setValue(THIRD, EnumThird.UPPER), 3);

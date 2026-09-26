@@ -11,7 +11,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerEntity;
@@ -31,21 +31,22 @@ public class RegistryImpl {
 		return true;
 	}
 
-	public static Supplier<CreativeModeTab> getCreativeModeTab(Identifier id, Supplier<ItemStack> supplier) {
+	public static Supplier<CreativeModeTab> getCreativeModeTab(ResourceLocation id, Supplier<ItemStack> supplier) {
 		return () -> FabricRegistryUtilities.createCreativeModeTab(id, supplier);
 	}
 
-	public static void registerCreativeModeTab(Identifier resourceLocation, Item item) {
+	public static void registerCreativeModeTab(ResourceLocation resourceLocation, Item item) {
 	}
 
 	public static Packet<?> createAddEntityPacket(Entity entity) {
 		if (entity.level() instanceof ServerLevel serverLevel) {
-			return mtr.mappings.EntitySpawnPacketMapper.create(entity);
+			return entity.getAddEntityPacket(new ServerEntity(serverLevel, entity, 0, false, packet -> {
+			}));
 		}
 		throw new IllegalArgumentException("Entity spawn packets can only be created on the server");
 	}
 
-	public static void registerNetworkReceiver(Identifier resourceLocation, NetworkUtilities.PacketCallback packetCallback) {
+	public static void registerNetworkReceiver(ResourceLocation resourceLocation, NetworkUtilities.PacketCallback packetCallback) {
 		NetworkUtilities.registerReceiverC2S(resourceLocation, packetCallback);
 	}
 
@@ -73,7 +74,7 @@ public class RegistryImpl {
 		ServerTickEvents.START_SERVER_TICK.register(consumer::accept);
 	}
 
-	public static void sendToPlayer(ServerPlayer player, Identifier id, FriendlyByteBuf packet) {
+	public static void sendToPlayer(ServerPlayer player, ResourceLocation id, FriendlyByteBuf packet) {
 		NetworkUtilities.sendToPlayer(player, id, packet);
 	}
 

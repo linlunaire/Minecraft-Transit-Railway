@@ -44,9 +44,9 @@ public class BlockLiftButtons extends BlockDirectionalMapper implements EntityBl
 		final InteractionResult result = IBlock.checkHoldingBrush(world, player, () -> {
 			final boolean unlocked = !IBlock.getStatePropertySafe(state, UNLOCKED);
 			world.setBlockAndUpdate(pos, state.setValue(UNLOCKED, unlocked));
-			mtr.mappings.PlayerUtilities.displayClientMessage(player, unlocked ? Text.translatable("gui.mtr.lift_buttons_unlocked") : Text.translatable("gui.mtr.lift_buttons_locked"), true);
+			player.displayClientMessage(unlocked ? Text.translatable("gui.mtr.lift_buttons_unlocked") : Text.translatable("gui.mtr.lift_buttons_locked"), true);
 		});
-		if (world.isClientSide() || result == InteractionResult.SUCCESS) {
+		if (world.isClientSide || result == InteractionResult.SUCCESS) {
 			return InteractionResult.SUCCESS;
 		} else {
 			if (player.isHolding(Items.LIFT_BUTTONS_LINK_CONNECTOR.get()) || player.isHolding(Items.LIFT_BUTTONS_LINK_REMOVER.get())) {
@@ -109,7 +109,7 @@ public class BlockLiftButtons extends BlockDirectionalMapper implements EntityBl
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
 			trackPositions.clear();
-			for (final long position : mtr.mappings.CompoundTagMapper.getLongArray(compoundTag, KEY_TRACK_FLOOR_POS)) {
+			for (final long position : compoundTag.getLongArray(KEY_TRACK_FLOOR_POS)) {
 				trackPositions.add(BlockPos.of(position));
 			}
 		}
@@ -118,7 +118,7 @@ public class BlockLiftButtons extends BlockDirectionalMapper implements EntityBl
 		public void writeCompoundTag(CompoundTag compoundTag) {
 			final List<Long> trackPositionsList = new ArrayList<>();
 			trackPositions.forEach(position -> trackPositionsList.add(position.asLong()));
-			mtr.mappings.CompoundTagMapper.putLongArray(compoundTag, KEY_TRACK_FLOOR_POS, trackPositionsList);
+			compoundTag.putLongArray(KEY_TRACK_FLOOR_POS, trackPositionsList);
 		}
 
 		@Override
@@ -152,7 +152,7 @@ public class BlockLiftButtons extends BlockDirectionalMapper implements EntityBl
 		}
 
 		public static <T extends BlockEntityMapper> void tick(Level world, BlockPos pos, T blockEntity) {
-			if (world != null && world.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 16, entity -> true) != null && blockEntity instanceof TileEntityLiftButtons && !world.isClientSide() && MTR.isGameTickInterval(UPDATE_INTERVAL, (int) pos.asLong())) {
+			if (world != null && world.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 16, entity -> true) != null && blockEntity instanceof TileEntityLiftButtons && !world.isClientSide && MTR.isGameTickInterval(UPDATE_INTERVAL, (int) pos.asLong())) {
 				((TileEntityLiftButtons) blockEntity).forEachTrackPosition(world, null);
 				blockEntity.setChanged();
 				((TileEntityLiftButtons) blockEntity).syncData();

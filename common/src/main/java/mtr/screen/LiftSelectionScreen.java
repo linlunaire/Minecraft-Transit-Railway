@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.client.ClientData;
@@ -55,8 +55,8 @@ public class LiftSelectionScreen extends ScreenMapper implements IGui {
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		final var matrices = guiGraphics.pose();
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
 			selectionList.render(guiGraphics, font);

@@ -34,7 +34,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.List;
 
-public abstract class BlockLiftPanelBase extends BlockDirectionalMapper implements EntityBlockMapper, ITripleBlock, mtr.mappings.BlockTooltip {
+public abstract class BlockLiftPanelBase extends BlockDirectionalMapper implements EntityBlockMapper, ITripleBlock {
 
 	private final boolean isOdd;
 	private final boolean isFlat;
@@ -56,9 +56,9 @@ public abstract class BlockLiftPanelBase extends BlockDirectionalMapper implemen
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
 		if (isOdd) {
-			return ITripleBlock.updateShape(state, direction, newState.is(this), () -> super.updateShape(state, world, scheduledTicks, pos, direction, posFrom, newState, random));
+			return ITripleBlock.updateShape(state, direction, newState.is(this), () -> super.updateShape(state, direction, newState, world, pos, posFrom));
 		} else {
 			if (IBlock.getSideDirection(state) == direction && !newState.is(this)) {
 				return Blocks.AIR.defaultBlockState();
@@ -89,7 +89,7 @@ public abstract class BlockLiftPanelBase extends BlockDirectionalMapper implemen
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		if (!world.isClientSide()) {
+		if (!world.isClientSide) {
 			final Direction direction = IBlock.getStatePropertySafe(state, FACING);
 
 			if (isOdd) {
@@ -128,7 +128,7 @@ public abstract class BlockLiftPanelBase extends BlockDirectionalMapper implemen
 
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
-		if (world.isClientSide()) {
+		if (world.isClientSide) {
 			return InteractionResult.SUCCESS;
 		} else {
 			return player.isHolding(Items.LIFT_BUTTONS_LINK_CONNECTOR.get()) || player.isHolding(Items.LIFT_BUTTONS_LINK_REMOVER.get()) ? InteractionResult.PASS : InteractionResult.FAIL;
@@ -163,9 +163,9 @@ public abstract class BlockLiftPanelBase extends BlockDirectionalMapper implemen
 
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
-			final long data = mtr.mappings.CompoundTagMapper.getLong(compoundTag, KEY_TRACK_FLOOR_POS);
+			final long data = compoundTag.getLong(KEY_TRACK_FLOOR_POS);
 			trackPosition = data == 0 ? null : BlockPos.of(data);
-			converted = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_CONVERTED);
+			converted = compoundTag.getBoolean(KEY_CONVERTED);
 			super.readCompoundTag(compoundTag);
 		}
 
@@ -217,12 +217,12 @@ public abstract class BlockLiftPanelBase extends BlockDirectionalMapper implemen
 		// TODO temp code end
 
 		public static <T extends BlockEntityMapper> void tick(Level world, BlockPos pos, T blockEntity) {
-			if (world != null && world.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 16, entity -> true) != null && blockEntity instanceof TileEntityLiftPanel1Base && !world.isClientSide() && MTR.isGameTickInterval(UPDATE_INTERVAL, (int) pos.asLong())) {
+			if (world != null && world.getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 16, entity -> true) != null && blockEntity instanceof TileEntityLiftPanel1Base && !world.isClientSide && MTR.isGameTickInterval(UPDATE_INTERVAL, (int) pos.asLong())) {
 				((TileEntityLiftPanel1Base) blockEntity).getTrackPosition(world);
 				blockEntity.setChanged();
 				((TileEntityLiftPanel1Base) blockEntity).syncData();
 			}
-			if (world != null && !world.isClientSide() && blockEntity instanceof TileEntityLiftPanel1Base) {
+			if (world != null && !world.isClientSide && blockEntity instanceof TileEntityLiftPanel1Base) {
 				((TileEntityLiftPanel1Base) blockEntity).convert();
 			}
 		}

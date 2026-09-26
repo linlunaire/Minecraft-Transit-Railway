@@ -37,9 +37,26 @@ run/
 logs/
 latest.log
 Keys.java
-# Translations downloaded by Crowdin at the repository root.
-/*.json
+# Downloaded by setupFiles. Keep the Java compatibility layers in Git so a
+# clean CI checkout has the same sources as the local development environment.
+common/src/main/java/mtr/mappings/mappings.zip
+BlockEntityExtension.java
+RandomSource.java
+UnknownPacketMixin.java
+LevelRendererMixin.java
+**/lang/*.json
+!en_us.json
+!common/src/main/resources/assets/mtr/lang/zh_cn.json
+
+common/src/main/resources/assets/mtr/sounds/
+common/src/main/resources/assets/mtr/textures/
+common/src/main/resources/assets/mtr/website/
+common/src/main/resources/assets/mtr/sounds.json
+common/src/main/resources/data/minecraft/
+common/src/main/resources/data/mtr/
+fabric/src/main/resources
+forge/src/main/resources
 fabric/server
-neoforge/server
+forge/server
 
 .architectury-transformer/

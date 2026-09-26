@@ -21,10 +21,11 @@ public class EntitySeat extends EntityBase {
 
 	public static final float SIZE = 0.5F;
 	private static final int SEAT_REFRESH = 10;
-	private static final EntityDataAccessor<String> PLAYER_ID = SynchedEntityData.defineId(EntitySeat.class, EntityDataSerializers.STRING);
+	private static final EntityDataAccessor<Optional<UUID>> PLAYER_ID = SynchedEntityData.defineId(EntitySeat.class, EntityDataSerializers.OPTIONAL_UUID);
 
 	public EntitySeat(EntityType<?> type, Level world) {
 		super(type, world);
+		noCulling = true;
 	}
 
 	public EntitySeat(Level world, double x, double y, double z) {
@@ -38,9 +39,9 @@ public class EntitySeat extends EntityBase {
 
 	@Override
 	public void tick() {
-		if (level().isClientSide()) {
+		if (level().isClientSide) {
 			if (clientPlayer == null) {
-				clientPlayer = entityData == null ? null : level().getPlayerByUUID(UUID.fromString(entityData.get(PLAYER_ID)));
+				clientPlayer = entityData == null ? null : entityData.get(PLAYER_ID).map(value -> level().getPlayerByUUID(value)).orElse(null);
 			}
 
 			if (clientPlayer == null || hasPassenger(clientPlayer)) {
@@ -50,7 +51,7 @@ public class EntitySeat extends EntityBase {
 			}
 		} else {
 			if (player == null || seatRefresh <= 0) {
-				kill((net.minecraft.server.level.ServerLevel) level());
+				kill();
 			} else {
 				if (!hasPassenger(player)) {
 					setPos(player.getX(), player.getY(), player.getZ());
@@ -84,11 +85,11 @@ public class EntitySeat extends EntityBase {
 
 	@Override
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
-		builder.define(PLAYER_ID, new UUID(0, 0).toString());
+		builder.define(PLAYER_ID, Optional.of(new UUID(0, 0)));
 	}
 
 	public void initialize(Player player) {
-		entityData.set(PLAYER_ID, player.getUUID().toString());
+		entityData.set(PLAYER_ID, Optional.of(player.getUUID()));
 	}
 
 	public void updateSeatByRailwayData(Player player) {

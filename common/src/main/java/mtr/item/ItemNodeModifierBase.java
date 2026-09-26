@@ -42,11 +42,11 @@ public abstract class ItemNodeModifierBase extends ItemBlockClickingBase {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, net.minecraft.world.item.component.TooltipDisplay tooltipDisplay, java.util.function.Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {
 		final CompoundTag compoundTag = ItemStackUtilities.getCustomData(stack);
-		final long posLong = mtr.mappings.CompoundTagMapper.getLong(compoundTag, TAG_POS);
+		final long posLong = compoundTag.getLong(TAG_POS);
 		if (posLong != 0) {
-			tooltip.accept(Text.translatable("tooltip.mtr.selected_block", BlockPos.of(posLong).toShortString()).setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
+			tooltip.add(Text.translatable("tooltip.mtr.selected_block", BlockPos.of(posLong).toShortString()).setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
 		}
 	}
 
@@ -64,7 +64,7 @@ public abstract class ItemNodeModifierBase extends ItemBlockClickingBase {
 		final Block blockStart = stateStart.getBlock();
 		final BlockState stateEnd = world.getBlockState(posEnd);
 
-		if (railwayData != null && stateEnd.getBlock() instanceof BlockNode && ((BlockNode) blockStart).transportMode.toString().equals(mtr.mappings.CompoundTagMapper.getString(compoundTag, TAG_TRANSPORT_MODE))) {
+		if (railwayData != null && stateEnd.getBlock() instanceof BlockNode && ((BlockNode) blockStart).transportMode.toString().equals(compoundTag.getString(TAG_TRANSPORT_MODE))) {
 			final Player player = context.getPlayer();
 
 			if (isConnector) {

@@ -10,7 +10,7 @@ import mtr.mappings.Utilities;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,9 +56,9 @@ public class ClientCache extends DataCache implements IGui {
 	private volatile long dynamicResourceGeneration;
 
 	public static final float LINE_HEIGHT_MULTIPLIER = 1.25F;
-	private static final Identifier DEFAULT_BLACK_RESOURCE = Identifier.fromNamespaceAndPath(MTR.MOD_ID, "textures/block/black.png");
-	private static final Identifier DEFAULT_WHITE_RESOURCE = Identifier.fromNamespaceAndPath(MTR.MOD_ID, "textures/block/white.png");
-	private static final Identifier DEFAULT_TRANSPARENT_RESOURCE = Identifier.fromNamespaceAndPath(MTR.MOD_ID, "textures/block/transparent.png");
+	private static final ResourceLocation DEFAULT_BLACK_RESOURCE = ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "textures/block/black.png");
+	private static final ResourceLocation DEFAULT_WHITE_RESOURCE = ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "textures/block/white.png");
+	private static final ResourceLocation DEFAULT_TRANSPARENT_RESOURCE = ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "textures/block/transparent.png");
 
 	public ClientCache(Set<Station> stations, Set<Platform> platforms, Set<Siding> sidings, Set<Route> routes, Set<Depot> depots, Set<LiftClient> lifts) {
 		super(stations, platforms, sidings, routes, depots, new HashSet<>());
@@ -423,8 +423,8 @@ public class ClientCache extends DataCache implements IGui {
 		if (font == null || fontCjk == null) {
 			final ResourceManager resourceManager = minecraftClient.getResourceManager();
 			try {
-				font = Font.createFont(Font.TRUETYPE_FONT, Utilities.getInputStream(resourceManager.getResource(Identifier.fromNamespaceAndPath(MTR.MOD_ID, "font/noto-sans-semibold.ttf"))));
-				fontCjk = Font.createFont(Font.TRUETYPE_FONT, Utilities.getInputStream(resourceManager.getResource(Identifier.fromNamespaceAndPath(MTR.MOD_ID, "font/noto-serif-cjk-tc-semibold.ttf"))));
+				font = Font.createFont(Font.TRUETYPE_FONT, Utilities.getInputStream(resourceManager.getResource(ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "font/noto-sans-semibold.ttf"))));
+				fontCjk = Font.createFont(Font.TRUETYPE_FONT, Utilities.getInputStream(resourceManager.getResource(ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "font/noto-serif-cjk-tc-semibold.ttf"))));
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -481,14 +481,14 @@ public class ClientCache extends DataCache implements IGui {
 		if (nativeImage == null) {
 			dynamicResourceNew = defaultRenderingColor.dynamicResource;
 		} else {
-			final DynamicTexture dynamicTexture = new DynamicTexture(() -> "MTR dynamic " + key, nativeImage);
+			final DynamicTexture dynamicTexture = new DynamicTexture(nativeImage);
 			String newKey = key;
 			try {
 				newKey = URLEncoder.encode(key, "UTF-8");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			final Identifier resourceLocation = Identifier.fromNamespaceAndPath(MTR.MOD_ID, "dynamic_texture_" + newKey.toLowerCase(Locale.ENGLISH).replaceAll("[^0-9a-z_]", "_"));
+			final ResourceLocation resourceLocation = ResourceLocation.fromNamespaceAndPath(MTR.MOD_ID, "dynamic_texture_" + newKey.toLowerCase(Locale.ENGLISH).replaceAll("[^0-9a-z_]", "_"));
 			minecraftClient.getTextureManager().register(resourceLocation, dynamicTexture);
 			dynamicResourceNew = new DynamicResource(resourceLocation, dynamicTexture);
 		}
@@ -569,9 +569,9 @@ public class ClientCache extends DataCache implements IGui {
 
 		public final int width;
 		public final int height;
-		public final Identifier resourceLocation;
+		public final ResourceLocation resourceLocation;
 
-		private DynamicResource(Identifier resourceLocation, DynamicTexture dynamicTexture) {
+		private DynamicResource(ResourceLocation resourceLocation, DynamicTexture dynamicTexture) {
 			this.resourceLocation = resourceLocation;
 			if (dynamicTexture != null) {
 				final NativeImage nativeImage = dynamicTexture.getPixels();
@@ -602,7 +602,7 @@ public class ClientCache extends DataCache implements IGui {
 
 		private final DynamicResource dynamicResource;
 
-		DefaultRenderingColor(Identifier resourceLocation) {
+		DefaultRenderingColor(ResourceLocation resourceLocation) {
 			dynamicResource = new DynamicResource(resourceLocation, null);
 		}
 	}

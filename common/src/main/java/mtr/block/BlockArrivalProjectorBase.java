@@ -83,16 +83,16 @@ public abstract class BlockArrivalProjectorBase extends BlockDirectionalMapper i
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
 			platformIds.clear();
-			final long[] platformIdsArray = mtr.mappings.CompoundTagMapper.getLongArray(compoundTag, KEY_PLATFORM_IDS);
+			final long[] platformIdsArray = compoundTag.getLongArray(KEY_PLATFORM_IDS);
 			for (final long platformId : platformIdsArray) {
 				platformIds.add(platformId);
 			}
-			displayPage = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_DISPLAY_PAGE);
+			displayPage = compoundTag.getInt(KEY_DISPLAY_PAGE);
 		}
 
 		@Override
 		public void writeCompoundTag(CompoundTag compoundTag) {
-			mtr.mappings.CompoundTagMapper.putLongArray(compoundTag, KEY_PLATFORM_IDS, new ArrayList<>(platformIds));
+			compoundTag.putLongArray(KEY_PLATFORM_IDS, new ArrayList<>(platformIds));
 			compoundTag.putInt(KEY_DISPLAY_PAGE, displayPage);
 		}
 

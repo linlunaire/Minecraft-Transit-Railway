@@ -48,11 +48,11 @@ public class LiftClient extends Lift {
 		final Minecraft minecraftClient = Minecraft.getInstance();
 		final LocalPlayer player = minecraftClient.player;
 		if (player != null && ridingEntities.contains(player.getUUID())) {
-			if (KeyMappings.LIFT_MENU.isDown() && !(minecraftClient.gui.screen() instanceof LiftSelectionScreen)) {
+			if (KeyMappings.LIFT_MENU.isDown() && !(minecraftClient.screen instanceof LiftSelectionScreen)) {
 				UtilitiesClient.setScreen(minecraftClient, new LiftSelectionScreen(this));
 			}
 			if (RenderTrains.showShiftProgressBar()) {
-				mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.press_to_select_floor", KeyMappings.LIFT_MENU.getTranslatedKeyMessage()), true);
+				player.displayClientMessage(Text.translatable("gui.mtr.press_to_select_floor", KeyMappings.LIFT_MENU.getTranslatedKeyMessage()), true);
 			}
 		}
 	}

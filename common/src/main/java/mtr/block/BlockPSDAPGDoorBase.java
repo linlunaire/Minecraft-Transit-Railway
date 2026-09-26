@@ -37,11 +37,11 @@ public abstract class BlockPSDAPGDoorBase extends BlockPSDAPGBase implements Ent
 	public static final BooleanProperty TEMP = BooleanProperty.create("temp");
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
 		if (IBlock.getSideDirection(state) == direction && !newState.is(this)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {
-			final BlockState superState = super.updateShape(state, world, scheduledTicks, pos, direction, posFrom, newState, random);
+			final BlockState superState = super.updateShape(state, direction, newState, world, pos, posFrom);
 			if (superState.getBlock() == Blocks.AIR) {
 				return superState;
 			} else {
@@ -82,7 +82,7 @@ public abstract class BlockPSDAPGDoorBase extends BlockPSDAPGBase implements Ent
 					lockDoor(world, pos.above(y), scanState, !unlocked);
 				}
 			}
-			mtr.mappings.PlayerUtilities.displayClientMessage(player, !unlocked ? Text.translatable("gui.mtr.psd_apg_door_unlocked") : Text.translatable("gui.mtr.psd_apg_door_locked"), true);
+			player.displayClientMessage(!unlocked ? Text.translatable("gui.mtr.psd_apg_door_unlocked") : Text.translatable("gui.mtr.psd_apg_door_locked"), true);
 		});
 	}
 
@@ -132,8 +132,8 @@ public abstract class BlockPSDAPGDoorBase extends BlockPSDAPGBase implements Ent
 
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
-			open = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_OPEN);
-			temp = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_TEMP);
+			open = compoundTag.getInt(KEY_OPEN);
+			temp = compoundTag.getBoolean(KEY_TEMP);
 		}
 
 		@Override

@@ -58,14 +58,12 @@ public class WidgetBetterTextField extends EditBox implements IGui {
 	}
 
 	@Override
-	public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent mc26Event, boolean doubleClick) {
-		final double mouseX = mc26Event.x(), mouseY = mc26Event.y();
-		final int button = mc26Event.button();
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
 		if (isVisible() && RailwayData.isBetween(mouseX, UtilitiesClient.getWidgetX(this), UtilitiesClient.getWidgetX(this) + width) && RailwayData.isBetween(mouseY, UtilitiesClient.getWidgetY(this), UtilitiesClient.getWidgetY(this) + height)) {
 			if (button == 1) {
 				setValue("");
 			}
-			return super.mouseClicked(new net.minecraft.client.input.MouseButtonEvent(mouseX, mouseY, new net.minecraft.client.input.MouseButtonInfo(0, mc26Event.modifiers())), doubleClick);
+			return super.mouseClicked(mouseX, mouseY, 0);
 		} else {
 			setFocused(false);
 			return false;

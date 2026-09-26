@@ -156,7 +156,7 @@ public abstract class Train extends NameColorDataBase implements IPacket {
 			try {
 				final CompoundTag compoundTag = NbtIo.read(new DataInputStream(inputStream));
 				final NonNullList<ItemStack> stacks = NonNullList.withSize(trainCars, ItemStack.EMPTY);
-				mtr.mappings.TrainCargoMapper.load(compoundTag, stacks);
+				ContainerHelper.loadAllItems(compoundTag.getCompound(KEY_CARGO), stacks, RegistryAccess.EMPTY);
 				inventory1 = new SimpleContainer(stacks.toArray(new ItemStack[0]));
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -185,27 +185,27 @@ public abstract class Train extends NameColorDataBase implements IPacket {
 		this.maxManualSpeed = maxManualSpeed;
 		this.manualToAutomaticTime = manualToAutomaticTime;
 
-		speed = mtr.mappings.CompoundTagMapper.getFloat(compoundTag, KEY_SPEED);
-		railProgress = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_RAIL_PROGRESS);
-		elapsedDwellTicks = mtr.mappings.CompoundTagMapper.getFloat(compoundTag, KEY_ELAPSED_DWELL_TICKS);
-		nextStoppingIndex = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_NEXT_STOPPING_INDEX);
-		nextPlatformIndex = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_NEXT_PLATFORM_INDEX);
-		reversed = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_REVERSED);
+		speed = compoundTag.getFloat(KEY_SPEED);
+		railProgress = compoundTag.getDouble(KEY_RAIL_PROGRESS);
+		elapsedDwellTicks = compoundTag.getFloat(KEY_ELAPSED_DWELL_TICKS);
+		nextStoppingIndex = compoundTag.getInt(KEY_NEXT_STOPPING_INDEX);
+		nextPlatformIndex = compoundTag.getInt(KEY_NEXT_PLATFORM_INDEX);
+		reversed = compoundTag.getBoolean(KEY_REVERSED);
 
-		trainId = mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_TRAIN_CUSTOM_ID);
-		baseTrainType = mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_TRAIN_TYPE);
+		trainId = compoundTag.getString(KEY_TRAIN_CUSTOM_ID);
+		baseTrainType = compoundTag.getString(KEY_TRAIN_TYPE);
 		transportMode = TrainType.getTransportMode(baseTrainType);
 		spacing = TrainType.getSpacing(baseTrainType);
 		width = TrainType.getWidth(baseTrainType);
 		trainCars = Math.min(transportMode.maxLength, (int) Math.floor(railLength / spacing));
-		isCurrentlyManual = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_IS_CURRENTLY_MANUAL);
+		isCurrentlyManual = compoundTag.getBoolean(KEY_IS_CURRENTLY_MANUAL);
 
-		isOnRoute = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_IS_ON_ROUTE);
-		final CompoundTag tagRidingEntities = compoundTag.getCompoundOrEmpty(KEY_RIDING_ENTITIES);
-		tagRidingEntities.keySet().forEach(key -> ridingEntities.add(mtr.mappings.CompoundTagMapper.getUUID(tagRidingEntities, key)));
+		isOnRoute = compoundTag.getBoolean(KEY_IS_ON_ROUTE);
+		final CompoundTag tagRidingEntities = compoundTag.getCompound(KEY_RIDING_ENTITIES);
+		tagRidingEntities.getAllKeys().forEach(key -> ridingEntities.add(tagRidingEntities.getUUID(key)));
 
 		final NonNullList<ItemStack> stacks = NonNullList.withSize(trainCars, ItemStack.EMPTY);
-		mtr.mappings.TrainCargoMapper.load(compoundTag, stacks);
+		ContainerHelper.loadAllItems(compoundTag.getCompound(KEY_CARGO), stacks, RegistryAccess.EMPTY);
 		inventory = new SimpleContainer(stacks.toArray(new ItemStack[0]));
 	}
 
@@ -283,7 +283,7 @@ public abstract class Train extends NameColorDataBase implements IPacket {
 				totalCount += inventory.getItem(i).getCount();
 			}
 			if (totalCount > 0) {
-				CompoundTag tag = mtr.mappings.TrainCargoMapper.save(stacks);
+				CompoundTag tag = ContainerHelper.saveAllItems(new CompoundTag(), stacks, RegistryAccess.EMPTY);
 				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 				NbtIo.write(tag, new DataOutputStream(outputStream));
 				messagePacker.packBinaryHeader(outputStream.size());

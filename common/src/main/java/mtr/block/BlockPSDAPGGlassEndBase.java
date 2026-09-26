@@ -21,8 +21,8 @@ public abstract class BlockPSDAPGGlassEndBase extends BlockPSDAPGGlassBase {
 	public static final EnumProperty<EnumPSDAPGGlassEndSide> TOUCHING_RIGHT = EnumProperty.create("touching_right", EnumPSDAPGGlassEndSide.class);
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
-		final BlockState superState = super.updateShape(state, world, scheduledTicks, pos, direction, posFrom, newState, random);
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
+		final BlockState superState = super.updateShape(state, direction, newState, world, pos, posFrom);
 		if (superState.getBlock() == Blocks.AIR) {
 			return superState;
 		} else {
@@ -47,7 +47,7 @@ public abstract class BlockPSDAPGGlassEndBase extends BlockPSDAPGGlassBase {
 		builder.add(FACING, HALF, SIDE_EXTENDED, TOUCHING_LEFT, TOUCHING_RIGHT);
 	}
 
-	private EnumPSDAPGGlassEndSide getSideEnd(BlockGetter world, BlockPos pos, Direction offset) {
+	private EnumPSDAPGGlassEndSide getSideEnd(LevelAccessor world, BlockPos pos, Direction offset) {
 		final BlockPos checkPos = pos.relative(offset);
 		if (world.getBlockState(checkPos).getBlock() instanceof BlockPSDAPGDoorBase) {
 			return EnumPSDAPGGlassEndSide.DOOR;

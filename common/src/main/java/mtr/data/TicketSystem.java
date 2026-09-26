@@ -78,7 +78,7 @@ public class TicketSystem {
 
 		if (entryZone != 0) {
 			if (remindIfNoRecord) {
-				mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.already_entered"), true);
+				player.displayClientMessage(Text.translatable("gui.mtr.already_entered"), true);
 				return false;
 			} else {
 				entryZoneScore.set(0);
@@ -88,10 +88,10 @@ public class TicketSystem {
 
 		if (balanceScore.get() >= 0) {
 			entryZoneScore.set(encodeZone(station.zone));
-			mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.enter_barrier", String.format("%s (%s)", station.name.replace('|', ' '), station.zone), balanceScore.get()), true);
+			player.displayClientMessage(Text.translatable("gui.mtr.enter_barrier", String.format("%s (%s)", station.name.replace('|', ' '), station.zone), balanceScore.get()), true);
 			return true;
 		} else {
-			mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.insufficient_balance", balanceScore.get()), true);
+			player.displayClientMessage(Text.translatable("gui.mtr.insufficient_balance", balanceScore.get()), true);
 			return false;
 		}
 	}
@@ -102,12 +102,12 @@ public class TicketSystem {
 		final int finalFare = entryZone != 0 ? isConcessionary(player) ? (int) Math.ceil(fare / 2F) : fare : EVASION_FINE;
 
 		if (entryZone == 0 && remindIfNoRecord) {
-			mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.already_exited"), true);
+			player.displayClientMessage(Text.translatable("gui.mtr.already_exited"), true);
 			return false;
 		} else {
 			entryZoneScore.set(0);
 			balanceScore.set(balanceScore.get() - finalFare);
-			mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr.exit_barrier", String.format("%s (%s)", station.name.replace('|', ' '), station.zone), finalFare, balanceScore.get()), true);
+			player.displayClientMessage(Text.translatable("gui.mtr.exit_barrier", String.format("%s (%s)", station.name.replace('|', ' '), station.zone), finalFare, balanceScore.get()), true);
 			return true;
 		}
 	}

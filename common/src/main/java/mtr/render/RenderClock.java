@@ -8,23 +8,23 @@ import mtr.client.IDrawing;
 import mtr.data.IGui;
 import mtr.mappings.BlockEntityRendererMapper;
 import mtr.mappings.UtilitiesClient;
-import mtr.mappings.RenderBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderClock extends BlockEntityRendererMapper<BlockClock.TileEntityClock> implements IGui, IBlock {
-	private static final Identifier WHITE_TEXTURE = Identifier.parse("mtr:textures/block/white.png");
+	private static final ResourceLocation WHITE_TEXTURE = ResourceLocation.parse("mtr:textures/block/white.png");
 
 	public RenderClock(BlockEntityRenderDispatcher dispatcher) {
 		super(dispatcher);
 	}
 
 	@Override
-	public void render(BlockClock.TileEntityClock entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
+	public void render(BlockClock.TileEntityClock entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
 		final Level world = entity.getLevel();
 		if (world == null) {
 			return;
@@ -41,7 +41,7 @@ public class RenderClock extends BlockEntityRendererMapper<BlockClock.TileEntity
 			UtilitiesClient.rotateYDegrees(matrices, 90);
 		}
 
-		final long time = world.getOverworldClockTime() + 6000;
+		final long time = world.getDayTime() + 6000;
 
 		drawHand(matrices, vertexConsumers, time * 360F / 12000, true);
 		drawHand(matrices, vertexConsumers, time * 360F / 1000, false);
@@ -53,7 +53,7 @@ public class RenderClock extends BlockEntityRendererMapper<BlockClock.TileEntity
 		matrices.popPose();
 	}
 
-	private static void drawHand(PoseStack matrices, RenderBufferSource vertexConsumers, float rotation, boolean isHourHand) {
+	private static void drawHand(PoseStack matrices, MultiBufferSource vertexConsumers, float rotation, boolean isHourHand) {
 		matrices.pushPose();
 		UtilitiesClient.rotateZDegrees(matrices, -rotation);
 		final VertexConsumer vertexConsumer = vertexConsumers.getBuffer(MoreRenderLayers.getLight(WHITE_TEXTURE, false));

@@ -15,7 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -97,7 +97,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		trainPositions.add(new HashMap<>());
 		trainPositions.add(new HashMap<>());
 
-		final Identifier dimensionLocation = world.dimension().identifier();
+		final ResourceLocation dimensionLocation = world.dimension().location();
 		final Path savePath = ((ServerLevel) world).getServer().getWorldPath(LevelResource.ROOT).resolve("mtr").resolve(dimensionLocation.getNamespace()).resolve(dimensionLocation.getPath());
 
 		railwayDataFileSaveModule = new RailwayDataFileSaveModule(this, world, rails, savePath, signalBlocks);
@@ -117,7 +117,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		// TODO temporary code start
 		if (compoundTag.contains(KEY_RAW_MESSAGE_PACK)) {
 			try {
-				final MessageUnpacker messageUnpacker = MessagePack.newDefaultUnpacker(mtr.mappings.CompoundTagMapper.getByteArray(compoundTag, KEY_RAW_MESSAGE_PACK));
+				final MessageUnpacker messageUnpacker = MessagePack.newDefaultUnpacker(compoundTag.getByteArray(KEY_RAW_MESSAGE_PACK));
 				final int mapSize = messageUnpacker.unpackMapHeader();
 
 				for (int i = 0; i < mapSize; ++i) {
@@ -179,40 +179,40 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 			}
 		} else {
 			try {
-				final CompoundTag tagStations = compoundTag.getCompoundOrEmpty(KEY_STATIONS);
-				for (final String key : tagStations.keySet()) {
-					stations.add(new Station(tagStations.getCompoundOrEmpty(key)));
+				final CompoundTag tagStations = compoundTag.getCompound(KEY_STATIONS);
+				for (final String key : tagStations.getAllKeys()) {
+					stations.add(new Station(tagStations.getCompound(key)));
 				}
 
-				final CompoundTag tagNewPlatforms = compoundTag.getCompoundOrEmpty(KEY_PLATFORMS);
-				for (final String key : tagNewPlatforms.keySet()) {
-					platforms.add(new Platform(tagNewPlatforms.getCompoundOrEmpty(key)));
+				final CompoundTag tagNewPlatforms = compoundTag.getCompound(KEY_PLATFORMS);
+				for (final String key : tagNewPlatforms.getAllKeys()) {
+					platforms.add(new Platform(tagNewPlatforms.getCompound(key)));
 				}
 
-				final CompoundTag tagNewSidings = compoundTag.getCompoundOrEmpty(KEY_SIDINGS);
-				for (final String key : tagNewSidings.keySet()) {
-					sidings.add(new Siding(tagNewSidings.getCompoundOrEmpty(key)));
+				final CompoundTag tagNewSidings = compoundTag.getCompound(KEY_SIDINGS);
+				for (final String key : tagNewSidings.getAllKeys()) {
+					sidings.add(new Siding(tagNewSidings.getCompound(key)));
 				}
 
-				final CompoundTag tagNewRoutes = compoundTag.getCompoundOrEmpty(KEY_ROUTES);
-				for (final String key : tagNewRoutes.keySet()) {
-					routes.add(new Route(tagNewRoutes.getCompoundOrEmpty(key)));
+				final CompoundTag tagNewRoutes = compoundTag.getCompound(KEY_ROUTES);
+				for (final String key : tagNewRoutes.getAllKeys()) {
+					routes.add(new Route(tagNewRoutes.getCompound(key)));
 				}
 
-				final CompoundTag tagNewDepots = compoundTag.getCompoundOrEmpty(KEY_DEPOTS);
-				for (final String key : tagNewDepots.keySet()) {
-					depots.add(new Depot(tagNewDepots.getCompoundOrEmpty(key)));
+				final CompoundTag tagNewDepots = compoundTag.getCompound(KEY_DEPOTS);
+				for (final String key : tagNewDepots.getAllKeys()) {
+					depots.add(new Depot(tagNewDepots.getCompound(key)));
 				}
 
-				final CompoundTag tagNewRails = compoundTag.getCompoundOrEmpty(KEY_RAILS);
-				for (final String key : tagNewRails.keySet()) {
-					final RailEntry railEntry = new RailEntry(tagNewRails.getCompoundOrEmpty(key));
+				final CompoundTag tagNewRails = compoundTag.getCompound(KEY_RAILS);
+				for (final String key : tagNewRails.getAllKeys()) {
+					final RailEntry railEntry = new RailEntry(tagNewRails.getCompound(key));
 					rails.put(railEntry.pos, railEntry.connections);
 				}
 
-				final CompoundTag tagNewSignalBlocks = compoundTag.getCompoundOrEmpty(KEY_SIGNAL_BLOCKS);
-				for (final String key : tagNewSignalBlocks.keySet()) {
-					signalBlocks.signalBlocks.add(new SignalBlocks.SignalBlock(tagNewSignalBlocks.getCompoundOrEmpty(key)));
+				final CompoundTag tagNewSignalBlocks = compoundTag.getCompound(KEY_SIGNAL_BLOCKS);
+				for (final String key : tagNewSignalBlocks.getAllKeys()) {
+					signalBlocks.signalBlocks.add(new SignalBlocks.SignalBlock(tagNewSignalBlocks.getCompound(key)));
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -224,7 +224,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		dataCache.sync();
 		signalBlocks.writeCache();
 
-		useTimeAndWindSync = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_USE_TIME_AND_WIND_SYNC);
+		useTimeAndWindSync = compoundTag.getBoolean(KEY_USE_TIME_AND_WIND_SYNC);
 		runRealTimeSync();
 
 		try {
@@ -530,7 +530,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 			if (server != null) {
 				final CommandSourceStack commandSourceStack = server.createCommandSourceStack();
 				runCommand(server, commandSourceStack, "/gamerule doDaylightCycle true");
-				runCommand(server, commandSourceStack, "/taw set-cycle-length " + world.dimension().identifier() + " 864000 864000");
+				runCommand(server, commandSourceStack, "/taw set-cycle-length " + world.dimension().location() + " 864000 864000");
 				runCommand(server, commandSourceStack, "/taw reload");
 				final Calendar calendar = Calendar.getInstance();
 				final long ticks = Math.round((calendar.get(Calendar.HOUR_OF_DAY) + Depot.HOURS_IN_DAY - 6) * 1000 + calendar.get(Calendar.MINUTE) / 0.06 + calendar.get(Calendar.SECOND) / 3.6) % 24000;
@@ -798,7 +798,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		lifts.removeIf(lift -> lift.isInvalidLift(world));
 	}
 
-	private static void removeSavedRailS2C(Level world, Set<? extends SavedRailBase> savedRailBases, Map<BlockPos, Map<BlockPos, Rail>> rails, Identifier packetId) {
+	private static void removeSavedRailS2C(Level world, Set<? extends SavedRailBase> savedRailBases, Map<BlockPos, Map<BlockPos, Rail>> rails, ResourceLocation packetId) {
 		savedRailBases.removeIf(savedRailBase -> {
 			final boolean delete = savedRailBase.isInvalidSavedRail(rails);
 			if (delete) {
@@ -840,12 +840,12 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		}
 
 		public RailEntry(CompoundTag compoundTag) {
-			pos = BlockPos.of(mtr.mappings.CompoundTagMapper.getLong(compoundTag, KEY_NODE_POS));
+			pos = BlockPos.of(compoundTag.getLong(KEY_NODE_POS));
 			connections = new HashMap<>();
 
-			final CompoundTag tagConnections = compoundTag.getCompoundOrEmpty(KEY_RAIL_CONNECTIONS);
-			for (final String keyConnection : tagConnections.keySet()) {
-				connections.put(BlockPos.of(mtr.mappings.CompoundTagMapper.getLong(tagConnections.getCompoundOrEmpty(keyConnection), KEY_NODE_POS)), new Rail(tagConnections.getCompoundOrEmpty(keyConnection)));
+			final CompoundTag tagConnections = compoundTag.getCompound(KEY_RAIL_CONNECTIONS);
+			for (final String keyConnection : tagConnections.getAllKeys()) {
+				connections.put(BlockPos.of(tagConnections.getCompound(keyConnection).getLong(KEY_NODE_POS)), new Rail(tagConnections.getCompound(keyConnection)));
 			}
 		}
 

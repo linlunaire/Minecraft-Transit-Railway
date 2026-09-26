@@ -5,13 +5,13 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import mtr.render.MoreRenderLayers;
-import mtr.mappings.EntityModelMapper;
-import mtr.mappings.RenderBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
-public class ModelDoorOverlay extends EntityModelMapper<Entity> {
+public class ModelDoorOverlay extends EntityModel<Entity> {
 
 	private final ModelMapper door_left_overlay_interior;
 	private final ModelMapper door_left_top_r1;
@@ -27,8 +27,8 @@ public class ModelDoorOverlay extends EntityModelMapper<Entity> {
 	private final ModelMapper wall_2;
 	private final ModelMapper upper_wall_2_r1;
 
-	private final Identifier doorOverlayTextureLeft;
-	private final Identifier doorOverlayTextureRight;
+	private final ResourceLocation doorOverlayTextureLeft;
+	private final ResourceLocation doorOverlayTextureRight;
 	private final boolean renderLeft;
 	private final boolean renderRight;
 
@@ -42,8 +42,8 @@ public class ModelDoorOverlay extends EntityModelMapper<Entity> {
 
 	public ModelDoorOverlay(int doorMax, float angle, int pivotY, String overlayLeftTextureName, String overlayRightTextureName, boolean renderLeft, boolean renderRight) {
 		float angleRadians = (float) Math.toRadians(angle);
-		doorOverlayTextureLeft = Identifier.parse("mtr:textures/block/sign/" + overlayLeftTextureName);
-		doorOverlayTextureRight = Identifier.parse("mtr:textures/block/sign/" + overlayRightTextureName);
+		doorOverlayTextureLeft = ResourceLocation.parse("mtr:textures/block/sign/" + overlayLeftTextureName);
+		doorOverlayTextureRight = ResourceLocation.parse("mtr:textures/block/sign/" + overlayRightTextureName);
 		this.renderLeft = renderLeft;
 		this.renderRight = renderRight;
 
@@ -127,7 +127,7 @@ public class ModelDoorOverlay extends EntityModelMapper<Entity> {
 		wall_2.setModelPart();
 	}
 
-	public void render(PoseStack matrices, RenderBufferSource vertexConsumers, ModelTrainBase.RenderStage renderStage, int light, int position, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ, boolean lightsOn) {
+	public void render(PoseStack matrices, MultiBufferSource vertexConsumers, ModelTrainBase.RenderStage renderStage, int light, int position, float doorLeftX, float doorRightX, float doorLeftZ, float doorRightZ, boolean lightsOn) {
 		switch (renderStage) {
 			case INTERIOR:
 				final RenderType renderLayerInteriorLeft = lightsOn ? MoreRenderLayers.getInterior(doorOverlayTextureLeft) : MoreRenderLayers.getExterior(doorOverlayTextureLeft);

@@ -12,7 +12,7 @@ import mtr.render.*;
 import mtr.servlet.Webserver;
 import mtr.sound.LoopingSoundInstance;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 
@@ -34,55 +34,55 @@ public class MTRClient implements IPacket {
 
 	public static void init() {
 		if (!Keys.LIFTS_ONLY) {
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.APG_DOOR.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.APG_GLASS.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.APG_GLASS_END.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.CABLE_CAR_NODE_LOWER.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.CABLE_CAR_NODE_UPPER.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.CLOCK.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_CIO.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_CKT.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_HEO.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_MOS.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_PLAIN.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_SHM.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_STAINED.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_STW.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_TSH.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.GLASS_FENCE_WKS.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.LOGO.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM_INDENTED.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM_NA_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM_NA_1_INDENTED.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM_NA_2.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM_NA_2_INDENTED.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM_UK_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PLATFORM_UK_1_INDENTED.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PSD_DOOR_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PSD_GLASS_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PSD_GLASS_END_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PSD_DOOR_2.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PSD_GLASS_2.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.PSD_GLASS_END_2.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.RUBBISH_BIN_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.STATION_COLOR_STAINED_GLASS.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT, Blocks.STATION_COLOR_STAINED_GLASS_SLAB.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.STATION_NAME_TALL_BLOCK.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.STATION_NAME_TALL_BLOCK_DOUBLE_SIDED.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.STATION_NAME_TALL_WALL.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TICKET_BARRIER_ENTRANCE_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TICKET_BARRIER_EXIT_1.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TICKET_MACHINE.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TICKET_PROCESSOR.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TICKET_PROCESSOR_ENTRANCE.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TICKET_PROCESSOR_EXIT.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TICKET_PROCESSOR_ENQUIRY.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TRAIN_ANNOUNCER.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TRAIN_CARGO_LOADER.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TRAIN_CARGO_UNLOADER.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TRAIN_REDSTONE_SENSOR.get());
-			mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.TRAIN_SCHEDULE_SENSOR.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.APG_DOOR.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.APG_GLASS.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.APG_GLASS_END.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.CABLE_CAR_NODE_LOWER.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.CABLE_CAR_NODE_UPPER.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.CLOCK.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_CIO.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_CKT.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_HEO.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_MOS.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_PLAIN.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_SHM.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_STAINED.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_STW.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_TSH.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.GLASS_FENCE_WKS.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.LOGO.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM_INDENTED.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM_NA_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM_NA_1_INDENTED.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM_NA_2.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM_NA_2_INDENTED.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM_UK_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PLATFORM_UK_1_INDENTED.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PSD_DOOR_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PSD_GLASS_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PSD_GLASS_END_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PSD_DOOR_2.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PSD_GLASS_2.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.PSD_GLASS_END_2.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.RUBBISH_BIN_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.STATION_COLOR_STAINED_GLASS.get());
+			RegistryClient.registerBlockRenderType(RenderType.translucent(), Blocks.STATION_COLOR_STAINED_GLASS_SLAB.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.STATION_NAME_TALL_BLOCK.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.STATION_NAME_TALL_BLOCK_DOUBLE_SIDED.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.STATION_NAME_TALL_WALL.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TICKET_BARRIER_ENTRANCE_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TICKET_BARRIER_EXIT_1.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TICKET_MACHINE.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TICKET_PROCESSOR.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TICKET_PROCESSOR_ENTRANCE.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TICKET_PROCESSOR_EXIT.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TICKET_PROCESSOR_ENQUIRY.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TRAIN_ANNOUNCER.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TRAIN_CARGO_LOADER.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TRAIN_CARGO_UNLOADER.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TRAIN_REDSTONE_SENSOR.get());
+			RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.TRAIN_SCHEDULE_SENSOR.get());
 
 			RegistryClient.registerTileEntityRenderer(BlockEntityTypes.ARRIVAL_PROJECTOR_1_SMALL_TILE_ENTITY.get(), dispatcher -> new RenderPIDS<>(dispatcher, 12, 1, 1, 15, 16, 14, 14, false, false, PIDSType.ARRIVAL_PROJECTOR, 0xFF9900, 0xFF9900));
 			RegistryClient.registerTileEntityRenderer(BlockEntityTypes.ARRIVAL_PROJECTOR_1_MEDIUM_TILE_ENTITY.get(), dispatcher -> new RenderPIDS<>(dispatcher, 12, 1, -15, 15, 16, 30, 46, false, false, PIDSType.ARRIVAL_PROJECTOR, 0xFF9900, 0xFF9900));
@@ -205,14 +205,14 @@ public class MTRClient implements IPacket {
 			RegistryClient.registerBlockColors(Blocks.STATION_COLOR_POLE.get());
 		}
 
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.LIFT_DOOR_EVEN_1.get());
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.LIFT_DOOR_ODD_1.get());
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.LIFT_PANEL_EVEN_1.get());
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.LIFT_PANEL_ODD_1.get());
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.LIFT_PANEL_EVEN_2.get());
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.LIFT_PANEL_ODD_2.get());
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.ESCALATOR_STEP.get());
-		mtr.mappings.TerrainRenderLayers.register(net.minecraft.client.renderer.chunk.ChunkSectionLayer.CUTOUT, Blocks.ESCALATOR_SIDE.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.LIFT_DOOR_EVEN_1.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.LIFT_DOOR_ODD_1.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.LIFT_PANEL_EVEN_1.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.LIFT_PANEL_ODD_1.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.LIFT_PANEL_EVEN_2.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.LIFT_PANEL_ODD_2.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.ESCALATOR_STEP.get());
+		RegistryClient.registerBlockRenderType(RenderType.cutout(), Blocks.ESCALATOR_SIDE.get());
 
 		RegistryClient.registerTileEntityRenderer(BlockEntityTypes.LIFT_BUTTONS_1_TILE_ENTITY.get(), RenderLiftButtons::new);
 		RegistryClient.registerTileEntityRenderer(BlockEntityTypes.LIFT_PANEL_EVEN_1_TILE_ENTITY.get(), dispatcher -> new RenderLiftPanel<>(dispatcher, false, false));
@@ -353,6 +353,95 @@ public class MTRClient implements IPacket {
 		}
 	}
 
+	public static void initItemModelPredicate() {
+		if (!Keys.LIFTS_ONLY) {
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_20.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_20_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_40.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_40_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_60.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_60_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_80.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_80_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_120.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_120_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_160.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_160_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_200.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_200_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_300.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_300_ONE_WAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_PLATFORM.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_SIDING.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_TURN_BACK.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_CABLE_CAR.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_CONNECTOR_RUNWAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.RAIL_REMOVER.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_WHITE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_ORANGE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_MAGENTA.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_LIGHT_BLUE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_YELLOW.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_LIME.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_PINK.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_GRAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_LIGHT_GRAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_CYAN.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_PURPLE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_BLUE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_BROWN.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_GREEN.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_RED.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_CONNECTOR_BLACK.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_WHITE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_ORANGE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_MAGENTA.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_LIGHT_BLUE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_YELLOW.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_LIME.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_PINK.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_GRAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_LIGHT_GRAY.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_CYAN.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_PURPLE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_BLUE.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_BROWN.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_GREEN.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_RED.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.SIGNAL_REMOVER_BLACK.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.BRIDGE_CREATOR_3.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.BRIDGE_CREATOR_5.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.BRIDGE_CREATOR_7.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.BRIDGE_CREATOR_9.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_4_3.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_4_5.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_4_7.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_4_9.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_5_3.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_5_5.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_5_7.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_5_9.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_6_3.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_6_5.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_6_7.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_CREATOR_6_9.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_4_3.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_4_5.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_4_7.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_4_9.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_5_3.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_5_5.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_5_7.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_5_9.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_6_3.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_6_5.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_6_7.get(), ItemBlockClickingBase.TAG_POS);
+			RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.TUNNEL_WALL_CREATOR_6_9.get(), ItemBlockClickingBase.TAG_POS);
+		}
+
+		RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.LIFT_BUTTONS_LINK_CONNECTOR.get(), ItemBlockClickingBase.TAG_POS);
+		RegistryClient.registerItemModelPredicate(MTR.MOD_ID + ":selected", Items.LIFT_BUTTONS_LINK_REMOVER.get(), ItemBlockClickingBase.TAG_POS);
+	}
 
 	public static boolean isReplayMod() {
 		return isReplayMod;
@@ -384,7 +473,7 @@ public class MTRClient implements IPacket {
 		if (Minecraft.getInstance().isPaused()) {
 			return 0;
 		}
-		return isReplayMod ? 20F / 60 : Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaTicks();
+		return isReplayMod ? 20F / 60 : Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
 	}
 
 	public static boolean canPlaySound() {

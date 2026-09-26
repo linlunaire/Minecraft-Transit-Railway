@@ -9,7 +9,7 @@ import mtr.data.Station;
 import mtr.mappings.ModelDataWrapper;
 import mtr.mappings.ModelMapper;
 import net.minecraft.client.gui.Font;
-import mtr.mappings.RenderBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource;
 
 import java.util.List;
 
@@ -1082,7 +1082,7 @@ public class ModelKTrain extends ModelSimpleTrainBase<ModelKTrain> {
 	}
 
 	@Override
-	protected void renderTextDisplays(PoseStack matrices, RenderBufferSource vertexConsumers, Font font, RenderBufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
+	protected void renderTextDisplays(PoseStack matrices, MultiBufferSource vertexConsumers, Font font, MultiBufferSource.BufferSource immediate, Route thisRoute, Route nextRoute, Station thisStation, Station nextStation, Station lastStation, String customDestination, int car, int totalCars, boolean atPlatform, List<ScrollingText> scrollingTexts) {
 		if (!isTcl) {
 			renderFrontDestination(
 					matrices, font, immediate,

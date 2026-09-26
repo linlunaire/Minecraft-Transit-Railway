@@ -10,7 +10,7 @@ import java.util.function.BiFunction;
 
 public interface EntityTypes {
 
-	RegistryObject<EntityType<EntitySeat>> SEAT = new RegistryObject<>(() -> EntityType.Builder.<EntitySeat>of(EntitySeat::new, MobCategory.MISC).sized(EntitySeat.SIZE, EntitySeat.SIZE).clientTrackingRange(8).build(mtr.mappings.RegistryUtilities.entityKey("seat")));
+	RegistryObject<EntityType<EntitySeat>> SEAT = new RegistryObject<>(() -> EntityType.Builder.<EntitySeat>of(EntitySeat::new, MobCategory.MISC).sized(EntitySeat.SIZE, EntitySeat.SIZE).clientTrackingRange(8).build("seat"));
 
 	@Deprecated
 	enum LiftType {
@@ -37,7 +37,7 @@ public interface EntityTypes {
 			this.depth = depth;
 			this.isDoubleSided = isDoubleSided;
 			key = String.format("lift_%s_%s" + (isDoubleSided ? "_double_sided" : ""), width, depth);
-			registryObject = new RegistryObject<>(() -> EntityType.Builder.of(function::apply, MobCategory.MISC).sized(Math.max(width, depth) - 0.5F, 1).clientTrackingRange(8).build(mtr.mappings.RegistryUtilities.entityKey(key)));
+			registryObject = new RegistryObject<>(() -> EntityType.Builder.of(function::apply, MobCategory.MISC).sized(Math.max(width, depth) - 0.5F, 1).clientTrackingRange(8).build(key));
 			this.liftSupplier = liftSupplier;
 		}
 	}

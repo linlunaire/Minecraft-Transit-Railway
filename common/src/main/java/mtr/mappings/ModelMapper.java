@@ -16,7 +16,6 @@ public class ModelMapper {
 	private float tempRotationX, tempRotationY, tempRotationZ;
 	private int tempU, tempV;
 	private ModelPart modelPart;
-	private ModelGeometry geometry;
 	private PartDefinition modelPartData;
 	private ModelMapper parent;
 
@@ -70,12 +69,10 @@ public class ModelMapper {
 
 	public void setModelPart() {
 		modelPart = modelDataWrapper.modelPart.getChild(name);
-		geometry = null;
 	}
 
 	public void setModelPart(String child) {
 		modelPart = modelDataWrapper.modelPart.getChild(child).getChild(name);
-		geometry = null;
 	}
 
 	public void setOffset(float x, int y, float z) {
@@ -89,12 +86,7 @@ public class ModelMapper {
 	public void render(PoseStack matrices, VertexConsumer vertices, float x, float y, float z, float rotateY, int light, int overlay) {
 		modelPart.setPos(x, y, z);
 		modelPart.yRot = rotateY;
-		if (vertices instanceof ModelGeometry.Collector collector) {
-			if (geometry == null) geometry = new ModelGeometry(modelPart);
-			collector.captureModel(geometry, matrices.last(), light, overlay);
-		} else {
-			modelPart.render(matrices, vertices, light, overlay);
-		}
+		modelPart.render(matrices, vertices, light, overlay);
 	}
 
 	private static String getRandomPartName() {

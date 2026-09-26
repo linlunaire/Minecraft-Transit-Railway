@@ -142,7 +142,7 @@ public class RailwayDataLoggingModule extends RailwayDataModuleBase {
 	public static List<String> getData(CompoundTag compoundTag) {
 		final List<String> dataList = new ArrayList<>();
 
-		compoundTag.keySet().forEach(key -> {
+		compoundTag.getAllKeys().forEach(key -> {
 			final String value = convertTag(compoundTag.get(key));
 			if (value != null) {
 				dataList.add(String.format("%s:%s", key, value));
@@ -155,16 +155,16 @@ public class RailwayDataLoggingModule extends RailwayDataModuleBase {
 	private static String convertTag(Tag tag) {
 		if (tag instanceof CollectionTag) {
 			final List<String> valueTags = new ArrayList<>();
-			((CollectionTag) tag).forEach(data -> valueTags.add(convertTag(data)));
+			((CollectionTag<?>) tag).forEach(data -> valueTags.add(convertTag(data)));
 			return String.format("[%s]", String.join(",", valueTags));
 		} else if (tag != null) {
-			final String tempValue = tag.asString().orElseGet(tag::toString);
+			final String tempValue = tag.getAsString();
 			if (tempValue.equals("0b")) {
 				return String.valueOf(false);
 			} else if (tempValue.equals("1b")) {
 				return String.valueOf(true);
 			} else if (tag instanceof NumericTag) {
-				return ((NumericTag) tag).box().toString();
+				return ((NumericTag) tag).getAsNumber().toString();
 			} else {
 				return tempValue.isEmpty() ? "\"\"" : tempValue;
 			}

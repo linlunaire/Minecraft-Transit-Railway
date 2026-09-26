@@ -251,24 +251,24 @@ public class Rail extends SerializedDataBase {
 
 	@Deprecated
 	public Rail(CompoundTag compoundTag) {
-		h1 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_H_1);
-		k1 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_K_1);
-		h2 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_H_2);
-		k2 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_K_2);
-		r1 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_R_1);
-		r2 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_R_2);
-		tStart1 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_T_START_1);
-		tEnd1 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_T_END_1);
-		tStart2 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_T_START_2);
-		tEnd2 = mtr.mappings.CompoundTagMapper.getDouble(compoundTag, KEY_T_END_2);
-		yStart = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_Y_START);
-		yEnd = mtr.mappings.CompoundTagMapper.getInt(compoundTag, KEY_Y_END);
-		reverseT1 = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_REVERSE_T_1);
-		isStraight1 = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_IS_STRAIGHT_1);
-		reverseT2 = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_REVERSE_T_2);
-		isStraight2 = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_IS_STRAIGHT_2);
-		railType = EnumHelper.valueOf(RailType.IRON, mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_RAIL_TYPE));
-		transportMode = EnumHelper.valueOf(TransportMode.TRAIN, mtr.mappings.CompoundTagMapper.getString(compoundTag, KEY_TRANSPORT_MODE));
+		h1 = compoundTag.getDouble(KEY_H_1);
+		k1 = compoundTag.getDouble(KEY_K_1);
+		h2 = compoundTag.getDouble(KEY_H_2);
+		k2 = compoundTag.getDouble(KEY_K_2);
+		r1 = compoundTag.getDouble(KEY_R_1);
+		r2 = compoundTag.getDouble(KEY_R_2);
+		tStart1 = compoundTag.getDouble(KEY_T_START_1);
+		tEnd1 = compoundTag.getDouble(KEY_T_END_1);
+		tStart2 = compoundTag.getDouble(KEY_T_START_2);
+		tEnd2 = compoundTag.getDouble(KEY_T_END_2);
+		yStart = compoundTag.getInt(KEY_Y_START);
+		yEnd = compoundTag.getInt(KEY_Y_END);
+		reverseT1 = compoundTag.getBoolean(KEY_REVERSE_T_1);
+		isStraight1 = compoundTag.getBoolean(KEY_IS_STRAIGHT_1);
+		reverseT2 = compoundTag.getBoolean(KEY_REVERSE_T_2);
+		isStraight2 = compoundTag.getBoolean(KEY_IS_STRAIGHT_2);
+		railType = EnumHelper.valueOf(RailType.IRON, compoundTag.getString(KEY_RAIL_TYPE));
+		transportMode = EnumHelper.valueOf(TransportMode.TRAIN, compoundTag.getString(KEY_TRANSPORT_MODE));
 
 		facingStart = getRailAngle(false);
 		facingEnd = getRailAngle(true);
@@ -675,7 +675,7 @@ public class Rail extends SerializedDataBase {
 		private void showProgressMessage(float percentage) {
 			final Player player = world.getPlayerByUUID(uuid);
 			if (player != null) {
-				mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.translatable("gui.mtr." + railActionType.progressTranslation, percentage), true);
+				player.displayClientMessage(Text.translatable("gui.mtr." + railActionType.progressTranslation, percentage), true);
 			}
 		}
 

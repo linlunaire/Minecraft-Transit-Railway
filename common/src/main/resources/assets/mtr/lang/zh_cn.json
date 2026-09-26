@@ -133,7 +133,7 @@
 	"block.mtr.train_cargo_unloader": "货物卸载器",
 	"block.mtr.train_schedule_sensor": "时间表传感器",
 	"block.mtr.train_sensor": "红石感应器",
-	"key.category.mtr.keybinding": "Minecraft Transit Railway 按键绑定",
+	"category.mtr.keybinding": "Minecraft Transit Railway 按键绑定",
 	"entity.mtr.seat": "",
 	"gui.mtr.acceleration": "车辆加速度",
 	"gui.mtr.add_balance_for_emeralds": "充值 $%s （%s 绿宝石）",

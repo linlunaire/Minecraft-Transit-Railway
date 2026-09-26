@@ -12,7 +12,7 @@ public abstract class HorizontalBlockWithSoftLanding extends BlockDirectionalMap
 	}
 
 	@Override
-	public final void fallOn(Level world, BlockState state, BlockPos pos, Entity entity, double distance) {
+	public final void fallOn(Level world, BlockState state, BlockPos pos, Entity entity, float distance) {
 		super.fallOn(world, state, pos, entity, distance * (softenLanding() ? 0.5F : 1));
 	}
 

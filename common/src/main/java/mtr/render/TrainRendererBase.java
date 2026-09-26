@@ -11,7 +11,7 @@ import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import mtr.mappings.RenderBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -28,7 +28,7 @@ public abstract class TrainRendererBase {
 	protected static Level world;
 	protected static float lastFrameDuration;
 	protected static PoseStack matrices;
-	protected static RenderBufferSource vertexConsumers;
+	protected static MultiBufferSource vertexConsumers;
 
 	protected static boolean isTranslucentBatch;
 
@@ -58,27 +58,27 @@ public abstract class TrainRendererBase {
 		matrices.translate(0, RenderTrains.PLAYER_RENDER_OFFSET, 0);
 		final Player renderPlayer = world.getPlayerByUUID(playerId);
 		if (renderPlayer != null && (!playerId.equals(player.getUUID()) || camera.isDetached())) {
-			vertexConsumers.drawEntity(entityRenderDispatcher, renderPlayer, 1, matrices.last().pose(), playerPositionOffset.x, playerPositionOffset.y, playerPositionOffset.z, 0xF000F0);
+			entityRenderDispatcher.render(renderPlayer, playerPositionOffset.x, playerPositionOffset.y, playerPositionOffset.z, 0, 1, matrices, vertexConsumers, 0xF000F0);
 		}
 		matrices.popPose();
 	}
 
-	public static void setupStaticInfo(PoseStack matrices, RenderBufferSource vertexConsumers, EntitySeat entity, float tickDelta) {
+	public static void setupStaticInfo(PoseStack matrices, MultiBufferSource vertexConsumers, EntitySeat entity, float tickDelta) {
 		final Minecraft client = Minecraft.getInstance();
-		camera = client.gameRenderer.mainCamera();
+		camera = client.gameRenderer.getMainCamera();
 		entityRenderDispatcher = client.getEntityRenderDispatcher();
 		world = client.level;
 		player = client.player;
 		lastFrameDuration = MTRClient.getLastFrameDuration();
 		TrainRendererBase.matrices = matrices;
 		TrainRendererBase.vertexConsumers = vertexConsumers;
-		cameraEntity = client.getCameraEntity();
+		cameraEntity = client.cameraEntity;
 		trainRenderDistance = UtilitiesClient.getRenderDistance() * (Config.trainRenderDistanceRatio() + 1);
 		hasEntity = entity != null;
 		entityX = hasEntity ? Mth.lerp(tickDelta, entity.xOld, entity.getX()) : 0;
 		entityY = hasEntity ? Mth.lerp(tickDelta, entity.yOld, entity.getY()) : 0;
 		entityZ = hasEntity ? Mth.lerp(tickDelta, entity.zOld, entity.getZ()) : 0;
-		playerEyePosition = player == null ? Vec3.ZERO : player.getEyePosition(client.getDeltaTracker().getGameTimeDeltaPartialTick(true));
+		playerEyePosition = player == null ? Vec3.ZERO : player.getEyePosition(client.getTimer().getGameTimeDeltaPartialTick(true));
 	}
 
 	public static void setBatch(boolean isTranslucentBatch) {
@@ -104,12 +104,12 @@ public abstract class TrainRendererBase {
 				offsetY = entityY;
 				offsetZ = entityZ;
 			} else {
-				final Vec3 cameraOffset = camera.isDetached() ? playerEyePosition : camera.position();
+				final Vec3 cameraOffset = camera.isDetached() ? playerEyePosition : camera.getPosition();
 				offsetX = cameraOffset.x;
 				offsetY = cameraOffset.y;
 				offsetZ = cameraOffset.z;
 			}
-			final float cameraYaw = camera.yRot();
+			final float cameraYaw = camera.getYRot();
 			matrices.translate(offsetX, offsetY, offsetZ);
 			UtilitiesClient.rotateYDegrees(matrices, Utilities.getYaw(player) - cameraYaw + (Math.abs(Utilities.getYaw(player) - cameraYaw) > 90 ? 180 : 0));
 			matrices.translate(-viewOffset.x, -viewOffset.y, -viewOffset.z);

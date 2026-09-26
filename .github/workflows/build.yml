@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches: [master]
-    tags: ['26.2-*']
+    tags: ['1.21.1-*']
   pull_request:
     branches: [master]
   workflow_dispatch:
@@ -13,18 +13,17 @@ permissions:
 
 jobs:
   build:
-    name: Minecraft 26.2
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set up JDK 25
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: "21"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
@@ -33,11 +32,11 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Fabric and NeoForge JARs
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: MTR-26.2
-          path: build/release/MTR-*-26.2-*.jar
+          name: MTR-1.21.1
+          path: build/release/*.jar
           if-no-files-found: error

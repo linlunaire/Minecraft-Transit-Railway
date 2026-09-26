@@ -36,19 +36,19 @@ public abstract class EntityLift extends EntityBase {
 
 	@Override
 	public void tick() {
-		if (level().isClientSide()) {
+		if (level().isClientSide) {
 			setClientPosition();
 		} else {
 			scanTrack();
 			if (removeCoolDown > 200) {
 				System.out.println(liftType + " lift at " + blockPosition() + " not converted");
-				kill((net.minecraft.server.level.ServerLevel) level());
+				kill();
 			} else {
 				removeCoolDown++;
 			}
 		}
 
-		applyEffectsFromBlocks();
+		checkInsideBlocks();
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public abstract class EntityLift extends EntityBase {
 				if (level().getBlockState(trackPos).getBlock() instanceof BlockLiftTrack) {
 					ItemLiftRefresher.refreshLift(level(), trackPos, (int) Math.round(getX() * 2) - trackPos.getX() * 2, (int) Math.round(getZ() * 2) - trackPos.getZ() * 2, liftType.width, liftType.depth, liftType.isDoubleSided, Direction.fromYRot(-Utilities.getYaw(this)));
 					System.out.println(liftType + " lift at " + blockPosition() + " converted");
-					kill((net.minecraft.server.level.ServerLevel) level());
+					kill();
 					return;
 				}
 			}

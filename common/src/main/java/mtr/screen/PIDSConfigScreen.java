@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.client.ClientData;
@@ -17,7 +17,7 @@ import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class PIDSConfigScreen extends ScreenMapper implements IGui, IPacket {
 
-	private static ImageButton newImageButton(Identifier texture, ImageButton.OnPress onPress) {
+	private static ImageButton newImageButton(ResourceLocation texture, ImageButton.OnPress onPress) {
 		return new ImageButton(0, 0, 0, SQUARE_SIZE, new WidgetSprites(texture, texture), onPress);
 	}
 
@@ -79,8 +79,8 @@ public class PIDSConfigScreen extends ScreenMapper implements IGui, IPacket {
 			});
 		}
 
-		buttonPrevPage = newImageButton(Identifier.parse("mtr:textures/gui/icon_left.png"), button -> setPage(page - 1));
-		buttonNextPage = newImageButton(Identifier.parse("mtr:textures/gui/icon_right.png"), button -> setPage(page + 1));
+		buttonPrevPage = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_left.png"), button -> setPage(page - 1));
+		buttonNextPage = newImageButton(ResourceLocation.parse("mtr:textures/gui/icon_right.png"), button -> setPage(page + 1));
 
 		final Level world = Minecraft.getInstance().level;
 		if (world == null) {
@@ -191,16 +191,16 @@ public class PIDSConfigScreen extends ScreenMapper implements IGui, IPacket {
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		final var matrices = guiGraphics.pose();
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
-			guiGraphics.text(font, Text.translatable("gui.mtr.display_page"), SQUARE_SIZE, SQUARE_SIZE * 4 + TEXT_PADDING, ARGB_WHITE);
-			guiGraphics.text(font, Text.translatable("gui.mtr.filtered_platforms", selectAllCheckbox.selected() ? 0 : filterPlatformIds.size()), SQUARE_SIZE, SQUARE_SIZE * 2 + TEXT_PADDING, ARGB_WHITE);
-			guiGraphics.text(font, messageText, SQUARE_SIZE, SQUARE_SIZE * 7 + TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.drawString(font, Text.translatable("gui.mtr.display_page"), SQUARE_SIZE, SQUARE_SIZE * 4 + TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.drawString(font, Text.translatable("gui.mtr.filtered_platforms", selectAllCheckbox.selected() ? 0 : filterPlatformIds.size()), SQUARE_SIZE, SQUARE_SIZE * 2 + TEXT_PADDING, ARGB_WHITE);
+			guiGraphics.drawString(font, messageText, SQUARE_SIZE, SQUARE_SIZE * 7 + TEXT_PADDING, ARGB_WHITE);
 			final int maxPages = getMaxPages();
 			if (maxPages > 1) {
-				guiGraphics.centeredText( font, String.format("%s/%s", page + 1, maxPages), SQUARE_SIZE * 3 + font.width(messageText) + TEXT_PADDING, SQUARE_SIZE * 7 + TEXT_PADDING, ARGB_WHITE);
+				guiGraphics.drawCenteredString( font, String.format("%s/%s", page + 1, maxPages), SQUARE_SIZE * 3 + font.width(messageText) + TEXT_PADDING, SQUARE_SIZE * 7 + TEXT_PADDING, ARGB_WHITE);
 			}
 			super.render(guiGraphics, mouseX, mouseY, delta);
 		} catch (Exception e) {

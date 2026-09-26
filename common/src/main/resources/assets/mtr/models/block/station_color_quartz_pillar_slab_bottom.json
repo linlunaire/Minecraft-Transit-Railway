@@ -2,6 +2,6 @@
 	"parent": "mtr:block/station_color_slab_bottom_pillar_base",
 	"textures": {
 		"end": "block/quartz_pillar_top",
-		"side": "minecraft:block/quartz_pillar_side"
+		"side": "block/quartz_pillar"
 	}
 }

@@ -59,16 +59,16 @@ public class DebugKeys {
 			final LocalPlayer player = Minecraft.getInstance().player;
 			if (player != null) {
 				if (tempPressingCategoryNegative || tempPressingCategoryPositive) {
-					mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.literal(String.format("Category: %s", index)), true);
+					player.displayClientMessage(Text.literal(String.format("Category: %s", index)), true);
 				}
 				if (tempPressing1Negative || tempPressing1Positive) {
-					mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.literal(String.format("Category: %s - Value: %s", index, getField1(index))), true);
+					player.displayClientMessage(Text.literal(String.format("Category: %s - Value: %s", index, getField1(index))), true);
 				}
 				if (tempPressing2Negative || tempPressing2Positive) {
-					mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.literal(String.format("Category: %s - Value: %s", index, getField2(index))), true);
+					player.displayClientMessage(Text.literal(String.format("Category: %s - Value: %s", index, getField2(index))), true);
 				}
 				if (tempPressing3Negative || tempPressing3Positive) {
-					mtr.mappings.PlayerUtilities.displayClientMessage(player, Text.literal(String.format("Category: %s - Value: %s", index, getField3(index))), true);
+					player.displayClientMessage(Text.literal(String.format("Category: %s - Value: %s", index, getField3(index))), true);
 				}
 			}
 		}

@@ -29,7 +29,7 @@ public abstract class BlockEscalatorBase extends HorizontalBlockWithSoftLanding 
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
 		if (getSideDirection(state) == direction && !newState.is(this)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {
@@ -58,7 +58,7 @@ public abstract class BlockEscalatorBase extends HorizontalBlockWithSoftLanding 
 		return Items.ESCALATOR.get();
 	}
 
-	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader blockGetter, BlockPos blockPos, BlockState blockState, boolean includeData) {
+	public ItemStack getCloneItemStack(BlockGetter blockGetter, BlockPos blockPos, BlockState blockState) {
 		return new ItemStack(asItem());
 	}
 

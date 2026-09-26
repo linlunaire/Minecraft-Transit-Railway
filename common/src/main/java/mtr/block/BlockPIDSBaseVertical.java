@@ -28,7 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.List;
 
-public abstract class BlockPIDSBaseVertical extends BlockDirectionalDoubleBlockBase implements EntityBlockMapper, IPIDS, mtr.mappings.BlockTooltip {
+public abstract class BlockPIDSBaseVertical extends BlockDirectionalDoubleBlockBase implements EntityBlockMapper, IPIDS {
 
 	public BlockPIDSBaseVertical() {
 		super(Properties.of().mapColor(MapColor.COLOR_GRAY).requiresCorrectToolForDrops().strength(2).lightLevel(state -> 5));

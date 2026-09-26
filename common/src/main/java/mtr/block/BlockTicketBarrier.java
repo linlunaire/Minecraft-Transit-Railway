@@ -34,8 +34,8 @@ public class BlockTicketBarrier extends BlockDirectionalMapper {
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity, net.minecraft.world.entity.InsideBlockEffectApplier effects, boolean isPrecise) {
-		if (!world.isClientSide() && entity instanceof Player) {
+	public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
+		if (!world.isClientSide && entity instanceof Player) {
 			final Direction facing = IBlock.getStatePropertySafe(state, FACING);
 			final Vec3 playerPosRotated = entity.position().subtract(pos.getX() + 0.5, 0, pos.getZ() + 0.5).yRot((float) Math.toRadians(facing.toYRot()));
 			final TicketSystem.EnumTicketBarrierOpen open = IBlock.getStatePropertySafe(state, OPEN);

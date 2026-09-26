@@ -33,7 +33,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import java.util.List;
 
-public abstract class BlockPIDSBaseHorizontal extends BlockDirectionalMapper implements EntityBlockMapper, IPIDS, mtr.mappings.BlockTooltip {
+public abstract class BlockPIDSBaseHorizontal extends BlockDirectionalMapper implements EntityBlockMapper, IPIDS {
 
 	public BlockPIDSBaseHorizontal() {
 		super(Properties.of().mapColor(MapColor.COLOR_GRAY).requiresCorrectToolForDrops().strength(2).lightLevel(state -> 5));
@@ -55,7 +55,7 @@ public abstract class BlockPIDSBaseHorizontal extends BlockDirectionalMapper imp
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, net.minecraft.world.level.LevelReader world, net.minecraft.world.level.ScheduledTickAccess scheduledTicks, BlockPos pos, Direction direction, BlockPos posFrom, BlockState newState, net.minecraft.util.RandomSource random) {
+	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
 		if (IBlock.getStatePropertySafe(state, FACING) == direction && !newState.is(this)) {
 			return Blocks.AIR.defaultBlockState();
 		} else {
@@ -80,7 +80,7 @@ public abstract class BlockPIDSBaseHorizontal extends BlockDirectionalMapper imp
 
 	@Override
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
-		if (!world.isClientSide()) {
+		if (!world.isClientSide) {
 			final Direction direction = IBlock.getStatePropertySafe(state, FACING);
 			world.setBlock(pos.relative(direction), defaultBlockState().setValue(FACING, direction.getOpposite()), 3);
 			world.updateNeighborsAt(pos, Blocks.AIR);

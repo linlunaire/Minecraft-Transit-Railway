@@ -7,23 +7,23 @@ import mtr.block.IBlock;
 import mtr.client.IDrawing;
 import mtr.mappings.BlockEntityRendererMapper;
 import net.minecraft.client.Minecraft;
-import mtr.mappings.RenderBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderBoatNode extends BlockEntityRendererMapper<BlockNode.TileEntityBoatNode> {
-	private static final Identifier OAK_LOG_TEXTURE = Identifier.parse("textures/block/oak_log.png");
+	private static final ResourceLocation OAK_LOG_TEXTURE = ResourceLocation.parse("textures/block/oak_log.png");
 
 	public RenderBoatNode(BlockEntityRenderDispatcher dispatcher) {
 		super(dispatcher);
 	}
 
 	@Override
-	public void render(BlockNode.TileEntityBoatNode entity, float tickDelta, PoseStack matrices, RenderBufferSource vertexConsumers, int light, int overlay) {
+	public void render(BlockNode.TileEntityBoatNode entity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
 		final Level world = entity.getLevel();
 		if (world == null) {
 			return;

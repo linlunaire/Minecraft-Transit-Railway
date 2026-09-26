@@ -11,12 +11,16 @@ import net.minecraft.world.level.BlockGetter;
 
 import java.util.List;
 
-public class BlockStationColor extends BlockMapper implements mtr.mappings.BlockTooltip {
+public class BlockStationColor extends BlockMapper {
 
 	public BlockStationColor(Properties settings) {
-		super(mtr.mappings.RegistrationContext.stationColorProperties(settings));
+		super(settings);
 	}
 
+	@Override
+	public String getDescriptionId() {
+		return super.getDescriptionId().replace("block.mtr.station_color_", "block.minecraft.");
+	}
 
 	@Override
 	public void appendHoverText(ItemStack itemStack, net.minecraft.world.item.Item.TooltipContext tooltipContext, List<Component> tooltip, TooltipFlag tooltipFlag) {

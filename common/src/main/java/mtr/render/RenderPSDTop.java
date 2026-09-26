@@ -9,14 +9,14 @@ import mtr.client.IDrawing;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderPSDTop extends RenderRouteBase<BlockPSDTop.TileEntityPSDTop> {
-	private static final Identifier PSD_TOP_TEXTURE = Identifier.parse("mtr:textures/block/psd_top.png");
+	private static final ResourceLocation PSD_TOP_TEXTURE = ResourceLocation.parse("mtr:textures/block/psd_top.png");
 
 	private static final float END_FRONT_OFFSET = 1 / (Mth.SQRT_OF_TWO * 16);
 	private static final float BOTTOM_DIAGONAL_OFFSET = ((float) Math.sqrt(3) - 1) / 32;

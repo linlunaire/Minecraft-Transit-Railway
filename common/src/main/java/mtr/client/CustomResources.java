@@ -14,7 +14,7 @@ import mtr.render.MoreRenderLayers;
 import mtr.render.RenderTrains;
 import mtr.sound.JonTrainSound;
 import mtr.sound.bve.BveTrainSound;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.apache.commons.lang3.StringUtils;
 
@@ -138,7 +138,7 @@ public class CustomResources implements IResourcePackCreatorProperties, ICustomR
 						final boolean small = getOrDefault(jsonObject, CUSTOM_SIGNS_SMALL, false, JsonElement::getAsBoolean);
 						final int backgroundColor = getOrDefault(jsonObject, CUSTOM_SIGNS_BACKGROUND_COLOR, 0, jsonElement -> colorStringToInt(jsonElement.getAsString()));
 
-						CUSTOM_SIGNS.put(CUSTOM_SIGN_ID_PREFIX + entry.getKey(), new CustomSign(Identifier.parse(jsonObject.get(CUSTOM_SIGNS_TEXTURE_ID).getAsString()), flipTexture, customText, flipCustomText, small, backgroundColor));
+						CUSTOM_SIGNS.put(CUSTOM_SIGN_ID_PREFIX + entry.getKey(), new CustomSign(ResourceLocation.parse(jsonObject.get(CUSTOM_SIGNS_TEXTURE_ID).getAsString()), flipTexture, customText, flipCustomText, small, backgroundColor));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -165,7 +165,7 @@ public class CustomResources implements IResourcePackCreatorProperties, ICustomR
 
 	private static void readResource(ResourceManager manager, String path, Consumer<JsonObject> callback) {
 		try {
-			UtilitiesClient.getResources(manager, Identifier.parse(path)).forEach(resource -> {
+			UtilitiesClient.getResources(manager, ResourceLocation.parse(path)).forEach(resource -> {
 				try (final InputStream stream = Utilities.getInputStream(resource)) {
 					callback.accept(new JsonParser().parse(new InputStreamReader(stream, StandardCharsets.UTF_8)).getAsJsonObject());
 				} catch (Exception e) {
@@ -195,14 +195,14 @@ public class CustomResources implements IResourcePackCreatorProperties, ICustomR
 
 	public static class CustomSign {
 
-		public final Identifier textureId;
+		public final ResourceLocation textureId;
 		public final boolean flipTexture;
 		public final String customText;
 		public final boolean flipCustomText;
 		public final boolean small;
 		public final int backgroundColor;
 
-		public CustomSign(Identifier textureId, boolean flipTexture, String customText, boolean flipCustomText, boolean small, int backgroundColor) {
+		public CustomSign(ResourceLocation textureId, boolean flipTexture, String customText, boolean flipCustomText, boolean small, int backgroundColor) {
 			this.textureId = textureId;
 			this.flipTexture = flipTexture;
 			this.customText = customText;

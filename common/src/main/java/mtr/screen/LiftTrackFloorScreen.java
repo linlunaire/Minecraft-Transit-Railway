@@ -1,5 +1,5 @@
 package mtr.screen;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.block.BlockLiftTrackFloor;
@@ -57,6 +57,7 @@ public class LiftTrackFloorScreen extends ScreenMapper implements IGui, IPacket 
 			}
 		}
 
+		font = Minecraft.getInstance().font;
 		textWidth = Math.max(font.width(TEXT_FLOOR_NUMBER), font.width(TEXT_FLOOR_DESCRIPTION));
 	}
 
@@ -84,14 +85,14 @@ public class LiftTrackFloorScreen extends ScreenMapper implements IGui, IPacket 
 	}
 
 	@Override
-	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		final var matrices = guiGraphics.pose();
+	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+		final com.mojang.blaze3d.vertex.PoseStack matrices = guiGraphics.pose();
 		try {
 			renderBackground(guiGraphics, mouseX, mouseY, delta);
 			final int startX = (width - textWidth - TEXT_PADDING - TEXT_FIELD_WIDTH) / 2;
 			final int startY = (height - SQUARE_SIZE * 3 - TEXT_FIELD_PADDING * 2) / 2;
-			guiGraphics.text(font, TEXT_FLOOR_NUMBER, startX, (int) (startY + TEXT_FIELD_PADDING / 2F + TEXT_PADDING), ARGB_WHITE);
-			guiGraphics.text(font, TEXT_FLOOR_DESCRIPTION, startX, (int) (startY + SQUARE_SIZE + TEXT_FIELD_PADDING * 3 / 2F + TEXT_PADDING), ARGB_WHITE);
+			guiGraphics.drawString(font, TEXT_FLOOR_NUMBER, startX, (int) (startY + TEXT_FIELD_PADDING / 2F + TEXT_PADDING), ARGB_WHITE);
+			guiGraphics.drawString(font, TEXT_FLOOR_DESCRIPTION, startX, (int) (startY + SQUARE_SIZE + TEXT_FIELD_PADDING * 3 / 2F + TEXT_PADDING), ARGB_WHITE);
 			super.render(guiGraphics, mouseX, mouseY, delta);
 		} catch (Exception e) {
 			e.printStackTrace();

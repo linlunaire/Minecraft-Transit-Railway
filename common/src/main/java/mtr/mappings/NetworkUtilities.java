@@ -1,14 +1,13 @@
 package mtr.mappings;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.utils.Env;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -17,39 +16,28 @@ import java.util.*;
 
 public interface NetworkUtilities {
 
-	Map<Identifier, PayloadType> PAYLOAD_TYPES = new HashMap<>();
+	Map<ResourceLocation, PayloadType> PAYLOAD_TYPES = new HashMap<>();
 
-	static void registerServerS2CTypes(Env environment, Identifier... ids) {
-		// A physical client registers these types together with its receivers instead.
-		// Register before loader networking is frozen, not on the first send.
-		if (environment == Env.SERVER) {
-			for (final Identifier id : ids) {
-				final PayloadType payloadType = getPayloadType(getS2CId(id));
-				NetworkManager.registerS2CPayloadType(payloadType.type, payloadType.codec);
-			}
-		}
-	}
-
-	static void registerReceiverS2C(Identifier id, NetworkManager.NetworkReceiver receiver) {
+	static void registerReceiverS2C(ResourceLocation id, NetworkManager.NetworkReceiver receiver) {
 		final PayloadType payloadType = getPayloadType(getS2CId(id));
 		NetworkManager.registerReceiver(NetworkManager.s2c(), payloadType.type, payloadType.codec, (payload, context) -> receiver.receive(payload.createBuffer(context.registryAccess()), context));
 	}
 
-	static void registerReceiverC2S(Identifier id, PacketCallback packetCallback) {
+	static void registerReceiverC2S(ResourceLocation id, PacketCallback packetCallback) {
 		final PayloadType payloadType = getPayloadType(id);
 		NetworkManager.registerReceiver(NetworkManager.c2s(), payloadType.type, payloadType.codec, (payload, context) -> {
 			final Player player = context.getPlayer();
 			if (player != null) {
-				packetCallback.packetCallback(((ServerPlayer) player).level().getServer(), (ServerPlayer) player, payload.createBuffer(context.registryAccess()));
+				packetCallback.packetCallback(player.getServer(), (ServerPlayer) player, payload.createBuffer(context.registryAccess()));
 			}
 		});
 	}
 
-	static void sendToPlayer(ServerPlayer player, Identifier id, FriendlyByteBuf packet) {
+	static void sendToPlayer(ServerPlayer player, ResourceLocation id, FriendlyByteBuf packet) {
 		NetworkManager.sendToPlayer(player, createPayload(id, packet));
 	}
 
-	static void sendToPlayers(Iterable<? extends Player> players, Player excludedPlayer, Identifier id, FriendlyByteBuf packet) {
+	static void sendToPlayers(Iterable<? extends Player> players, Player excludedPlayer, ResourceLocation id, FriendlyByteBuf packet) {
 		final UUID excludedPlayerId = excludedPlayer == null ? null : excludedPlayer.getUUID();
 		final List<ServerPlayer> playersToSend = new ArrayList<>();
 		for (final Player player : players) {
@@ -62,16 +50,16 @@ public interface NetworkUtilities {
 		}
 	}
 
-	static void sendToServer(Identifier id, FriendlyByteBuf packet) {
+	static void sendToServer(ResourceLocation id, FriendlyByteBuf packet) {
 		final PayloadType payloadType = getPayloadType(id);
 		NetworkManager.sendToServer(new RawPayload(payloadType.type, getBytes(packet)));
 	}
 
-	private static PayloadType getPayloadType(Identifier id) {
+	private static PayloadType getPayloadType(ResourceLocation id) {
 		return PAYLOAD_TYPES.computeIfAbsent(id, PayloadType::new);
 	}
 
-	private static RawPayload createPayload(Identifier id, FriendlyByteBuf packet) {
+	private static RawPayload createPayload(ResourceLocation id, FriendlyByteBuf packet) {
 		packet.resetReaderIndex();
 		final PayloadType payloadType = getPayloadType(getS2CId(id));
 		return new RawPayload(payloadType.type, getBytes(packet));
@@ -83,8 +71,8 @@ public interface NetworkUtilities {
 		return bytes;
 	}
 
-	private static Identifier getS2CId(Identifier id) {
-		return Identifier.parse(id + "_s2c");
+	private static ResourceLocation getS2CId(ResourceLocation id) {
+		return ResourceLocation.parse(id + "_s2c");
 	}
 
 	class PayloadType {
@@ -92,7 +80,7 @@ public interface NetworkUtilities {
 		private final CustomPacketPayload.Type<RawPayload> type;
 		private final StreamCodec<RegistryFriendlyByteBuf, RawPayload> codec;
 
-		private PayloadType(Identifier id) {
+		private PayloadType(ResourceLocation id) {
 			type = new CustomPacketPayload.Type<>(id);
 			codec = StreamCodec.of((buffer, payload) -> buffer.writeByteArray(payload.bytes), buffer -> new RawPayload(type, buffer.readByteArray()));
 		}

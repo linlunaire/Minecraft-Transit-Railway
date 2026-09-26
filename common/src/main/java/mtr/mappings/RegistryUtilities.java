@@ -5,15 +5,12 @@ import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.event.events.common.TickEvent;
-import mtr.MTR;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -30,7 +27,7 @@ import java.util.function.Supplier;
 public interface RegistryUtilities {
 
 	static <T extends BlockEntityMapper> BlockEntityType<T> getBlockEntityType(Utilities.TileEntitySupplier<T> supplier, Block block) {
-		return new BlockEntityType<>(supplier::supplier, Collections.singleton(block));
+		return new BlockEntityType<>(supplier::supplier, Collections.singleton(block), null);
 	}
 
 	static void registerCommand(Consumer<CommandDispatcher<CommandSourceStack>> callback) {
@@ -61,20 +58,12 @@ public interface RegistryUtilities {
 		TickEvent.SERVER_PRE.register(consumer::accept);
 	}
 
-	static SoundEvent createSoundEvent(Identifier identifier) {
-		return SoundEvent.createVariableRangeEvent(identifier);
+	static SoundEvent createSoundEvent(ResourceLocation resourceLocation) {
+		return SoundEvent.createVariableRangeEvent(resourceLocation);
 	}
 
 	static Item.Properties createItemProperties(Supplier<CreativeModeTab> creativeModeTab) {
-		return RegistrationContext.itemProperties();
-	}
-
-	static Item.Properties createBlockItemProperties(String path, Block block) {
-		return RegistrationContext.blockItemProperties(Identifier.fromNamespaceAndPath(MTR.MOD_ID, path), block);
-	}
-
-	static ResourceKey<EntityType<?>> entityKey(String path) {
-		return ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(MTR.MOD_ID, path));
+		return new Item.Properties();
 	}
 
 	static DefaultedRegistry<Item> registryGetItem() {
