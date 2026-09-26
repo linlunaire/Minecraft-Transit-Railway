@@ -14,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 public class PIDSConfigScreen extends ScreenMapper implements IGui, IPacket {
 
 	private static ImageButton newImageButton(Identifier texture, ImageButton.OnPress onPress) {
-		return new ImageButton(0, 0, 0, SQUARE_SIZE, new WidgetSprites(texture, texture), onPress);
+		return new WidgetSilentImageButton(0, 0, 0, SQUARE_SIZE, 0, 0, SQUARE_SIZE, texture, SQUARE_SIZE, SQUARE_SIZE * 2, onPress, true);
 	}
 
 	private final BlockPos pos1;

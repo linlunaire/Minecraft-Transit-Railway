@@ -17,7 +17,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,7 +30,7 @@ import java.util.stream.Collectors;
 public class RailwaySignScreen extends ScreenMapper implements IGui {
 
 	private static ImageButton newImageButton(Identifier texture, ImageButton.OnPress onPress) {
-		return new ImageButton(0, 0, 0, SQUARE_SIZE, new WidgetSprites(texture, texture), onPress);
+		return new WidgetSilentImageButton(0, 0, 0, SQUARE_SIZE, 0, 0, SQUARE_SIZE, texture, SQUARE_SIZE, SQUARE_SIZE * 2, onPress, true);
 	}
 
 	private int editingIndex;

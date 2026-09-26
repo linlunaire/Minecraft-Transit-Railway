@@ -24,7 +24,7 @@ public final class LoaderHookCompatibilityCheck {
 
 	private static final String MIXIN = "Lorg/spongepowered/asm/mixin/";
 	private static final Set<String> CLIENT_MIXINS = Set.of("LevelExtractionMixin", "LevelSubmissionMixin", "LevelRenderStateMixin",
-		"FeatureRenderDispatcherMixin", "PlayerRendererOffsetMixin", "PassengerRenderStateMixin", "TerrainModelsMixin", "ItemModelPropertiesMixin");
+		"FeatureRenderDispatcherMixin", "PlayerRendererOffsetMixin", "PassengerRenderStateMixin", "TerrainModelsMixin", "ItemModelPropertiesMixin", "GuiGraphicsExtractorAccessor");
 
 	public static void main(String[] args) throws Exception {
 		final Path root = Path.of(args[0]);
@@ -81,8 +81,11 @@ public final class LoaderHookCompatibilityCheck {
 				if (hook.desc.equals(MIXIN + "gen/Accessor;")) {
 					final String name = (String) value(hook, "value");
 					final Type[] arguments = Type.getArgumentTypes(handler.desc);
-					require(arguments.length == 1 && Type.getReturnType(handler.desc).equals(Type.VOID_TYPE), "Review non-setter accessor");
-					require(target.fields.stream().anyMatch(field -> field.name.equals(name) && field.desc.equals(arguments[0].getDescriptor()) && isStatic(field.access) == isStatic(handler.access)), "Accessor field missing: " + target.name + "." + name);
+					final Type result = Type.getReturnType(handler.desc);
+					final boolean getter = arguments.length == 0 && !result.equals(Type.VOID_TYPE);
+					require(getter || arguments.length == 1 && result.equals(Type.VOID_TYPE), "Invalid field accessor");
+					final Type fieldType = getter ? result : arguments[0];
+					require(target.fields.stream().anyMatch(field -> field.name.equals(name) && field.desc.equals(fieldType.getDescriptor()) && isStatic(field.access) == isStatic(handler.access)), "Accessor field missing: " + target.name + "." + name);
 				} else if (hook.desc.equals(MIXIN + "injection/Inject;") || hook.desc.equals(MIXIN + "injection/ModifyVariable;")) {
 					for (Object selector : (List<?>) value(hook, "method")) {
 						final String selected = selector.toString();

@@ -19,6 +19,8 @@ their implementations live in `tests/`.
 | Networking | 41 S2C / 26 C2S channels, real encoding/decoding and the missing-codec regression |
 | Loader hooks | Configured mixins and callback descriptors checked against actual game bytecode |
 | Screens | Screen lifecycle, background ownership and one blur per frame |
+| Dashboard terrain | Actual map sampling and 26.2 GUI submission, one terrain element instead of per-cell overlap searches, colors, pan/zoom, clipping and deferred pose ownership |
+| GUI widgets | Legacy icon texture slices and hover states, current slider sprites, odd sizes and slider endpoints |
 | Save queues | FIFO ordering, duplicate and missing IDs, retained files and failure preservation |
 | Web map lifecycle | Real loopback HTTP, occupied-port cleanup/recovery, repeated init/start/stop, disabled/invalid configuration and partial-start failures |
 | Real-time synchronization | Actual 26.2 clock progression and packets, wall-clock conversion, dimension guards and no plugin-overridable command dispatch |
