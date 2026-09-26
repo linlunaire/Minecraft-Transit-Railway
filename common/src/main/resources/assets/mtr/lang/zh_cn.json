@@ -561,7 +561,7 @@
 	"options.mtr.on": "开启",
 	"options.mtr.shift_to_toggle_sitting": "使用%s切换车上坐立姿势",
 	"options.mtr.show_announcement_messages": "在聊天栏显示「下一站」信息",
-	"options.mtr.support_patreon": "在 Patreon 上赞助本模组！",
+	"options.mtr.support_afdian": "在爱发电赞助本项目！",
 	"options.mtr.track_texture_offset": "轨道纹理偏移",
 	"options.mtr.use_dynamic_fps": "动态提升帧率",
 	"options.mtr.use_mtr_font": "使用自定义MTR字体（在一些电脑上可能无法使用）",

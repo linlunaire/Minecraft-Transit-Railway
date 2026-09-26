@@ -2,6 +2,8 @@ architectury {
 	common('fabric', 'neoforge')
 }
 
+apply from: rootProject.file('gradle/depot-screen-checks.gradle')
+
 dependencies {
 	implementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
 	api "dev.architectury:architectury:${rootProject.architectury_version}"
@@ -355,3 +357,23 @@ tasks.register('checkGuiWidgetCompatibility', JavaExec) {
 	args rootProject.projectDir.absolutePath
 }
 compatibilityChecks.configure { dependsOn 'checkGuiWidgetCompatibility' }
+
+def railNodeFluidClasses = layout.buildDirectory.dir('classes/railNodeFluidCompatibility')
+tasks.register('compileRailNodeFluidCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/RailNodeFluidCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = railNodeFluidClasses
+}
+tasks.register('checkRailNodeFluidCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks actual vanilla fluid admission, selection and collision for every node state.'
+	dependsOn 'compileRailNodeFluidCompatibility'
+	classpath = files(railNodeFluidClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.block.RailNodeFluidCompatibilityCheck'
+	if (rootProject.hasProperty('nodeAddonJar')) {
+		classpath += files(rootProject.property('nodeAddonJar'))
+		args 'cn.zbx1425.mtrsteamloco.block.BlockDirectNode'
+	}
+}
+compatibilityChecks.configure { dependsOn 'checkRailNodeFluidCompatibility' }

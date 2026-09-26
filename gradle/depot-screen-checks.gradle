@@ -1,0 +1,15 @@
+def depotScreenClasses = layout.buildDirectory.dir('classes/depotScreenCompatibility')
+tasks.register('compileDepotScreenCompatibility', JavaCompile) {
+    dependsOn tasks.named('classes')
+    source rootProject.file('tests/DepotScreenCompatibilityCheck.java')
+    classpath = sourceSets.main.output + configurations.compileClasspath
+    destinationDirectory = depotScreenClasses
+}
+tasks.register('checkDepotScreenCompatibility', JavaExec) {
+    group = 'verification'
+    description = 'Checks real depot editor input dispatch, save serialization and route selector initialization.'
+    dependsOn 'compileDepotScreenCompatibility'
+    classpath = files(depotScreenClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'mtr.screen.DepotScreenCompatibilityCheck'
+}
+tasks.named('check') { dependsOn 'checkDepotScreenCompatibility' }

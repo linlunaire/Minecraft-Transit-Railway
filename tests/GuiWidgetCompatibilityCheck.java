@@ -5,12 +5,16 @@ import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.ActiveTextCollector;
+import net.minecraft.client.gui.TextAlignment;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;
 import net.minecraft.resources.Identifier;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.util.FormattedCharSequence;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -44,7 +48,8 @@ public final class GuiWidgetCompatibilityCheck {
         instance.set(null, UNSAFE.allocateInstance(Minecraft.class));
         if (args.length < 2 || !args[1].equals("slider")) checkIcons();
         if (args.length < 2 || !args[1].equals("icons")) checkSlider();
-        System.out.println("PASS: " + assertions + " GUI widget checks; actual production extraction, texture resources, hover slices, factories, slider endpoints and odd dimensions (no GPU)");
+        checkCheckbox();
+        System.out.println("PASS: " + assertions + " GUI widget checks; actual production extraction, texture resources, hover slices, factories, slider endpoints, odd dimensions and single checkbox labels (no GPU)");
     }
 
     private static RecordingGraphics graphics() throws Exception {
@@ -115,6 +120,34 @@ public final class GuiWidgetCompatibilityCheck {
         field.setBoolean(widget, hovered);
     }
 
+    private static void checkCheckbox() throws Exception {
+        List<Boolean> changes = new ArrayList<>();
+        Component message = Component.literal("Synchronize time / 将主世界与现实时间同步");
+        WidgetBetterCheckbox checkbox = new WidgetBetterCheckbox(20, 20, 380, 20, message, changes::add);
+        for (boolean checked : new boolean[]{false, true}) {
+            checkbox.setChecked(checked);
+            for (boolean active : new boolean[]{false, true}) {
+                checkbox.active = active;
+                for (boolean hovered : new boolean[]{false, true}) {
+                    setHovered(checkbox, hovered);
+                    RecordingGraphics graphics = graphics();
+                    checkbox.renderWidget(graphics, 0, 0, 0);
+                    require(graphics.labels + graphics.texts == 1, "Checkbox draws its label twice: " + (graphics.labels + graphics.texts));
+                    require(graphics.lastText.equals((checked ? "[x] " : "[ ] ") + message.getString()), "Checkbox state or label missing");
+                    require(graphics.draws.size() == 1, "Checkbox must retain its native background");
+                    String sprite = !active ? "widget/button_disabled" : hovered ? "widget/button_highlighted" : "widget/button";
+                    require(graphics.draws.getFirst().texture.equals(Identifier.withDefaultNamespace(sprite)), "Checkbox active/hover state changed");
+                    require(checkbox.getMessage().getString().equals(message.getString()), "Checkbox narration message must not be cleared to hide duplicate text");
+                }
+            }
+        }
+        require(changes.isEmpty(), "Setting or rendering checkbox state must not send an update");
+        checkbox.setChecked(false);
+        checkbox.onPress();
+        checkbox.onPress();
+        require(changes.equals(List.of(true, false)), "Each checkbox press must toggle and notify exactly once");
+    }
+
     private static void require(boolean condition, String message) {
         assertions++;
         if (!condition) throw new AssertionError(message);
@@ -125,6 +158,7 @@ public final class GuiWidgetCompatibilityCheck {
     private static final class RecordingGraphics extends GuiGraphicsExtractor {
         private List<Draw> draws;
         private int ticks, labels, texts;
+        private String lastText;
         private RecordingGraphics() { super(null, (GuiRenderState) null, 0, 0); }
 
         private void record(boolean sprite, Identifier id, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
@@ -146,7 +180,16 @@ public final class GuiWidgetCompatibilityCheck {
             record(true, sprite, x, y, 0, 0, width, height, 0, 0);
         }
         @Override public void fill(int x1, int y1, int x2, int y2, int color) { ticks++; }
-        @Override public void text(Font font, String text, int x, int y, int color) { texts++; }
+        @Override public void text(Font font, String text, int x, int y, int color) { texts++; lastText = text; }
         @Override public void centeredText(Font font, String text, int x, int y, int color) { labels++; }
+        @Override public ActiveTextCollector textRendererForWidget(AbstractWidget widget, HoveredTextEffects effects) {
+            return new ActiveTextCollector() {
+                private Parameters parameters;
+                @Override public Parameters defaultParameters() { return parameters; }
+                @Override public void defaultParameters(Parameters value) { parameters = value; }
+                @Override public void accept(TextAlignment alignment, int x, int y, Parameters parameters, FormattedCharSequence text) { labels++; }
+                @Override public void acceptScrolling(Component text, int centerX, int left, int right, int top, int bottom, Parameters parameters) { labels++; }
+            };
+        }
     }
 }

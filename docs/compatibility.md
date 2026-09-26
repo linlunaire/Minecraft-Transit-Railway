@@ -20,11 +20,13 @@ their implementations live in `tests/`.
 | Loader hooks | Configured mixins and callback descriptors checked against actual game bytecode |
 | Screens | Screen lifecycle, background ownership and one blur per frame |
 | Dashboard terrain | Actual map sampling and 26.2 GUI submission, one terrain element instead of per-cell overlap searches, colors, pan/zoom, clipping and deferred pose ownership |
-| GUI widgets | Legacy icon texture slices and hover states, current slider sprites, odd sizes and slider endpoints |
+| GUI widgets | Legacy icon texture slices and hover states, current slider sprites, odd sizes, slider endpoints and exactly one checkbox label |
+| Depot editor | Actual widget hit testing, clicks, depot serialization and route-selector initialization across viewport sizes and schedule/transport modes; window, audio and network boundaries are substituted |
 | Save queues | FIFO ordering, duplicate and missing IDs, retained files and failure preservation |
 | Web map lifecycle | Real loopback HTTP, occupied-port cleanup/recovery, repeated init/start/stop, disabled/invalid configuration and partial-start failures |
 | Real-time synchronization | Actual 26.2 clock progression and packets, wall-clock conversion, dimension guards and no plugin-overridable command dispatch |
 | Addon block entities | Fixed-factory APG inheritance, original/custom state retention, save/load and rejection of unrelated or overridden factories |
+| Node fluid resistance | Actual vanilla fluid admission for all node states, empty player collision, selection and unchanged break hardness; optional real ANTE direct-node coverage |
 
 The resource checks use vanilla registry projections where a running mod registry
 would otherwise be required. Networking uses a loader registration adapter but

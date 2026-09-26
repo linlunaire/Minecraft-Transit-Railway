@@ -47,7 +47,8 @@ public class BlockNode extends BlockDirectionalMapper {
 	public static final BooleanProperty IS_CONNECTED = BooleanProperty.create("is_connected");
 
 	public BlockNode(TransportMode transportMode) {
-		super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(2).noOcclusion());
+		// Preserve the old metal material's fluid resistance without adding player collision.
+		super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(2).noOcclusion().forceSolidOn());
 		this.transportMode = transportMode;
 		registerDefaultState(defaultBlockState().setValue(FACING, false).setValue(IS_22_5, false).setValue(IS_45, false));
 	}
