@@ -272,19 +272,18 @@ tasks.register('checkModelCaptureCompatibility', JavaExec) {
 }
 compatibilityChecks.configure { dependsOn 'checkModelCaptureCompatibility' }
 
-// Exercise the actual external core JAR, without embedding or recompiling its implementation.
-def frameGeometryCacheClasses = layout.buildDirectory.dir('classes/frameGeometryCacheCheck')
-tasks.register('compileFrameGeometryCacheCheck', JavaCompile) {
-	source new File(rootProject.transitCoreRoot, 'tests/FrameGeometryCacheCheck.java')
-	classpath = coreRuntime
-	destinationDirectory = frameGeometryCacheClasses
-}
+// Run versioned contracts against the actual external library. Do not compile
+// another repository's private test sources or embed them in the runtime.
+def coreContractChecks = new File(rootProject.transitCoreRoot, "core/build/libs/transit-core-${rootProject.transit_core_version}-checks.jar")
 tasks.register('checkFrameGeometryCache', JavaExec) {
 	group = 'verification'
 	description = 'Stress-checks active working-set retention, linear cache retirement and resource ownership without a GPU.'
-	dependsOn 'compileFrameGeometryCacheCheck'
-	classpath = files(frameGeometryCacheClasses) + coreRuntime
+	dependsOn ':checkTransitCoreArtifacts'
+	classpath = files(coreContractChecks) + coreRuntime
 	mainClass = 'io.github.linlunaire.transitcore.collection.FrameGeometryCacheCheck'
+	doFirst {
+		if (!coreContractChecks.isFile()) throw new GradleException("Missing LunaCore contract checks: ${coreContractChecks}. Build the matching LunaCore version first.")
+	}
 }
 compatibilityChecks.configure { dependsOn 'checkFrameGeometryCache' }
 

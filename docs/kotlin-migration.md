@@ -75,6 +75,12 @@ without replacing the Java maintenance branches. JCM remains an MTR addon;
 its seven Kotlin implementations are only the beginning of that migration.
 Its generated 26.2 source tree is not counted as migrated Kotlin.
 
+The `kotlin.2` follow-up aligns all three consumers with LunaCore `0.2.1`.
+LunaCore production sources are now entirely Kotlin; its historical Java
+mappings live in a recoverable fixed Git archive. MTR reuses LunaCore's versioned
+contract-check JAR instead of compiling a file from its old Java test directory.
+This dependency/build cleanup does not change the MTR/ANTE conversion counts above.
+
 LunaCore now supplies stdlib by canonical loader-managed nesting. Consumers
 do not require FLK/KFF and do not bundle their own core/runtime copies. Internal
 mod IDs and JVM namespaces remain stable across the public rename.

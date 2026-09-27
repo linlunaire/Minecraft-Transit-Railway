@@ -34,7 +34,7 @@ The [`26.2` maintenance branch](https://github.com/linlunaire/Minecraft-Transit-
 
 ## Installation
 
-Use **Java 25** and the MTR JAR for your loader. Place MTR, the matching [Kotlin LunaCore 0.2.0+](https://github.com/linlunaire/Kotlin-LunaCore) loader JAR, and these dependencies for **Minecraft 26.2** in `mods/`:
+Use **Java 25** and the MTR JAR for your loader. Place MTR, the matching [Kotlin LunaCore 0.2.1+](https://github.com/linlunaire/Kotlin-LunaCore) loader JAR, and these dependencies for **Minecraft 26.2** in `mods/`:
 
 | Loader | Required dependencies |
 | :--- | :--- |
@@ -88,8 +88,8 @@ For a different Kotlin LunaCore checkout location, pass `-PtransitCoreProjectDir
 
 ```text
 build/release/
-├── MTR-fabric-26.2-3.4.0-kotlin.1.jar
-└── MTR-neoforge-26.2-3.4.0-kotlin.1.jar
+├── MTR-fabric-26.2-3.4.0-kotlin.2.jar
+└── MTR-neoforge-26.2-3.4.0-kotlin.2.jar
 ```
 
 ## Development
