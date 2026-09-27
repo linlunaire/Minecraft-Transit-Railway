@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [master]
+    branches: [master, 'codex/kotlin-26.2-preview']
     tags: ['26.2-*']
   pull_request:
-    branches: [master]
+    branches: [master, 'codex/kotlin-26.2-preview']
   workflow_dispatch:
 
 permissions:
@@ -19,6 +19,15 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          path: Minecraft-Transit-Railway-3.x.x
+
+      - name: Checkout Transit Core
+        uses: actions/checkout@v5
+        with:
+          repository: linlunaire/Kotlin-LunaCore
+          ref: 8fe3fa3187ac4ac382806c1038798653bcfda4d2 # Kotlin LunaCore 0.2.0
+          path: Kotlin-LunaCore
 
       - name: Set up JDK 25
         uses: actions/setup-java@v5
@@ -30,14 +39,19 @@ jobs:
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
 
       - name: Make Gradle Wrapper executable
-        run: chmod +x ./gradlew
+        run: chmod +x Kotlin-LunaCore/gradlew Minecraft-Transit-Railway-3.x.x/gradlew
+
+      - name: Build Transit Core prerequisite
+        working-directory: Kotlin-LunaCore
+        run: ./gradlew build --stacktrace
 
       - name: Build Fabric and NeoForge JARs
+        working-directory: Minecraft-Transit-Railway-3.x.x
         run: ./gradlew build --stacktrace
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: MTR-26.2
-          path: build/release/MTR-*-26.2-*.jar
+          path: Minecraft-Transit-Railway-3.x.x/build/release/MTR-*-26.2-*.jar
           if-no-files-found: error

@@ -2,6 +2,20 @@ architectury {
 	common('fabric', 'neoforge')
 }
 
+apply from: rootProject.file('gradle/depot-screen-checks.gradle')
+
+configurations {
+	coreChecks {
+		canBeConsumed = false
+		attributes { attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME)) }
+	}
+}
+dependencies {
+	coreChecks files(rootProject.transitCoreJar)
+	coreChecks "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.kotlin_runtime_version}"
+}
+def coreRuntime = configurations.coreChecks
+
 dependencies {
 	implementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
 	api "dev.architectury:architectury:${rootProject.architectury_version}"
@@ -92,7 +106,6 @@ def compileRender = tasks.register('compileRenderCompatibility', JavaCompile) {
 		'src/main/java/mtr/mappings/ModelGeometry.java',
 		'src/main/java/mtr/mappings/RenderBufferSource.java', 'src/main/java/mtr/mappings/BlockEntityRendererMapper.java',
 		'src/main/java/mtr/mappings/RetainedGeometry.java', 'src/main/java/mtr/mappings/RetainedGeometryRenderer.java',
-		'src/main/java/mtr/mappings/FrameGeometryCache.java',
 		'src/main/java/mtr/mappings/EntityRendererMapper.java', 'src/main/java/mtr/mappings/BlockEntityMapper.java',
 		'src/main/java/mtr/mappings/RenderLayerMapper.java', 'src/main/java/mtr/mappings/VanillaVehicleModels.java',
 		'../tests/RenderCompatibilityCheck.java'
@@ -259,17 +272,851 @@ tasks.register('checkModelCaptureCompatibility', JavaExec) {
 }
 compatibilityChecks.configure { dependsOn 'checkModelCaptureCompatibility' }
 
-def frameCacheClasses = layout.buildDirectory.dir('classes/frameGeometryCacheCheck')
-def compileFrameCache = tasks.register('compileFrameGeometryCacheCheck', JavaCompile) {
-	source 'src/main/java/mtr/mappings/FrameGeometryCache.java', '../tests/FrameGeometryCacheCheck.java'
-	classpath = files()
-	destinationDirectory = frameCacheClasses
+// Exercise the actual external core JAR, without embedding or recompiling its implementation.
+def frameGeometryCacheClasses = layout.buildDirectory.dir('classes/frameGeometryCacheCheck')
+tasks.register('compileFrameGeometryCacheCheck', JavaCompile) {
+	source new File(rootProject.transitCoreRoot, 'tests/FrameGeometryCacheCheck.java')
+	classpath = coreRuntime
+	destinationDirectory = frameGeometryCacheClasses
 }
 tasks.register('checkFrameGeometryCache', JavaExec) {
 	group = 'verification'
 	description = 'Stress-checks active working-set retention, linear cache retirement and resource ownership without a GPU.'
-	dependsOn compileFrameCache
-	classpath = files(frameCacheClasses)
-	mainClass = 'mtr.mappings.FrameGeometryCacheCheck'
+	dependsOn 'compileFrameGeometryCacheCheck'
+	classpath = files(frameGeometryCacheClasses) + coreRuntime
+	mainClass = 'io.github.linlunaire.transitcore.collection.FrameGeometryCacheCheck'
 }
 compatibilityChecks.configure { dependsOn 'checkFrameGeometryCache' }
+
+// Append after each fixture has declared its isolated classpath.
+def kotlinProductionClasses = files(tasks.named('compileKotlin').flatMap { it.destinationDirectory })
+tasks.register('checkKotlinModelBasesAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-model-bases-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+def kotlinModelBasesClasses = layout.buildDirectory.dir('classes/kotlinModelBasesCompatibility')
+tasks.register('compileKotlinModelBasesCompatibility', JavaCompile) {
+	source '../tests/KotlinModelBasesCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinModelBasesClasses
+}
+tasks.register('checkKotlinModelBasesCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinModelBasesCompatibility'
+	classpath = files(kotlinModelBasesClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.model.KotlinModelBasesCompatibilityCheck'
+	args rootProject.file('tests/kotlin-models/mtr-model-bases-java-26.2-3.3.2.tsv').absolutePath
+	if (rootProject.hasProperty('javaBaselineJar')) args rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+}
+tasks.register('checkKotlinItemAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-items-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+def kotlinItemContractClasses = layout.buildDirectory.dir('classes/kotlinItemContract')
+tasks.register('compileKotlinItemContract', JavaCompile) {
+	source '../tests/KotlinItemContractCheck.java'
+	classpath = files()
+	destinationDirectory = kotlinItemContractClasses
+}
+tasks.register('checkKotlinItemContract', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinItemContract', 'compileKotlin'
+	classpath = files(kotlinItemContractClasses)
+	mainClass = 'KotlinItemContractCheck'
+	args 'check', rootProject.file('tests/fixtures/kotlin-item-contracts.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.register('checkKotlinMigrationAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-data-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.register('checkKotlinModelAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-models-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.register('checkKotlinBlockAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-blocks-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+
+def kotlinTrainModelClasses = layout.buildDirectory.dir('classes/kotlinTrainModelsCompatibility')
+tasks.register('checkKotlinModelLeavesAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-model-leaves-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+def kotlinModelLeavesClasses = layout.buildDirectory.dir('classes/kotlinModelLeavesCompatibility')
+tasks.register('compileKotlinModelLeavesCompatibility', JavaCompile) {
+	source '../tests/KotlinModelLeavesCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinModelLeavesClasses
+}
+tasks.register('checkKotlinModelLeavesCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinModelLeavesCompatibility'
+	classpath = files(kotlinModelLeavesClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.model.KotlinModelLeavesCompatibilityCheck'
+	args rootProject.file('tests/kotlin-models/mtr-model-leaves-java-26.2-3.3.2.tsv').absolutePath
+	if (rootProject.hasProperty('javaBaselineJar')) args rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+}
+tasks.register('compileKotlinTrainModelsCompatibility', JavaCompile) {
+	source '../tests/KotlinTrainModelsCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinTrainModelClasses
+}
+tasks.register('checkKotlinTrainModelsCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Compares actual baked Kotlin train geometry and door stages with the frozen Java release.'
+	dependsOn 'compileKotlinTrainModelsCompatibility'
+	classpath = files(kotlinTrainModelClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.model.KotlinTrainModelsCompatibilityCheck'
+	args rootProject.file('tests/kotlin-models/mtr-large-models-java-26.2-3.3.2.tsv').absolutePath
+	if (rootProject.hasProperty('javaBaselineJar')) args rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+}
+def kotlinDomainClasses = layout.buildDirectory.dir('classes/kotlinDomainCompatibility')
+tasks.register('compileKotlinDomainCompatibility', JavaCompile) {
+	source '../tests/KotlinDomainCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinDomainClasses
+}
+tasks.register('checkKotlinDomainCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinDomainCompatibility'
+	classpath = files(kotlinDomainClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinDomainCompatibilityCheck'
+	args tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaDomainBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinDomainCompatibility'
+		classpath = files(kotlinDomainClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinDomainCompatibilityCheck'
+		args rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.named('check') { dependsOn 'checkKotlinMigrationAbi', 'checkKotlinDomainCompatibility', 'checkKotlinModelAbi', 'checkKotlinBlockAbi', 'checkKotlinTrainModelsCompatibility' }
+tasks.named('check') { dependsOn 'checkKotlinModelLeavesAbi', 'checkKotlinModelLeavesCompatibility' }
+tasks.named('check') { dependsOn 'checkKotlinItemAbi', 'checkKotlinItemContract' }
+tasks.named('check') { dependsOn 'checkKotlinModelBasesAbi', 'checkKotlinModelBasesCompatibility' }
+def kotlinPathClasses = layout.buildDirectory.dir('classes/kotlinPathCompatibility')
+tasks.register('compileKotlinPathCompatibility', JavaCompile) {
+	source '../tests/KotlinPathCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinPathClasses
+}
+tasks.register('checkKotlinPathCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinPathCompatibility'
+	classpath = files(kotlinPathClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.path.KotlinPathCompatibilityCheck'
+	args rootProject.file('tests/fixtures/path-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaPathBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinPathCompatibility'
+		classpath = files(kotlinPathClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.path.KotlinPathCompatibilityCheck'
+		args rootProject.file('tests/fixtures/path-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinPathAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-path-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinPathAbi', 'checkKotlinPathCompatibility' }
+
+def kotlinStationClasses = layout.buildDirectory.dir('classes/kotlinStationCompatibility')
+tasks.register('compileKotlinStationCompatibility', JavaCompile) {
+	source '../tests/KotlinStationCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinStationClasses
+}
+tasks.register('checkKotlinStationCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinStationCompatibility'
+	classpath = files(kotlinStationClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinStationCompatibilityCheck'
+	args rootProject.file('tests/fixtures/station-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaStationBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinStationCompatibility'
+		classpath = files(kotlinStationClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinStationCompatibilityCheck'
+		args rootProject.file('tests/fixtures/station-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinStationAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-station-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinStationAbi', 'checkKotlinStationCompatibility' }
+
+def kotlinSavedRailClasses = layout.buildDirectory.dir('classes/kotlinSavedRailCompatibility')
+tasks.register('compileKotlinSavedRailCompatibility', JavaCompile) {
+	source '../tests/KotlinSavedRailCompatibilityCheck.java', '../tests/SavedRailAllocationCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinSavedRailClasses
+}
+tasks.register('checkKotlinSavedRailCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinSavedRailCompatibility'
+	classpath = files(kotlinSavedRailClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinSavedRailCompatibilityCheck'
+	args rootProject.file('tests/fixtures/saved-rail-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.register('checkSavedRailAllocation', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinSavedRailCompatibility'
+	classpath = files(kotlinSavedRailClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.SavedRailAllocationCheck'
+	jvmArgs '-Xint'
+	args tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaSavedRailBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinSavedRailCompatibility'
+		classpath = files(kotlinSavedRailClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinSavedRailCompatibilityCheck'
+		args rootProject.file('tests/fixtures/saved-rail-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+	tasks.register('checkJavaSavedRailAllocationBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinSavedRailCompatibility'
+		classpath = files(kotlinSavedRailClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.SavedRailAllocationCheck'
+		jvmArgs '-Xint'
+		args rootProject.file(rootProject.property('javaBaselineJar')).absolutePath, '--baseline'
+	}
+}
+tasks.register('checkKotlinSavedRailAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-saved-rail-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinSavedRailAbi', 'checkKotlinSavedRailCompatibility', 'checkSavedRailAllocation' }
+
+def kotlinRouteClasses = layout.buildDirectory.dir('classes/kotlinRouteCompatibility')
+tasks.register('compileKotlinRouteCompatibility', JavaCompile) {
+	source '../tests/KotlinRouteCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinRouteClasses
+}
+tasks.register('checkKotlinRouteCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinRouteCompatibility'
+	classpath = files(kotlinRouteClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinRouteCompatibilityCheck'
+	args rootProject.file('tests/fixtures/route-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaRouteBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinRouteCompatibility'
+		classpath = files(kotlinRouteClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinRouteCompatibilityCheck'
+		args rootProject.file('tests/fixtures/route-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinRouteAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-route-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinRouteAbi', 'checkKotlinRouteCompatibility' }
+def kotlinDepotClasses = layout.buildDirectory.dir('classes/kotlinDepotCompatibility')
+tasks.register('compileKotlinDepotCompatibility', JavaCompile) {
+	source '../tests/KotlinDepotCompatibilityCheck.java', '../tests/KotlinDepotScenario.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinDepotClasses
+}
+tasks.register('checkKotlinDepotCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinDepotCompatibility'
+	classpath = files(kotlinDepotClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinDepotCompatibilityCheck'
+	args rootProject.file('tests/fixtures/depot-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaDepotBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinDepotCompatibility'
+		classpath = files(kotlinDepotClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinDepotCompatibilityCheck'
+		args rootProject.file('tests/fixtures/depot-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinDepotAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-depot-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinDepotAbi', 'checkKotlinDepotCompatibility' }
+
+def kotlinCacheClasses = layout.buildDirectory.dir('classes/kotlinCacheCompatibility')
+tasks.register('compileKotlinCacheCompatibility', JavaCompile) {
+	source '../tests/KotlinDataCacheCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinCacheClasses
+}
+tasks.register('checkKotlinCacheCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinCacheCompatibility'
+	classpath = files(kotlinCacheClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinDataCacheCompatibilityCheck'
+	args rootProject.file('tests/fixtures/cache-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaCacheBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinCacheCompatibility'
+		classpath = files(kotlinCacheClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinDataCacheCompatibilityCheck'
+		args rootProject.file('tests/fixtures/cache-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinCacheAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-cache-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinCacheAbi', 'checkKotlinCacheCompatibility' }
+
+def kotlinAngleClasses = layout.buildDirectory.dir('classes/kotlinAngleCompatibility')
+tasks.register('compileKotlinAngleCompatibility', JavaCompile) {
+	source '../tests/KotlinRailAngleCompatibilityCheck.java', '../tests/RailAngleAllocationCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinAngleClasses
+}
+tasks.register('checkKotlinAngleCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinAngleCompatibility'
+	classpath = files(kotlinAngleClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinRailAngleCompatibilityCheck'
+	args rootProject.file('tests/fixtures/angle-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.register('checkRailAngleAllocation', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinAngleCompatibility'
+	classpath = files(kotlinAngleClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.RailAngleAllocationCheck'
+	jvmArgs '-Xint'
+	args tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaAngleBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinAngleCompatibility'
+		classpath = files(kotlinAngleClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinRailAngleCompatibilityCheck'
+		args rootProject.file('tests/fixtures/angle-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+	tasks.register('checkJavaAngleAllocationBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinAngleCompatibility'
+		classpath = files(kotlinAngleClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.RailAngleAllocationCheck'
+		jvmArgs '-Xint'
+		args rootProject.file(rootProject.property('javaBaselineJar')).absolutePath, '--baseline'
+	}
+}
+tasks.register('checkKotlinAngleAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-angle-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinAngleAbi', 'checkKotlinAngleCompatibility', 'checkRailAngleAllocation' }
+
+def kotlinRailwayModulesClasses = layout.buildDirectory.dir('classes/kotlinRailwayModulesCompatibility')
+tasks.register('compileKotlinRailwayModulesCompatibility', JavaCompile) {
+	source '../tests/KotlinRailwayModulesCompatibilityCheck.java', '../tests/KotlinRailwayModulesScenario.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = kotlinRailwayModulesClasses
+}
+tasks.register('checkKotlinRailwayModulesCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileKotlinRailwayModulesCompatibility'
+	classpath = files(kotlinRailwayModulesClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinRailwayModulesCompatibilityCheck'
+	args rootProject.file('tests/fixtures/railway-modules-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaRailwayModulesBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileKotlinRailwayModulesCompatibility'
+		classpath = files(kotlinRailwayModulesClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.KotlinRailwayModulesCompatibilityCheck'
+		args rootProject.file('tests/fixtures/railway-modules-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinRailwayModulesAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-modules-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinRailwayModulesAbi', 'checkKotlinRailwayModulesCompatibility' }
+
+def nearbySyncClasses = layout.buildDirectory.dir('classes/nearbySyncCompatibility')
+tasks.register('compileNearbySyncCompatibility', JavaCompile) {
+	source '../tests/NearbySyncCompatibilityCheck.java', '../tests/NearbySyncScenario.java', '../tests/KotlinRailTypeCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = nearbySyncClasses
+}
+['checkNearbySyncCompatibility': [], 'checkNearbySyncOwnership': ['--ownership']].each { taskName, options ->
+	tasks.register(taskName, JavaExec) {
+		group = 'verification'
+		dependsOn 'compileNearbySyncCompatibility'
+		classpath = files(nearbySyncClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.data.NearbySyncCompatibilityCheck'
+		args rootProject.file('tests/fixtures/nearby-sync-java-26.2-3.3.2.tsv').absolutePath,
+				tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+		args options
+	}
+}
+tasks.register('checkKotlinRailTypeCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileNearbySyncCompatibility'
+	classpath = files(nearbySyncClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.KotlinRailTypeCompatibilityCheck'
+	args rootProject.file('tests/fixtures/rail-type-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.register('checkKotlinSyncRailTypeAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-sync-rail-type-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	['NearbySync': ['NearbySyncCompatibilityCheck', 'nearby-sync'], 'RailType': ['KotlinRailTypeCompatibilityCheck', 'rail-type']].each { area, details ->
+		tasks.register("checkJava${area}Baseline", JavaExec) {
+			group = 'verification'
+			dependsOn 'compileNearbySyncCompatibility'
+			classpath = files(nearbySyncClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+			mainClass = "mtr.data.${details[0]}"
+			args rootProject.file("tests/fixtures/${details[1]}-java-26.2-3.3.2.tsv").absolutePath,
+					rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+		}
+	}
+}
+tasks.named('check') { dependsOn 'checkNearbySyncCompatibility', 'checkNearbySyncOwnership', 'checkKotlinRailTypeCompatibility', 'checkKotlinSyncRailTypeAbi' }
+
+def railActionsClasses = layout.buildDirectory.dir('classes/railActionsCompatibility')
+tasks.register('compileRailActionsCompatibility', JavaCompile) {
+	source '../tests/RailActionsCompatibilityCheck.java', '../tests/RailActionsScenario.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = railActionsClasses
+}
+tasks.register('checkRailActionsCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileRailActionsCompatibility'
+	classpath = files(railActionsClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.RailActionsCompatibilityCheck'
+	args rootProject.file('tests/fixtures/rail-actions-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaRailActionsBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileRailActionsCompatibility'
+		classpath = files(railActionsClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+		mainClass = 'mtr.data.RailActionsCompatibilityCheck'
+		args rootProject.file('tests/fixtures/rail-actions-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinRailActionsAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-rail-actions-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkRailActionsCompatibility', 'checkKotlinRailActionsAbi' }
+
+def routeFinderClasses = layout.buildDirectory.dir('classes/routeFinderCompatibility')
+tasks.register('compileRouteFinderCompatibility', JavaCompile) {
+	source '../tests/RouteFinderCompatibilityCheck.java', '../tests/RouteFinderScenario.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = routeFinderClasses
+}
+['checkRouteFinderCompatibility': [], 'checkRouteFinderAllocation': ['--allocation']].each { taskName, options ->
+	tasks.register(taskName, JavaExec) {
+		group = 'verification'
+		dependsOn 'compileRouteFinderCompatibility'
+		classpath = files(routeFinderClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.data.RouteFinderCompatibilityCheck'
+		args rootProject.file('tests/fixtures/route-finder-java-26.2-3.3.2.tsv').absolutePath,
+				tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+		args options
+		if (options) jvmArgs '-Xint'
+	}
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	['checkJavaRouteFinderBaseline': [], 'checkJavaRouteFinderAllocationBaseline': ['--allocation', '--baseline']].each { taskName, options ->
+		tasks.register(taskName, JavaExec) {
+			group = 'verification'
+			dependsOn 'compileRouteFinderCompatibility'
+			classpath = files(routeFinderClasses, rootProject.file(rootProject.property('javaBaselineJar'))) + configurations.compileClasspath
+			mainClass = 'mtr.data.RouteFinderCompatibilityCheck'
+			args rootProject.file('tests/fixtures/route-finder-java-26.2-3.3.2.tsv').absolutePath,
+					rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+			args options
+			if (options) jvmArgs '-Xint'
+		}
+	}
+}
+tasks.register('checkKotlinRouteFinderAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-route-finder-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkRouteFinderCompatibility', 'checkRouteFinderAllocation', 'checkKotlinRouteFinderAbi' }
+
+def webserverClasses = layout.buildDirectory.dir('classes/webserverCompatibility')
+tasks.register('compileWebserverCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/WebserverCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = webserverClasses
+}
+tasks.register('checkWebserverCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks real loopback web-map startup, occupied ports and lifecycle cleanup.'
+	dependsOn 'compileWebserverCompatibility'
+	classpath = files(webserverClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.servlet.WebserverCompatibilityCheck'
+	args tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+
+def realTimeSyncClasses = layout.buildDirectory.dir('classes/realTimeSyncCompatibility')
+tasks.register('compileRealTimeSyncCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/RealTimeSyncCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = realTimeSyncClasses
+}
+tasks.register('checkRealTimeSyncCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks native 26.2 real-time clocks and rejects plugin-overridable command dispatch.'
+	dependsOn 'compileRealTimeSyncCompatibility'
+	classpath = files(realTimeSyncClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.RealTimeSyncCompatibilityCheck'
+	args tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+
+def blockEntityExtensionClasses = layout.buildDirectory.dir('classes/blockEntityExtensionCompatibility')
+tasks.register('compileBlockEntityExtensionCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/BlockEntityExtensionCompatibilityCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = blockEntityExtensionClasses
+}
+tasks.register('checkBlockEntityExtensionCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks inherited addon block-entity factories against actual 26.2 state validation.'
+	dependsOn 'compileBlockEntityExtensionCompatibility'
+	classpath = files(blockEntityExtensionClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.mappings.BlockEntityExtensionCompatibilityCheck'
+}
+compatibilityChecks.configure {
+	dependsOn 'checkWebserverCompatibility', 'checkRealTimeSyncCompatibility', 'checkBlockEntityExtensionCompatibility'
+}
+tasks.register('checkKotlinServerFixesAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-webserver-java-26.2-server-fixes.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkKotlinServerFixesAbi' }
+
+def servletHandlersClasses = layout.buildDirectory.dir('classes/servletHandlersCompatibility')
+tasks.register('compileServletHandlersCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/ServletHandlersCompatibilityCheck.java', '../tests/ServletHandlersScenario.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = servletHandlersClasses
+}
+tasks.register('checkServletHandlersCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileServletHandlersCompatibility'
+	classpath = files(servletHandlersClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.servlet.ServletHandlersCompatibilityCheck'
+	args rootProject.file('tests/fixtures/servlet-handlers-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaServletHandlersBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileServletHandlersCompatibility'
+		classpath = files(servletHandlersClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.servlet.ServletHandlersCompatibilityCheck'
+		args rootProject.file('tests/fixtures/servlet-handlers-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath, '--java'
+	}
+}
+tasks.register('checkKotlinServletHandlersAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check-development', rootProject.file('tests/kotlin-abi/mtr-servlets-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkServletHandlersCompatibility', 'checkKotlinServletHandlersAbi' }
+['fabric', 'neoforge'].each { loader ->
+	def packagedCheck = tasks.register("checkPackagedServletHandlers${loader.capitalize()}", JavaExec) {
+		group = 'verification'
+		dependsOn 'compileServletHandlersCompatibility', ":${loader}:shadowJar"
+		classpath = files(servletHandlersClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.servlet.ServletHandlersCompatibilityCheck'
+		doFirst {
+			setArgs([rootProject.file('tests/fixtures/servlet-handlers-java-26.2-3.3.2.tsv').absolutePath,
+					project(":${loader}").tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath])
+		}
+	}
+	project(":${loader}").tasks.named('check') { dependsOn packagedCheck }
+}
+
+def bveSoundClasses = layout.buildDirectory.dir('classes/bveSoundCompatibility')
+tasks.register('compileBveSoundCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/BveSoundCompatibilityCheck.java', '../tests/BveSoundScenario.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = bveSoundClasses
+}
+tasks.register('checkBveSoundCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn 'compileBveSoundCompatibility'
+	classpath = files(bveSoundClasses) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.sound.bve.BveSoundCompatibilityCheck'
+	args rootProject.file('tests/fixtures/bve-sound-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaBveSoundBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileBveSoundCompatibility'
+		classpath = files(bveSoundClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.sound.bve.BveSoundCompatibilityCheck'
+		args rootProject.file('tests/fixtures/bve-sound-java-26.2-3.3.2.tsv').absolutePath,
+				rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+	}
+}
+tasks.register('checkKotlinBveSoundAbi', JavaExec) {
+	group = 'verification'
+	dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+	classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+	mainClass = 'KotlinMigrationAbiCheck'
+	args 'check', rootProject.file('tests/kotlin-abi/mtr-bve-sound-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkBveSoundCompatibility', 'checkKotlinBveSoundAbi' }
+['fabric', 'neoforge'].each { loader ->
+	def packagedCheck = tasks.register("checkPackagedBveSound${loader.capitalize()}", JavaExec) {
+		group = 'verification'
+		dependsOn 'compileBveSoundCompatibility', ":${loader}:shadowJar"
+		classpath = files(bveSoundClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.sound.bve.BveSoundCompatibilityCheck'
+		doFirst {
+			setArgs([rootProject.file('tests/fixtures/bve-sound-java-26.2-3.3.2.tsv').absolutePath,
+					project(":${loader}").tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath])
+		}
+	}
+	project(":${loader}").tasks.named('check') { dependsOn packagedCheck }
+}
+
+[
+	RidingTicket: [packageName: 'mtr.data', fixture: 'riding-ticket', javaArgs: ['--java']],
+	SoundLifecycle: [packageName: 'mtr.sound', fixture: 'sound-lifecycle', javaArgs: []]
+].each { suite, options ->
+	def testClasses = layout.buildDirectory.dir("classes/${suite.uncapitalize()}Compatibility")
+	def fixture = rootProject.file("tests/fixtures/${options.fixture}-java-26.2-3.3.2.tsv")
+	def entryPoint = "${options.packageName}.${suite}CompatibilityCheck"
+	tasks.register("compile${suite}Compatibility", JavaCompile) {
+		dependsOn tasks.named('classes')
+		source "../tests/${suite}CompatibilityCheck.java", "../tests/${suite}Scenario.java"
+		classpath = sourceSets.main.output + configurations.compileClasspath
+		destinationDirectory = testClasses
+	}
+	tasks.register("check${suite}Compatibility", JavaExec) {
+		group = 'verification'
+		dependsOn "compile${suite}Compatibility"
+		classpath = files(testClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = entryPoint
+		args fixture.absolutePath, tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+	}
+	if (rootProject.hasProperty('javaBaselineJar')) {
+		tasks.register("checkJava${suite}Baseline", JavaExec) {
+			group = 'verification'
+			dependsOn "compile${suite}Compatibility"
+			classpath = files(testClasses) + sourceSets.main.output + configurations.compileClasspath
+			mainClass = entryPoint
+			args fixture.absolutePath, rootProject.file(rootProject.property('javaBaselineJar')).absolutePath
+			args options.javaArgs
+		}
+	}
+	tasks.register("checkKotlin${suite}Abi", JavaExec) {
+		group = 'verification'
+		dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+		classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+		mainClass = 'KotlinMigrationAbiCheck'
+		args 'check', rootProject.file("tests/kotlin-abi/mtr-${options.fixture}-java-26.2-3.3.2.tsv").absolutePath,
+				tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+	}
+	tasks.named('check') { dependsOn "check${suite}Compatibility", "checkKotlin${suite}Abi" }
+	['fabric', 'neoforge'].each { loader ->
+		def packagedCheck = tasks.register("checkPackaged${suite}${loader.capitalize()}", JavaExec) {
+			group = 'verification'
+			dependsOn "compile${suite}Compatibility", ":${loader}:shadowJar"
+			classpath = files(testClasses) + sourceSets.main.output + configurations.compileClasspath
+			mainClass = entryPoint
+			doFirst {
+				setArgs([fixture.absolutePath, project(":${loader}").tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath])
+			}
+		}
+		project(":${loader}").tasks.named('check') { dependsOn packagedCheck }
+	}
+}
+
+def ticketDomainClasses = layout.buildDirectory.dir('classes/ticketTransactionCheck')
+tasks.register('compileTicketTransactionCheck', JavaCompile) {
+	dependsOn 'compileKotlin'
+	source '../tests/TicketTransactionCheck.java'
+	classpath = files(kotlinProductionClasses) + coreRuntime
+	destinationDirectory = ticketDomainClasses
+}
+tasks.register('checkTicketTransaction', JavaExec) {
+	group = 'verification'
+	description = 'Exercises the ticket domain interface with no Minecraft on the runtime classpath.'
+	dependsOn 'compileTicketTransactionCheck'
+	classpath = files(ticketDomainClasses, kotlinProductionClasses) + coreRuntime
+	mainClass = 'mtr.data.TicketTransactionCheck'
+	args rootProject.file('tests/fixtures/riding-ticket-java-26.2-3.3.2.tsv').absolutePath,
+			tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkTicketTransaction' }
+
+def ticketObjectiveClasses = layout.buildDirectory.dir('classes/ticketObjectiveRegistration')
+tasks.register('compileTicketObjectiveRegistration', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source '../tests/TicketObjectiveRegistrationCheck.java'
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = ticketObjectiveClasses
+}
+['checkTicketObjectiveRegistration': false, 'checkTicketObjectiveAllocation': true].each { taskName, allocation ->
+	tasks.register(taskName, JavaExec) {
+		group = 'verification'
+		dependsOn 'compileTicketObjectiveRegistration'
+		classpath = files(ticketObjectiveClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.data.TicketObjectiveRegistrationCheck'
+		args tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+		if (allocation) { args '--allocation'; jvmArgs '-Xint' }
+	}
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+	tasks.register('checkJavaTicketObjectiveBaseline', JavaExec) {
+		group = 'verification'
+		dependsOn 'compileTicketObjectiveRegistration'
+		classpath = files(ticketObjectiveClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.data.TicketObjectiveRegistrationCheck'
+		args rootProject.file(rootProject.property('javaBaselineJar')).absolutePath, '--java', '--allocation'
+		jvmArgs '-Xint'
+	}
+}
+tasks.named('check') { dependsOn 'checkTicketObjectiveRegistration', 'checkTicketObjectiveAllocation' }
+['fabric', 'neoforge'].each { loader ->
+	def packagedCheck = tasks.register("checkPackagedTicketObjectives${loader.capitalize()}", JavaExec) {
+		group = 'verification'
+		dependsOn 'compileTicketObjectiveRegistration', ":${loader}:shadowJar"
+		classpath = files(ticketObjectiveClasses) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.data.TicketObjectiveRegistrationCheck'
+		doFirst { setArgs([project(":${loader}").tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath]) }
+	}
+	project(":${loader}").tasks.named('check') { dependsOn packagedCheck }
+}
+
+apply from: rootProject.file('gradle/siding-route-checks.gradle')
+apply from: rootProject.file('gradle/dashboard-checks.gradle')
+apply from: rootProject.file('gradle/rail-node-checks.gradle')
+apply from: rootProject.file('gradle/door-snapshot-checks.gradle')
+
+tasks.withType(JavaCompile).configureEach { classpath += kotlinProductionClasses }
+tasks.withType(JavaExec).configureEach { classpath += coreRuntime + kotlinProductionClasses }

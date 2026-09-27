@@ -1,0 +1,72 @@
+key:TRAIN:NORMAL	train_normal
+key:TRAIN:LIGHT_RAIL	train_light_rail
+key:TRAIN:HIGH_SPEED	train_high_speed
+key:BOAT:NORMAL	boat_normal
+key:BOAT:LIGHT_RAIL	boat_light_rail
+key:BOAT:HIGH_SPEED	boat_high_speed
+key:CABLE_CAR:NORMAL	cable_car_normal
+key:CABLE_CAR:LIGHT_RAIL	cable_car_light_rail
+key:CABLE_CAR:HIGH_SPEED	cable_car_high_speed
+key:AIRPLANE:NORMAL	airplane_normal
+key:AIRPLANE:LIGHT_RAIL	airplane_light_rail
+key:AIRPLANE:HIGH_SPEED	airplane_high_speed
+response:12	:1:[Access-Control-Allow-Origin=*, Content-Type=application/json]
+response:13	706c61696e:1:[Access-Control-Allow-Origin=*, Content-Type=application/json]
+response:14	e6b8afe990b5f09f9a890a22c3a922:1:[Access-Control-Allow-Origin=*, Content-Type=application/json]
+response:15	3f:1:[Access-Control-Allow-Origin=*, Content-Type=application/json]
+empty:DataServletHandler	200:1:0:[]
+empty:InfoServletHandler	200:1:0:[]
+empty:DelaysServletHandler	200:1:0:[]
+empty:ArrivalsServletHandler	200:1:0:[]
+empty:RouteFinderServletHandler	200:1:-1:{"errors":["The 'dimension' parameter must be defined."]}
+data	200:1:0:[{"routes":[{"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","stations":["1_1194684","2_1194684","1_1194684"],"durations":[4.25,4.0],"densities":[0,0,0,274],"circular":"cw"},{"color":1194684,"name":"渡轮","number":"","type":"boat_normal","stations":["1_1194684","2_1194684"],"durations":[0.0],"densities":[0,280],"circular":"ccw"}],"positions":{"1_1194684":{"x":10,"y":12,"vertical":true},"2_1194684":{"x":150,"y":151,"vertical":true}},"stations":{"1":{"name":"中央|Central","color":1,"zone":3,"x":10,"z":10,"connections":["2"]},"2":{"name":"终点|Terminus","color":2,"zone":4,"x":150,"z":150,"connections":["1"]}},"types":["train_normal","boat_normal"]},{"routes":[],"positions":{},"stations":{},"types":[]}]
+data:missing-connection-set	200:1:0:[{"routes":[{"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","stations":["1_1194684","2_1194684","1_1194684"],"durations":[4.25],"densities":[0,0,0,274],"circular":"cw"},{"color":1194684,"name":"渡轮","number":"","type":"boat_normal","stations":["1_1194684","2_1194684"],"durations":[0.0],"densities":[0,280],"circular":"ccw"}],"positions":{"1_1194684":{"x":10,"y":12,"vertical":true},"2_1194684":{"x":150,"y":151,"vertical":true}},"stations":{"2":{"name":"终点|Terminus","color":2,"zone":4,"x":150,"z":150,"connections":["1"]}},"types":["train_normal","boat_normal"]},{"routes":[],"positions":{},"stations":{},"types":[]}]
+info	200:1:0:[[{"player":"乘客🚉","name":"环线|Loop🚉","number":"L1","destination":"中央|Central","circular":"cw","color":1194684},{"player":"Walker","name":"","number":"","destination":"","circular":"","color":0}],[]]
+delays	200:1:0:[[{"name":"环线|Loop🚉","number":"L1","destination":"中央|Central","circular":"cw","color":1194684,"delay":42,"time":1800000000123,"x":1,"y":2,"z":3},{"name":"","number":"","destination":"","circular":"","color":0,"delay":42,"time":1800000000123,"x":-5,"y":8,"z":-9}],[]]
+arrivals:1:0	200:1:0:[{"arrival":1000,"name":"渡轮","destination":"自定义🚢","circular":"ccw","route":"","platform":"A🚉","color":1194684},{"arrival":1500,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"2","color":1194684},{"arrival":2000,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"A🚉","color":1194684}]
+arrivals:1:1	200:1:0:[]
+arrivals:1:-1	200:1:0:[]
+arrivals:1:bad	200:1:0:[{"arrival":1000,"name":"渡轮","destination":"自定义🚢","circular":"ccw","route":"","platform":"A🚉","color":1194684},{"arrival":1500,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"2","color":1194684},{"arrival":2000,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"A🚉","color":1194684}]
+arrivals:0:0	200:1:0:[]
+arrivals:0:1	200:1:0:[]
+arrivals:0:-1	200:1:0:[]
+arrivals:0:bad	200:1:0:[]
+arrivals:no:0	200:1:0:[]
+arrivals:no:1	200:1:0:[]
+arrivals:no:-1	200:1:0:[]
+arrivals:no:bad	200:1:0:[]
+arrivals:9223372036854775808:0	200:1:0:[]
+arrivals:9223372036854775808:1	200:1:0:[]
+arrivals:9223372036854775808:-1	200:1:0:[]
+arrivals:9223372036854775808:bad	200:1:0:[]
+arrivals:missing	200:1:0:[]
+arrivals:parameter-read-before-callback	200:1:0:[{"arrival":1000,"name":"渡轮","destination":"自定义🚢","circular":"ccw","route":"","platform":"A🚉","color":1194684},{"arrival":1500,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"2","color":1194684},{"arrival":2000,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"A🚉","color":1194684}]
+virtual-worlds:DataServletHandler	200:1:0:[{"routes":[{"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","stations":["1_1194684","2_1194684","1_1194684"],"durations":[4.25,4.0],"densities":[0,0,0,274],"circular":"cw"},{"color":1194684,"name":"渡轮","number":"","type":"boat_normal","stations":["1_1194684","2_1194684"],"durations":[0.0],"densities":[0,280],"circular":"ccw"}],"positions":{"1_1194684":{"x":10,"y":12,"vertical":true},"2_1194684":{"x":150,"y":151,"vertical":true}},"stations":{"1":{"name":"中央|Central","color":1,"zone":3,"x":10,"z":10,"connections":["2"]},"2":{"name":"终点|Terminus","color":2,"zone":4,"x":150,"z":150,"connections":["1"]}},"types":["train_normal","boat_normal"]}]
+virtual-worlds:InfoServletHandler	200:1:0:[[{"player":"乘客🚉","name":"环线|Loop🚉","number":"L1","destination":"中央|Central","circular":"cw","color":1194684},{"player":"Walker","name":"","number":"","destination":"","circular":"","color":0}]]
+virtual-worlds:DelaysServletHandler	200:1:0:[[{"name":"环线|Loop🚉","number":"L1","destination":"中央|Central","circular":"cw","color":1194684,"delay":42,"time":1800000000123,"x":1,"y":2,"z":3},{"name":"","number":"","destination":"","circular":"","color":0,"delay":42,"time":1800000000123,"x":-5,"y":8,"z":-9}]]
+virtual-worlds:ArrivalsServletHandler	200:1:0:[{"arrival":1000,"name":"渡轮","destination":"自定义🚢","circular":"ccw","route":"","platform":"A🚉","color":1194684},{"arrival":1500,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"2","color":1194684},{"arrival":2000,"name":"环线|Loop🚉","destination":"中央|Central","circular":"cw","route":"L1","platform":"A🚉","color":1194684}]
+virtual-routes	200:1:0:[{"routes":[{"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","stations":["1_1194684","2_1194684","1_1194684"],"durations":[4.25,4.0],"densities":[0,0,0,274],"circular":"cw"}],"positions":{"1_1194684":{"x":11,"y":13,"vertical":true},"2_1194684":{"x":150,"y":151,"vertical":true}},"stations":{"1":{"name":"中央|Central","color":1,"zone":3,"x":10,"z":10,"connections":["2"]},"2":{"name":"终点|Terminus","color":2,"zone":4,"x":150,"z":150,"connections":["1"]}},"types":["train_normal"]},{"routes":[],"positions":{},"stations":{},"types":[]}]
+virtual-connections	200:1:0:[{"routes":[{"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","stations":["1_1194684","2_1194684","1_1194684"],"durations":[4.25,4.0],"densities":[0,0,0,274],"circular":"cw"},{"color":1194684,"name":"渡轮","number":"","type":"boat_normal","stations":["1_1194684","2_1194684"],"durations":[0.0],"densities":[0,280],"circular":"ccw"}],"positions":{"1_1194684":{"x":10,"y":12,"vertical":true},"2_1194684":{"x":150,"y":151,"vertical":true}},"stations":{"1":{"name":"中央|Central","color":1,"zone":3,"x":10,"z":10,"connections":["2"]},"2":{"name":"终点|Terminus","color":2,"zone":4,"x":150,"z":150,"connections":["1"]}},"types":["train_normal","boat_normal"]},{"routes":[],"positions":{},"stations":{},"types":[]}]
+virtual-players	200:1:0:[[{"player":"乘客🚉","name":"环线|Loop🚉","number":"L1","destination":"中央|Central","circular":"cw","color":1194684}],[]]
+virtual-delay-maps	200:1:0:[[{"name":"环线|Loop🚉","number":"L1","destination":"中央|Central","circular":"cw","color":1194684,"delay":42,"time":1800000000123,"x":2,"y":3,"z":4}],[]]
+delays:null-cache-empty-map	200:1:0:[[],[]]
+finder:0	200:1:-1:{"errors":["The 'dimension' parameter must be defined."]}
+finder:1	200:1:-1:{"errors":["The 'dimension' parameter must be a world index (0-1) or a valid world ID (such as minecraft:overworld)."]}
+finder:2	200:1:-1:{"errors":["The 'dimension' parameter must be a world index (0-1) or a valid world ID (such as minecraft:overworld)."]}
+finder:3	200:1:-1:{"errors":["One of 'startPlayer', 'startStation', or 'startPos' must be defined.","One of 'endPlayer', 'endStation', or 'endPos' must be defined."]}
+finder:4	200:1:-1:{"errors":["The player 'Missing' is not online or in the specified dimension.","The station 'missing' does not exist in the specified dimension."]}
+finder:5	200:1:-1:{"errors":["The block position '1,2' is not formatted correctly.","The block position 'no,2,3' is not formatted correctly."]}
+finder-input:6	BlockPos{x=-2, y=64, z=4}:BlockPos{x=151, y=64, z=151}:40
+finder:6	200:1:-1:{"start":{"pos":[-2,64,4]},"end":{"pos":[151,64,151],"station":{"name":"终点|Terminus","id":"2"},"platform":"2"},"response":123,"directions":[{"pos":[10,64,10],"station":{"name":"中央|Central","id":"1"},"platform":"A🚉","duration":32,"route":{"wait":7,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":["1"]}},{"pos":[150,64,150],"station":{"name":"终点|Terminus","id":"2"},"platform":"2","duration":43},{"pos":[400,64,400],"duration":55,"route":{"wait":3,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":[]}}]}
+finder-input:7	BlockPos{x=10, y=0, z=10}:BlockPos{x=150, y=0, z=150}:-4
+finder:7	200:1:-1:{"start":{"pos":[10,0,10],"station":{"name":"中央|Central","id":"1"}},"end":{"pos":[150,0,150],"station":{"name":"终点|Terminus","id":"2"}},"response":123,"directions":[{"pos":[10,64,10],"station":{"name":"中央|Central","id":"1"},"platform":"A🚉","duration":32,"route":{"wait":7,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":["1"]}},{"pos":[150,64,150],"station":{"name":"终点|Terminus","id":"2"},"platform":"2","duration":43}]}
+finder-input:8	BlockPos{x=10, y=0, z=10}:BlockPos{x=150, y=0, z=150}:40
+finder:8	200:1:-1:{"start":{"pos":[10,0,10],"station":{"name":"中央|Central","id":"1"}},"end":{"pos":[150,0,150],"station":{"name":"终点|Terminus","id":"2"}},"response":123,"directions":[{"pos":[10,64,10],"station":{"name":"中央|Central","id":"1"},"platform":"A🚉","duration":32,"route":{"wait":7,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":["1"]}},{"pos":[150,64,150],"station":{"name":"终点|Terminus","id":"2"},"platform":"2","duration":43}]}
+finder-input:9	BlockPos{x=10, y=64, z=10}:BlockPos{x=150, y=64, z=150}:40
+finder:9	200:1:-1:{"start":{"pos":[10,64,10],"station":{"name":"中央|Central","id":"1"},"platform":"A🚉","player":"乘客🚉"},"end":{"pos":[150,64,150],"station":{"name":"终点|Terminus","id":"2"},"platform":"2","player":"Walker"},"response":123,"directions":[{"pos":[10,64,10],"station":{"name":"中央|Central","id":"1"},"platform":"A🚉","duration":32,"route":{"wait":7,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":["1"]}},{"pos":[150,64,150],"station":{"name":"终点|Terminus","id":"2"},"platform":"2","duration":43},{"pos":[400,64,400],"duration":55,"route":{"wait":3,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":[]}}]}
+finder-input:10	BlockPos{x=10, y=64, z=10}:BlockPos{x=151, y=64, z=151}:0
+finder:10	200:1:-1:{"start":{"pos":[10,64,10],"station":{"name":"中央|Central","id":"1"},"platform":"A🚉"},"end":{"pos":[151,64,151],"station":{"name":"终点|Terminus","id":"2"},"platform":"2"},"response":123,"directions":[{"pos":[10,64,10],"station":{"name":"中央|Central","id":"1"},"platform":"A🚉","duration":32,"route":{"wait":7,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":["1"]}},{"pos":[150,64,150],"station":{"name":"终点|Terminus","id":"2"},"platform":"2","duration":43},{"pos":[400,64,400],"duration":55,"route":{"wait":3,"color":1194684,"name":"环线|Loop🚉","number":"L1","type":"train_normal","circular":"cw","stations":[]}}]}
+finder:11	0:0:-1:
+finder:queue-full	200:1:-1:{"errors":["Too many requests! Please try again."]}
+finder:invalid-single-world	0:0:-1:
+finder:parameter-read-in-callback	200:1:-1:{"errors":["One of 'startPlayer', 'startStation', or 'startPos' must be defined.","One of 'endPlayer', 'endStation', or 'endPos' must be defined."]}

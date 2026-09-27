@@ -1,0 +1,16 @@
+# Original Java item field and packet invocation contracts before Kotlin migration.
+F:ItemNodeModifierBase.forAirplaneNode	Z [FINAL, PUBLIC]
+F:ItemNodeModifierBase.forContinuousMovementNode	Z [FINAL, PUBLIC]
+F:ItemNodeModifierBase.forNonContinuousMovementNode	Z [FINAL, PUBLIC]
+F:ItemNodeModifierBase.isConnector	Z [FINAL, PROTECTED]
+F:ItemRailModifier.isOneWay	Z [FINAL, PRIVATE]
+F:ItemRailModifier.railType	Lmtr/data/RailType; [FINAL, PRIVATE]
+F:ItemWithCreativeTabBase$ItemPlaceOnWater.creativeModeTab	Lmtr/CreativeModeTabs$Wrapper; [FINAL, PUBLIC]
+F:ItemWithCreativeTabBase.creativeModeTab	Lmtr/CreativeModeTabs$Wrapper; [FINAL, PUBLIC]
+P:ItemDashboard:openDashboardScreenS2C(Lnet/minecraft/server/level/ServerPlayer;Lmtr/data/TransportMode;Z)V	1
+P:ItemLiftRefresher:openLiftCustomizationScreenS2C(Lnet/minecraft/server/level/ServerPlayer;J)V	1
+P:ItemRailModifier:createRailS2C(Lnet/minecraft/world/level/Level;Lmtr/data/TransportMode;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;Lmtr/data/Rail;Lmtr/data/Rail;J)V	1
+P:ItemRailModifier:removeRailConnectionS2C(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)V	1
+P:ItemResourcePackCreator:openResourcePackCreatorScreenS2C(Lnet/minecraft/server/level/ServerPlayer;)V	1
+P:ItemSignalModifier:createSignalS2C(Lnet/minecraft/world/level/Level;JLnet/minecraft/world/item/DyeColor;Ljava/util/UUID;)V	1
+P:ItemSignalModifier:removeSignalS2C(Lnet/minecraft/world/level/Level;JLnet/minecraft/world/item/DyeColor;Ljava/util/UUID;)V	1

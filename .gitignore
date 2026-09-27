@@ -1,6 +1,7 @@
 # gradle
 
 .gradle/
+.kotlin/
 .gradle-1.21/
 .gradle-26.2/
 build/

@@ -357,6 +357,11 @@ public abstract class Train extends NameColorDataBase implements IPacket {
 		return isCurrentlyManual;
 	}
 
+	/** Live passenger iteration for the driving module; callers must not mutate membership. */
+	public final Iterable<UUID> getRidingEntities() {
+		return ridingEntities;
+	}
+
 	public boolean changeManualSpeed(boolean isAccelerate) {
 		if (doorValue == 0 && isAccelerate && manualNotch >= -2 && manualNotch < 2) {
 			manualNotch++;

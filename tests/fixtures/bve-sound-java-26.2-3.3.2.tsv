@@ -1,0 +1,85 @@
+config-default	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[null];shoe=null|mtr:probe|mtr:probe_|MotorData5|[mtr:sounds/probe/sound.cfg, mtr:sounds/probe/powervol.csv, mtr:sounds/probe/powerfreq.csv, mtr:sounds/probe/brakevol.csv, mtr:sounds/probe/brakefreq.csv]
+config-0	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=3e000000;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=40080000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=4;motorOutputAtCoast=80000000;motorVolumeMultiply=3e800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=41200000;run=[null];shoe=null|events=[mtr:probe_4, mtr:probe_0.25, mtr:probe_2.125, mtr:probe_0.125, mtr:probe_36, mtr:probe_-0.0]
+config-1	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[mtr:probe_flange];joint=[mtr:probe_switch];motor=[mtr:probe_motor0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, mtr:probe_motor39];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[mtr:probe_rolling];shoe=null|events=[mtr:probe_run, mtr:probe_ignored, mtr:probe_rolling, mtr:probe_flange, mtr:probe_motor0, mtr:probe_motor39, mtr:probe_outside, mtr:probe_joint, mtr:probe_switch]
+config-2	air=mtr:probe_air;airHigh=mtr:probe_air;airZero=mtr:probe_air;brakeEmergency=mtr:probe_emergency;brakeHandleApply=mtr:probe_apply;brakeHandleRelease=mtr:probe_release;breakerDelay=0;compressorAttack=mtr:probe_attack;compressorLoop=mtr:probe_loop;compressorRelease=mtr:probe_end;doorClose=mtr:probe_close;doorCloseSoundLength=3f800000;doorOpen=mtr:probe_right;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=mtr:probe_noise;regenerationLimit=0;run=[null];shoe=mtr:probe_shoe|events=[mtr:probe_air, mtr:probe_emergency, mtr:probe_left, mtr:probe_right, mtr:probe_close, mtr:probe_apply, mtr:probe_release, mtr:probe_attack, mtr:probe_loop, mtr:probe_end, mtr:probe_noise, mtr:probe_shoe]
+config-3	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=mtr:probe_fall_apply;brakeHandleRelease=mtr:probe_fall_release;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=mtr:probe_fall_noise;regenerationLimit=0;run=[null];shoe=mtr:probe_fall_shoe|events=[mtr:probe_fall_apply, mtr:probe_fall_release, mtr:probe_fall_noise, mtr:probe_fall_shoe]
+config-4	air=mtr:probe_air;airHigh=mtr:probe_high;airZero=mtr:probe_full;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[null];shoe=null|events=[mtr:probe_full, mtr:probe_high, mtr:probe_air]
+config-5	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=40800000;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=40400000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3f4ccccd;motorVolumeMultiply=40000000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[null];shoe=null|events=[mtr:probe_2, mtr:probe_0.8, mtr:probe_4, mtr:probe_3, mtr:probe_a]
+config-6	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=116c2;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[mtr:probe_thing];shoe=null|events=[mtr:probe_thing, mtr:probe_unused, mtr:probe_1e-40]
+config-7	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3e000000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[null];shoe=null|events=[mtr:probe_0x1.0p-3, mtr:probe_unicode]
+config-8	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=6;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=bf800000;run=[null];shoe=null|events=[mtr:probe_6, mtr:probe_-3.6]
+config-9	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[mtr:probe_trailing];shoe=null|events=[mtr:probe_trailing]
+config-invalid	!java.lang.ArrayIndexOutOfBoundsException|events=[mtr:probe_x]
+config-invalid	!java.lang.NumberFormatException|events=[mtr:probe_x]
+config-invalid	!java.lang.NumberFormatException|events=[mtr:probe_nan]
+config-invalid	!java.lang.NumberFormatException|events=[mtr:probe_4.0]
+config-invalid	!net.minecraft.IdentifierException|events=[]
+config-invalid	!net.minecraft.IdentifierException|events=[]
+config-invalid	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[null];shoe=null|events=[]
+config-invalid	!net.minecraft.IdentifierException|events=[]
+config-invalid	!net.minecraft.IdentifierException|events=[]
+config-null-content	!java.lang.NullPointerException
+config-null-empty	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[null];shoe=null
+config-null-used	!java.lang.NullPointerException
+config-alias	mtr:mutable|true
+config-bve4	pack:probe|pack:probe_|MotorData4|0|[pack:sounds/probe/sound.cfg, pack:sounds/probe/train.dat]
+config-null-base	!java.lang.NullPointerException
+config-invalid-base	!net.minecraft.IdentifierException
+config-null-sound	air=null;airHigh=null;airZero=null;brakeEmergency=null;brakeHandleApply=null;brakeHandleRelease=null;breakerDelay=0;compressorAttack=null;compressorLoop=null;compressorRelease=null;doorClose=null;doorCloseSoundLength=3f800000;doorOpen=null;flange=[null];joint=[null];motor=[null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null];motorNoiseDataType=5;motorOutputAtCoast=3ecccccd;motorVolumeMultiply=3f800000;mrCompressorSpeed=40a00000;mrPressMax=800;mrPressMin=700;mrServiceBrakeReduce=40a00000;noise=null;regenerationLimit=0;run=[null];shoe=null
+config-factory-failure	!java.lang.IllegalStateException
+resource-0	c3a90ae58897e8bb8a00|opened=1|closed=0
+resource-1	|opened=0|closed=0
+resource-2	|opened=0|closed=0
+resource-3	!java.lang.AssertionError|opened=0|closed=0
+resource-4	|opened=0|closed=0
+resource-5	|opened=0|closed=0
+resource-6	|opened=0|closed=0
+resource-7	|opened=1|closed=0
+resource-missing	
+resource-null-location	
+motor4-grid	0dd36c1c6ebeb29886647f716cff5a973bc8c36ad2f0918faf24461632cfe39f
+motor4-empty	0|0|!java.lang.IndexOutOfBoundsException
+motor4-parse	!java.lang.ArrayIndexOutOfBoundsException
+motor4-parse	!java.lang.ArrayIndexOutOfBoundsException
+motor4-parse	1|3f800000|3f800000
+motor4-parse	0|!java.lang.IndexOutOfBoundsException|!java.lang.IndexOutOfBoundsException
+motor4-parse	-2147483648|!java.lang.IndexOutOfBoundsException|!java.lang.IndexOutOfBoundsException
+motor4-parse	!java.lang.NumberFormatException
+motor4-parse	!java.lang.NumberFormatException
+motor4-parse	1|2ca|7b167699
+motor4-parse	1|3f800000|3f800000
+motor4-parse	!java.lang.NumberFormatException
+motor4-channel	[null, 4]|[null]|null|-1|-1
+motor4-null-base	0
+spline-parse	[]|f5757c92df0754fe42a718df793a7f816f891a281947060004c4748da3db7138
+spline-parse	[]|f5757c92df0754fe42a718df793a7f816f891a281947060004c4748da3db7138
+spline-parse	[{0.0=1.0, 10.0=3.0, 20.0=5.0}, {0.0=2.0, 20.0=6.0}, {10.0=4.0, 20.0=8.0}]|43a97d2582b9d1e6e0cbcfc84139587b1324315519794707d3bf6eb8bc7cbd39
+spline-parse	[{0.0=9.0, 1.0=10.0}]|bf5c6d97acf36e9ff8facffef8418ec61b75a933cf28080b1ca58b0835354d61
+spline-parse	[{-0.0=1.0, 0.0=2.0, 1.0=4.0}]|a65a61e2763ad217007e265c6443af38acda847709aa840de565c14dee7d0c48
+spline-parse	[{}, {0.0=2.0, 1.0=4.0}]|109003c77e566b8bdac088592f05ed4858e176d5889ad42d7910d03a9099b306
+spline-parse	[]|f5757c92df0754fe42a718df793a7f816f891a281947060004c4748da3db7138
+spline-parse	[{0.0=1.0, 10.0=3.0}, {0.0=2.0, 10.0=4.0}]|e2587c23a6135c3b1b83abf3f55163776c6f3e1d0e7353643500a52f91f940d8
+spline-parse	[{0.0=1.0E-40, 1.0=3.4028235E38}]|278932015566b9ae94165f0c691e33fa9940788679d2e1ed3de00a318227d64d
+spline-parse	[{-3.4028235E38=-3.4028235E38, 3.4028235E38=3.4028235E38}]|377803059eb38b3b295245d66e136f113ba9958465067d7351b8786e2cf14c47
+spline-parse	[]|f5757c92df0754fe42a718df793a7f816f891a281947060004c4748da3db7138
+spline-parse	[{0.0=1.0, 2.0=2.0}]|26d52039e3f37e47b9ba08eaac081120f942792e153a16506c4149ba32645a4e
+spline-invalid	!java.lang.NullPointerException
+spline-invalid	!java.lang.NumberFormatException
+spline-invalid	!java.lang.NumberFormatException
+spline-invalid	!java.lang.NumberFormatException
+spline-invalid	!java.lang.NumberFormatException
+spline-invalid	!java.lang.NumberFormatException
+spline-invalid	!java.lang.NumberFormatException
+spline-invalid	!java.lang.ArrayIndexOutOfBoundsException
+spline-invalid	!java.lang.NumberFormatException
+spline-invalid	!java.lang.NumberFormatException
+spline-alias	41000000
+spline-special	eb4e58dc96fe9176a0cfcb6a54b8ab816cdd89249351f965b1ee30c9bb1d15db
+spline-null-value	!java.lang.NullPointerException
+spline-null-map	!java.lang.NullPointerException
+spline-null-list	!java.lang.NullPointerException
+motor5-grid	c8ec863853e15b5b4e47dde17c91d2ffa11f0d30d28bd0ae4e92e980f98329b2|[mtr:motor/powervol.csv, mtr:motor/powerfreq.csv, mtr:motor/brakevol.csv, mtr:motor/brakefreq.csv]
+motor5-uneven	3|40400000|!java.lang.IndexOutOfBoundsException
+motor5-empty	0|0|!java.lang.IndexOutOfBoundsException|[minecraft:null/powervol.csv, minecraft:null/powerfreq.csv, minecraft:null/brakevol.csv, minecraft:null/brakefreq.csv]
+subclasses	7|40a00000|c0000000|8|41100000|41200000|11|41400000|41500000|41600000|40|mtr:probe|hidden|-1
+checks	9108

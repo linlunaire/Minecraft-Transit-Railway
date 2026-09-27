@@ -7,10 +7,8 @@ import mtr.MTR;
 import mtr.Registry;
 import mtr.block.BlockNode;
 import mtr.mappings.PersistentStateMapper;
-import mtr.mappings.Utilities;
 import mtr.packet.*;
 import mtr.path.PathData;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -56,6 +54,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 	private int prevPlatformCount;
 	private int prevSidingCount;
 	private boolean useTimeAndWindSync;
+	private final RealTimeSync realTimeSync = new RealTimeSync();
 
 	private final Level world;
 	private final Map<BlockPos, Map<BlockPos, Rail>> rails = new HashMap<>();
@@ -525,18 +524,7 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 	}
 
 	private void runRealTimeSync() {
-		if (useTimeAndWindSync) {
-			final MinecraftServer server = world.getServer();
-			if (server != null) {
-				final CommandSourceStack commandSourceStack = server.createCommandSourceStack();
-				runCommand(server, commandSourceStack, "/gamerule doDaylightCycle true");
-				runCommand(server, commandSourceStack, "/taw set-cycle-length " + world.dimension().identifier() + " 864000 864000");
-				runCommand(server, commandSourceStack, "/taw reload");
-				final Calendar calendar = Calendar.getInstance();
-				final long ticks = Math.round((calendar.get(Calendar.HOUR_OF_DAY) + Depot.HOURS_IN_DAY - 6) * 1000 + calendar.get(Calendar.MINUTE) / 0.06 + calendar.get(Calendar.SECOND) / 3.6) % 24000;
-				runCommand(server, commandSourceStack, "/time set " + ticks);
-			}
-		}
+		realTimeSync.apply(world, useTimeAndWindSync);
 	}
 
 	// static finders
@@ -808,11 +796,6 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 			}
 			return delete;
 		});
-	}
-
-	private static void runCommand(MinecraftServer server, CommandSourceStack commandSourceStack, String command) {
-		System.out.println("Running command " + command);
-		Utilities.sendCommand(server, commandSourceStack, command);
 	}
 
 	// TODO temporary code start

@@ -23,7 +23,8 @@ public class WidgetBetterCheckbox extends ButtonMapper {
 
 	@Override
 	public void renderWidget(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
-		super.renderWidget(guiGraphics, mouseX, mouseY, delta);
+		// The native button label would overlap our left-aligned checkbox label.
+		extractDefaultSprite(guiGraphics);
 		guiGraphics.text(net.minecraft.client.Minecraft.getInstance().font, (checked ? "[x] " : "[ ] ") + getMessage().getString(), getX() + 4, getY() + (height - 8) / 2, 0xFFFFFFFF);
 	}
 

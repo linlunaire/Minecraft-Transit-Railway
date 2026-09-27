@@ -42,7 +42,7 @@ public class ConfigScreen extends ScreenMapper implements IGui {
 	private final WidgetShorterSlider sliderTrackTextureOffset;
 	private final WidgetShorterSlider sliderDynamicTextureResolution;
 	private final WidgetShorterSlider sliderTrainRenderDistanceRatio;
-	private final Button buttonSupportPatreon;
+	private final Button buttonSupport;
 
 	private static final int BUTTON_WIDTH = 60;
 	private static final int BUTTON_HEIGHT = TEXT_HEIGHT + TEXT_PADDING;
@@ -98,7 +98,7 @@ public class ConfigScreen extends ScreenMapper implements IGui {
 		sliderTrackTextureOffset = new WidgetShorterSlider(0, 0, Config.TRACK_OFFSET_COUNT - 1, Object::toString, null);
 		sliderDynamicTextureResolution = new WidgetShorterSlider(0, 0, Config.DYNAMIC_RESOLUTION_COUNT - 1, Object::toString, null);
 		sliderTrainRenderDistanceRatio = new WidgetShorterSlider(0, 0, Config.TRAIN_RENDER_DISTANCE_RATIO_COUNT - 1, num -> String.format("%d%%", (num + 1) * 100 / Config.TRAIN_RENDER_DISTANCE_RATIO_COUNT), null);
-		buttonSupportPatreon = UtilitiesClient.newButton(BUTTON_HEIGHT, Text.literal(""), button -> Util.getPlatform().openUri("https://www.patreon.com/minecraft_transit_railway"));
+		buttonSupport = UtilitiesClient.newButton(BUTTON_HEIGHT, Text.literal(""), button -> Util.getPlatform().openUri("https://ifdian.net/a/licms"));
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class ConfigScreen extends ScreenMapper implements IGui {
 
 		final int offsetY;
 		if (hasTimeAndWindControls) {
-			IDrawing.setPositionAndWidth(checkboxUseTimeAndWindSync, SQUARE_SIZE, SQUARE_SIZE, width);
+			IDrawing.setPositionAndWidth(checkboxUseTimeAndWindSync, SQUARE_SIZE, SQUARE_SIZE, Math.max(0, width - SQUARE_SIZE * 2));
 			checkboxUseTimeAndWindSync.setChecked(useTimeAndWindSync);
 			offsetY = SQUARE_SIZE;
 		} else {
@@ -137,7 +137,7 @@ public class ConfigScreen extends ScreenMapper implements IGui {
 			IDrawing.setPositionAndWidth(sliderDynamicTextureResolution, width - SQUARE_SIZE - BUTTON_WIDTH, BUTTON_HEIGHT * (i++) + SQUARE_SIZE + offsetY, BUTTON_WIDTH - TEXT_PADDING - font.width("100%"));
 			IDrawing.setPositionAndWidth(sliderTrainRenderDistanceRatio, width - SQUARE_SIZE - BUTTON_WIDTH, BUTTON_HEIGHT * (i++) + SQUARE_SIZE + offsetY, BUTTON_WIDTH - TEXT_PADDING - font.width("100%"));
 		}
-		IDrawing.setPositionAndWidth(buttonSupportPatreon, width - SQUARE_SIZE - BUTTON_WIDTH, BUTTON_HEIGHT * i + SQUARE_SIZE + offsetY, BUTTON_WIDTH);
+		IDrawing.setPositionAndWidth(buttonSupport, width - SQUARE_SIZE - BUTTON_WIDTH, BUTTON_HEIGHT * i + SQUARE_SIZE + offsetY, BUTTON_WIDTH);
 		setButtonText(buttonUseMTRFont, useMTRFont);
 		setButtonText(buttonShowAnnouncementMessages, showAnnouncementMessages);
 		setButtonText(buttonUseTTSAnnouncements, useTTSAnnouncements);
@@ -152,7 +152,7 @@ public class ConfigScreen extends ScreenMapper implements IGui {
 		sliderDynamicTextureResolution.setValue(Config.dynamicTextureResolution());
 		sliderTrainRenderDistanceRatio.setHeight(BUTTON_HEIGHT);
 		sliderTrainRenderDistanceRatio.setValue(Config.trainRenderDistanceRatio());
-		buttonSupportPatreon.setMessage(Text.translatable("gui.mtr.support"));
+		buttonSupport.setMessage(Text.translatable("gui.mtr.support"));
 
 		if (hasTimeAndWindControls) {
 			addDrawableChild(checkboxUseTimeAndWindSync);
@@ -170,7 +170,7 @@ public class ConfigScreen extends ScreenMapper implements IGui {
 			addDrawableChild(sliderDynamicTextureResolution);
 			addDrawableChild(sliderTrainRenderDistanceRatio);
 		}
-		addDrawableChild(buttonSupportPatreon);
+		addDrawableChild(buttonSupport);
 	}
 
 	@Override
@@ -195,7 +195,7 @@ public class ConfigScreen extends ScreenMapper implements IGui {
 				guiGraphics.text(font, Text.translatable("options.mtr.dynamic_texture_resolution"), SQUARE_SIZE, BUTTON_HEIGHT * (i++) + yStart1, ARGB_WHITE);
 				guiGraphics.text(font, Text.translatable("options.mtr.vehicle_render_distance_ratio"), SQUARE_SIZE, BUTTON_HEIGHT * (i++) + yStart1, ARGB_WHITE);
 			}
-			guiGraphics.text(font, Text.translatable("options.mtr.support_patreon"), SQUARE_SIZE, BUTTON_HEIGHT * (i++) + yStart1, ARGB_WHITE);
+			guiGraphics.text(font, Text.translatable("options.mtr.support_afdian"), SQUARE_SIZE, BUTTON_HEIGHT * (i++) + yStart1, ARGB_WHITE);
 
 			final int yStart2 = BUTTON_HEIGHT * (i + 1) + yStart1;
 			String tierTitle = "";

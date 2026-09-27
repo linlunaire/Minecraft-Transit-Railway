@@ -4,7 +4,8 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import mtr.packet.IPacket;
 import mtr.path.PathData;
-import mtr.path.PathFinder;
+import mtr.path.PathGenerationTask;
+import mtr.path.SidingRoutePlan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -17,11 +18,13 @@ import org.msgpack.value.Value;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.BooleanSupplier;
 
 public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 
 	private Level world;
 	private Depot depot;
+	private final PathGenerationTask.PublicationGate routePublication = new PathGenerationTask.PublicationGate();
 	private String trainId;
 	private String baseTrainType;
 	private int trainCars;
@@ -252,6 +255,9 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 	}
 
 	public void setSidingData(Level world, Depot depot, Map<BlockPos, Map<BlockPos, Rail>> rails) {
+		if (this.world != world || this.depot != depot) {
+			routePublication.bind(depot);
+		}
 		this.world = world;
 		this.depot = depot;
 
@@ -270,57 +276,22 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 	}
 
 	public int generateRoute(MinecraftServer minecraftServer, List<PathData> mainPath, int successfulSegmentsMain, Map<BlockPos, Map<BlockPos, Rail>> rails, SavedRailBase firstPlatform, SavedRailBase lastPlatform, boolean repeatInfinitely, int cruisingAltitude, boolean useFastSpeed) {
-		final List<PathData> tempPath = new ArrayList<>();
-		final int successfulSegments;
-		final int tempRepeatIndex1;
-		final int tempRepeatIndex2;
-
-		if (firstPlatform == null || lastPlatform == null) {
-			successfulSegments = 0;
-			tempRepeatIndex1 = 0;
-			tempRepeatIndex2 = 0;
-		} else {
-			final List<SavedRailBase> depotAndFirstPlatform = new ArrayList<>();
-			depotAndFirstPlatform.add(this);
-			depotAndFirstPlatform.add(firstPlatform);
-			PathFinder.findPath(tempPath, rails, depotAndFirstPlatform, 0, cruisingAltitude, useFastSpeed);
-
-			if (tempPath.isEmpty()) {
-				successfulSegments = 1;
-				tempRepeatIndex1 = 0;
-				tempRepeatIndex2 = 0;
-			} else if (mainPath.isEmpty()) {
-				tempPath.clear();
-				successfulSegments = successfulSegmentsMain + 1;
-				tempRepeatIndex1 = 0;
-				tempRepeatIndex2 = 0;
-			} else {
-				tempRepeatIndex1 = repeatInfinitely ? tempPath.size() - (tempPath.get(tempPath.size() - 1).isOppositeRail(mainPath.get(0)) ? 0 : 1) : 0;
-				PathFinder.appendPath(tempPath, mainPath);
-
-				final List<SavedRailBase> lastPlatformAndDepot = new ArrayList<>();
-				lastPlatformAndDepot.add(lastPlatform);
-				lastPlatformAndDepot.add(this);
-				final List<PathData> pathLastPlatformToDepot = new ArrayList<>();
-				PathFinder.findPath(pathLastPlatformToDepot, rails, lastPlatformAndDepot, successfulSegmentsMain, cruisingAltitude, useFastSpeed);
-
-				if (pathLastPlatformToDepot.isEmpty()) {
-					successfulSegments = successfulSegmentsMain + 1;
-					tempPath.clear();
-					tempRepeatIndex2 = 0;
-				} else {
-					tempRepeatIndex2 = repeatInfinitely ? tempPath.size() - 1 : 0;
-					PathFinder.appendPath(tempPath, pathLastPlatformToDepot);
-					successfulSegments = successfulSegmentsMain + 2;
-				}
-			}
-		}
+		final BooleanSupplier canPublish = routePublication.capture();
+		final SidingRoutePlan.Result routePlan = SidingRoutePlan.compute(this, mainPath, successfulSegmentsMain, rails, firstPlatform, lastPlatform, repeatInfinitely, cruisingAltitude, useFastSpeed);
+		final List<PathData> tempPath = routePlan.path;
+		final int successfulSegments = routePlan.successfulSegments;
+		final int tempRepeatIndex1 = routePlan.repeatIndex1;
+		final int tempRepeatIndex2 = routePlan.repeatIndex2;
 
 		final List<TimeSegment> tempTimeSegments = new ArrayList<>();
 		final Map<Long, Map<Long, Float>> tempPlatformTimes = new HashMap<>();
 		generateTimeSegments(tempPath, tempTimeSegments, tempPlatformTimes);
+		PathGenerationTask.checkInterrupted();
 
 		minecraftServer.execute(() -> {
+			if (!canPublish.getAsBoolean()) {
+				return;
+			}
 			try {
 				path.clear();
 				if (tempPath.isEmpty()) {
@@ -475,11 +446,13 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 	}
 
 	private void generateTimeSegments(List<PathData> path, List<TimeSegment> timeSegments, Map<Long, Map<Long, Float>> platformTimes) {
+		PathGenerationTask.checkInterrupted();
 		timeSegments.clear();
 
 		double distanceSum1 = 0;
 		final List<Double> stoppingDistances = new ArrayList<>();
 		for (final PathData pathData : path) {
+			PathGenerationTask.checkInterrupted();
 			distanceSum1 += pathData.rail.getLength();
 			if (pathData.dwellTime > 0) {
 				stoppingDistances.add(distanceSum1);
@@ -508,6 +481,7 @@ public class Siding extends SavedRailBase implements IPacket, IReducedSaveData {
 			distanceSum2 += pathData.rail.getLength();
 
 			while (railProgress < distanceSum2) {
+				PathGenerationTask.checkInterrupted();
 				final int speedChange;
 				if (speed > railSpeed || nextStoppingDistance - railProgress + 1 < 0.5 * speed * speed / accelerationConstant) {
 					speed = Math.max(speed - accelerationConstant, accelerationConstant);

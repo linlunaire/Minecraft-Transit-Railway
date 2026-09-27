@@ -1,0 +1,15 @@
+# Original Java SHA256: 15f96a804948735ab69ef717a3f09bafaa9c58a842f25aaf91f0706a4901e8ec
+C:mtr/data/RailwayDataRouteFinderModule	[PUBLIC] mtr/data/RailwayDataModuleBase []
+M:mtr/data/RailwayDataRouteFinderModule.<init>(Lmtr/data/RailwayData;Lnet/minecraft/world/level/Level;Ljava/util/Map;)V	[PUBLIC] (Lmtr/data/RailwayData;Lnet/minecraft/world/level/Level;Ljava/util/Map<Lnet/minecraft/core/BlockPos;Ljava/util/Map<Lnet/minecraft/core/BlockPos;Lmtr/data/Rail;>;>;)V []
+M:mtr/data/RailwayDataRouteFinderModule.findRoute(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;ILjava/util/function/BiConsumer;)Z	[PUBLIC] (Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;ILjava/util/function/BiConsumer<Ljava/util/List<Lmtr/data/RailwayDataRouteFinderModule$RouteFinderData;>;Ljava/lang/Integer;>;)Z []
+M:mtr/data/RailwayDataRouteFinderModule.getConnectionDensity(Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)I	[PUBLIC]  []
+M:mtr/data/RailwayDataRouteFinderModule.tick()V	[PUBLIC]  []
+C:mtr/data/RailwayDataRouteFinderModule$ConnectionDetails	[PUBLIC] java/lang/Object []
+M:mtr/data/RailwayDataRouteFinderModule$ConnectionDetails.<init>(Lmtr/data/Platform;)V	[PUBLIC]  []
+M:mtr/data/RailwayDataRouteFinderModule$ConnectionDetails.addDurationInfo(JI)V	[PUBLIC]  []
+C:mtr/data/RailwayDataRouteFinderModule$RouteFinderData	[PUBLIC] java/lang/Object []
+F:mtr/data/RailwayDataRouteFinderModule$RouteFinderData.duration:I	[FINAL, PUBLIC]
+F:mtr/data/RailwayDataRouteFinderModule$RouteFinderData.pos:Lnet/minecraft/core/BlockPos;	[FINAL, PUBLIC]
+F:mtr/data/RailwayDataRouteFinderModule$RouteFinderData.routeId:J	[FINAL, PUBLIC]
+F:mtr/data/RailwayDataRouteFinderModule$RouteFinderData.stationIds:Ljava/util/List;	[FINAL, PUBLIC] Ljava/util/List<Ljava/lang/Long;>;
+F:mtr/data/RailwayDataRouteFinderModule$RouteFinderData.waitingTime:I	[FINAL, PUBLIC]

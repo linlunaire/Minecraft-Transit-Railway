@@ -1,0 +1,156 @@
+# Baseline JAR SHA-256 d7aba6ad927ec6a2a1c648ddc34cdc16c77925b39a5be777cfe85b9180497ce5
+# Original Java leaf models, Minecraft 26.2; sorted full quads
+# Position/normal quantum=0.0001, UV quantum=0.000001
+ModelATrainMini/false/closed-stages	dd949353a6595d901188bdd38042251c6c1dfe646cecac90c9e49a09971b0f3c
+ModelATrainMini/false/configuration	PLUG_FAST;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelATrainMini/false/construction	fields=217;cubes=278;vertices=6672;quads=1668;sha256=9ae9a74bedb81aa14171283d57def78edcc9d92795590cefafcb8e57ba983bf6
+ModelATrainMini/false/open-middle-stages	6af16db7c09fc89d7cd38edaeb575c18898b5ee79bb2dc968cf8ebe1e63d2012
+ModelATrainMini/true/closed-stages	a5fd20803909813bab4da20ce3d1c1ec749e1fc5c7cc75dfe7caabff17aad07d
+ModelATrainMini/true/configuration	PLUG_FAST;overlay=true;doorMax=11;duration=0x1.924924p-2;getWindowPositions=[-93, -67, -41, 41, 67, 93];getDoorPositions=[0];getEndPositions=[-104, 104];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelATrainMini/true/construction	fields=217;cubes=278;vertices=6672;quads=1668;sha256=9ae9a74bedb81aa14171283d57def78edcc9d92795590cefafcb8e57ba983bf6
+ModelATrainMini/true/open-middle-stages	a92c1a6ae83eadec9449a825e017da63d9af7ae322afb2d7bf7a0fd808148d65
+ModelATrainSmall/false/closed-stages	6b6b245fea61665016ab73986332a42675be3c240ee96f2e86ec9f2592fc2581
+ModelATrainSmall/false/configuration	PLUG_FAST;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelATrainSmall/false/construction	fields=217;cubes=278;vertices=6672;quads=1668;sha256=9ae9a74bedb81aa14171283d57def78edcc9d92795590cefafcb8e57ba983bf6
+ModelATrainSmall/false/open-middle-stages	b8b9ed3dffb5552505e84edce3ea9408bfdf5ae3dde40b321e1b9d0a66ec17a1
+ModelATrainSmall/true/closed-stages	0625d372a61a5c6352b49c60c667975b6c80dccea63cd6c3461ac4fee707e81b
+ModelATrainSmall/true/configuration	PLUG_FAST;overlay=true;doorMax=11;duration=0x1.924924p-2;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelATrainSmall/true/construction	fields=217;cubes=278;vertices=6672;quads=1668;sha256=9ae9a74bedb81aa14171283d57def78edcc9d92795590cefafcb8e57ba983bf6
+ModelATrainSmall/true/open-middle-stages	88236b5939bf6aa476dc6d79eadaecd994fc5ec5f946b617145927cbe1783ffe
+ModelBogie/construction	fields=1;cubes=4;vertices=96;quads=24;sha256=f6bb2f538f37543df197437d08649d712ba9c5b91b59f3de37f4c5f53df6d6cd
+ModelCMStockMini/closed-stages	a19a42c650280f940296ea5d9e2b8c2331f798601f2ff9600fbc9e2f90722e1f
+ModelCMStockMini/configuration	BOUNCY_1;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelCMStockMini/construction	fields=114;cubes=163;vertices=3912;quads=978;sha256=009bd43109dece77ce011b9e990f56e715d925e22884318d2b54198fa9c41727
+ModelCMStockMini/open-middle-stages	d8214da156453fd66ce56154dffce16b35926b7e63d7d9c50856b34e2e8e6ddc
+ModelCMStockSmall/closed-stages	ca727951d48e1ba7aa9efe7c3f1159bd691e775960d023855481ec35df96a554
+ModelCMStockSmall/configuration	BOUNCY_1;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelCMStockSmall/construction	fields=114;cubes=163;vertices=3912;quads=978;sha256=009bd43109dece77ce011b9e990f56e715d925e22884318d2b54198fa9c41727
+ModelCMStockSmall/open-middle-stages	6b7d405c81f4c34c5f97e6d779ab5cbd2f653ea62fb98f7a0295a453942d181c
+ModelCTrainMini/closed-stages	aa0c63b7a3bd4507bd798db41a4a4882a09a952da4baf9f14f30180695c77bd6
+ModelCTrainMini/configuration	STANDARD;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelCTrainMini/construction	fields=143;cubes=181;vertices=4344;quads=1086;sha256=5f4a9f70aab0f38071fed278fcf87542ad3b33c6907420eb7d4d7a604914ab08
+ModelCTrainMini/open-middle-stages	7406b3debb93d3b25edf1f304b38fb3d234943415eb037b6b69e9472c656977e
+ModelCTrainSmall/closed-stages	288684bd59d5a70422948a2ffe150d5d06fceef1075a92b591372112d9ec1971
+ModelCTrainSmall/configuration	STANDARD;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelCTrainSmall/construction	fields=143;cubes=181;vertices=4344;quads=1086;sha256=5f4a9f70aab0f38071fed278fcf87542ad3b33c6907420eb7d4d7a604914ab08
+ModelCTrainSmall/open-middle-stages	b5f29e0d94395f362bcdbc7ee282b556f558d066da61a1cff6d7d20bd5770c8b
+ModelCableCarGrip/construction	fields=1;cubes=7;vertices=168;quads=42;sha256=270804042fa73667a11716d867e119430e3ae4c0a51932421b2ce1581c122a96
+ModelClass802Mini/closed-stages	0825255fcf2b025cf9f9d5dfa42925a7ca4e4562ddcc395bee50a774848d46e8
+ModelClass802Mini/configuration	STANDARD;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-105, 105];getEndPositions=[-105, 105];getBogiePositions=[-79, 79];true,false,true,false,true,true,false,false,
+ModelClass802Mini/construction	fields=238;cubes=307;vertices=7368;quads=1842;sha256=764ded74a4db3b43c5a23d74f35aebac6e6bb5988a69c5f6e03accf0b5dfc2dd
+ModelClass802Mini/open-middle-stages	1c5f4adf808689375f9defe02a1244e0f946751c29ddc643736bdd65f84f41ff
+ModelDoorOverlay/custom-pivot/construction	fields=13;cubes=13;vertices=312;quads=78;sha256=7a8131032830d84349d58002a6d7d00c5a1687e27b7f7f4fa8e7faf17ca70b88
+ModelDoorOverlay/custom-pivot/overlay	doorOverlayTextureLeft=mtr:textures/block/sign/left.png;doorOverlayTextureRight=mtr:textures/block/sign/right.png;renderLeft=true;renderRight=true;
+ModelDoorOverlay/default-pivot/construction	fields=13;cubes=13;vertices=312;quads=78;sha256=51b3988c4c442be604e7182f8da7309bb0f55e23e44fe56578d93eaf04ada29e
+ModelDoorOverlay/default-pivot/overlay	doorOverlayTextureLeft=mtr:textures/block/sign/left.png;doorOverlayTextureRight=mtr:textures/block/sign/right.png;renderLeft=true;renderRight=true;
+ModelDoorOverlay/disabled-null-textures/construction	fields=13;cubes=13;vertices=312;quads=78;sha256=5e2bc94a8e40717ae12e279c9dcbea40d96ca3e27675db66ebe538ddec461bb8
+ModelDoorOverlay/disabled-null-textures/overlay	doorOverlayTextureLeft=mtr:textures/block/sign/null;doorOverlayTextureRight=mtr:textures/block/sign/null;renderLeft=false;renderRight=false;
+ModelDoorOverlayTop/construction	fields=3;cubes=3;vertices=72;quads=18;sha256=bff241588d19eb5f07233231d2f7292b6169f7d8742412fa3ac885763843d6df
+ModelE44Mini/closed-stages	e29b920a1e0db06039659fe0871279c70578df1c2ba9d10688c4a295e1f5bfe2
+ModelE44Mini/configuration	BOUNCY_1;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-34, 34];getDoorPositions=[0];getEndPositions=[-62, 62];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelE44Mini/construction	fields=166;cubes=226;vertices=5424;quads=1356;sha256=7028309f5d40fdc7245e9a84b22195fecedc8e908f9927a952a4fd86cedb652c
+ModelE44Mini/open-middle-stages	65bc5a2b71efa7cb6326da543d640f1b0ca67d3d5437450bb34fb9face6f4969
+ModelKTrainMini/false/closed-stages	4100f98d3be4db92f0d05f16e8abac52f0a8bd87bea012827c15b84e593ec4f8
+ModelKTrainMini/false/configuration	PLUG_SLOW;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelKTrainMini/false/construction	fields=117;cubes=160;vertices=3840;quads=960;sha256=8c0c658d751502e0a88466a9ec16fe6e865b6e40f41b229656b7798d788d9881
+ModelKTrainMini/false/open-middle-stages	fd85370797b754cadad1531166b2daca7be292d696e2c698731799a81613a1d2
+ModelKTrainMini/true/closed-stages	bf9e1f4fddea073a2f47f3e069705107d19478264bf5f97e6c0837d29d66cd49
+ModelKTrainMini/true/configuration	PLUG_SLOW;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelKTrainMini/true/construction	fields=117;cubes=160;vertices=3840;quads=960;sha256=8c0c658d751502e0a88466a9ec16fe6e865b6e40f41b229656b7798d788d9881
+ModelKTrainMini/true/open-middle-stages	fd85370797b754cadad1531166b2daca7be292d696e2c698731799a81613a1d2
+ModelKTrainSmall/false/closed-stages	e7f015fac5952fe0fd505b9a8f938096dc0a3f71875dfece6827cb12eaa951db
+ModelKTrainSmall/false/configuration	PLUG_SLOW;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelKTrainSmall/false/construction	fields=117;cubes=160;vertices=3840;quads=960;sha256=8c0c658d751502e0a88466a9ec16fe6e865b6e40f41b229656b7798d788d9881
+ModelKTrainSmall/false/open-middle-stages	430d79d90bf2c337d757b2df325fe0c8057225b76ffcbe328f15125fa7ccba62
+ModelKTrainSmall/true/closed-stages	da0fd79c4ae9588363b9ac62ef3d53e076007dec8e13a309ee86e96c8a27456d
+ModelKTrainSmall/true/configuration	PLUG_SLOW;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelKTrainSmall/true/construction	fields=117;cubes=160;vertices=3840;quads=960;sha256=8c0c658d751502e0a88466a9ec16fe6e865b6e40f41b229656b7798d788d9881
+ModelKTrainSmall/true/open-middle-stages	430d79d90bf2c337d757b2df325fe0c8057225b76ffcbe328f15125fa7ccba62
+ModelLift1/compact/closed-stages	e254345004b8d6047ccaa0e1057b9b2b32b6177b4ade13fb653be5fc1290c10f
+ModelLift1/compact/configuration	CONSTANT;overlay=false;doorMax=6;duration=0x1.0p-1;getWindowPositions=absent;getDoorPositions=absent;getEndPositions=absent;getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelLift1/compact/construction	fields=34;cubes=52;vertices=1248;quads=312;sha256=d010615d325dd3197bd84fb5330964267e3c9f356bf47a42cbffd514213f7842
+ModelLift1/compact/open-middle-stages	c69e0f2ab1ffdab4f7ad265bad7c33b5d34fb357974a3c26ab39676948a4b194
+ModelLift1/double-narrow/closed-stages	fb75441854b323d59cca2f5e2d80e815a2014c91595e8c9d23540b41f2a19222
+ModelLift1/double-narrow/configuration	CONSTANT;overlay=false;doorMax=6;duration=0x1.0p-1;getWindowPositions=absent;getDoorPositions=absent;getEndPositions=absent;getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelLift1/double-narrow/construction	fields=34;cubes=52;vertices=1248;quads=312;sha256=d010615d325dd3197bd84fb5330964267e3c9f356bf47a42cbffd514213f7842
+ModelLift1/double-narrow/open-middle-stages	0127d931030059a53a0e6f3539ed50b62c26a9eb326347104abc3d3e3d6a4101
+ModelLift1/double-wide/closed-stages	99f68716a59b75633b013fe95e56519cd5e92faeb1be2d783f4fdf3121688838
+ModelLift1/double-wide/configuration	CONSTANT;overlay=false;doorMax=6;duration=0x1.0p-1;getWindowPositions=absent;getDoorPositions=absent;getEndPositions=absent;getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelLift1/double-wide/construction	fields=34;cubes=52;vertices=1248;quads=312;sha256=d010615d325dd3197bd84fb5330964267e3c9f356bf47a42cbffd514213f7842
+ModelLift1/double-wide/open-middle-stages	fca8be628ef45656290f0b96cd47a6621d9896d0526c16563b7d3979fa9f1983
+ModelLift1/large/closed-stages	561a8480344f4d09a6dd97d203e8583bd7c4d384bacbe2f4ea24bba763e20951
+ModelLift1/large/configuration	CONSTANT;overlay=false;doorMax=6;duration=0x1.0p-1;getWindowPositions=absent;getDoorPositions=absent;getEndPositions=absent;getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelLift1/large/construction	fields=34;cubes=52;vertices=1248;quads=312;sha256=d010615d325dd3197bd84fb5330964267e3c9f356bf47a42cbffd514213f7842
+ModelLift1/large/open-middle-stages	b4a06154a177f21ac32f1c0e41e9763f8fb0dd72a699f560b2b9d6e43e9d0aef
+ModelLondonUndergroundD78Mini/closed-stages	cf21fa80c56811f1a8e8b05ba66d95da58de9cff834ea760b616fab04843e500
+ModelLondonUndergroundD78Mini/configuration	STANDARD;overlay=true;doorMax=17;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-32, 32];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelLondonUndergroundD78Mini/construction	fields=147;cubes=212;vertices=5088;quads=1272;sha256=f354a0f690d2bc679c665256441f20192262f71ecb0c59d248dea9cc71d771a3
+ModelLondonUndergroundD78Mini/open-middle-stages	40cf1101e1e421585ab5eb09f738c1d1716d680df7ee85933ff6d1d99219ed4c
+ModelMLRMini/false/closed-stages	a5480f3de74ea6279f60da05fd15fe9d4c4977d386851d7fa468488409c72c73
+ModelMLRMini/false/configuration	MLR;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-32, 32];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelMLRMini/false/construction	fields=207;cubes=306;vertices=7344;quads=1836;sha256=a3e4d39d2a45c16abbacbe89742d48eea66343da306f4055be58144c59e6b5e8
+ModelMLRMini/false/open-middle-stages	10c6d411e21289cc388238c1e497c90503f0df2bab5e04d688b0eae4344411c1
+ModelMLRMini/true/closed-stages	e6522b03886c9180b9ef68dedd3979417ff8d3c544d21188d2eb8d98d51833ac
+ModelMLRMini/true/configuration	MLR;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-32, 32];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelMLRMini/true/construction	fields=207;cubes=306;vertices=7344;quads=1836;sha256=a3e4d39d2a45c16abbacbe89742d48eea66343da306f4055be58144c59e6b5e8
+ModelMLRMini/true/open-middle-stages	6b54d301331801ce6e7411a4fe69658dd8c90f343990ba8eaf2609e506911d05
+ModelMLRSmall/false/closed-stages	f6f2802cb842cb79034900d0c888bb26c5d0df6aad29d1a1c2be41d93deba679
+ModelMLRSmall/false/configuration	MLR;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-64, 0, 64];getDoorPositions=[-96, -32, 32, 96];getEndPositions=[-128, 128];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelMLRSmall/false/construction	fields=207;cubes=306;vertices=7344;quads=1836;sha256=a3e4d39d2a45c16abbacbe89742d48eea66343da306f4055be58144c59e6b5e8
+ModelMLRSmall/false/open-middle-stages	2c94b715bba246a4d052bc473c6992c2e3b58c70468cbea0ed15191f706d4d56
+ModelMLRSmall/true/closed-stages	585fca7f086f13ecdd962486a0e0a4cf5d3821d4f489a6fd85554e92c0fc9a90
+ModelMLRSmall/true/configuration	MLR;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-64, 0, 64];getDoorPositions=[-96, -32, 32, 96];getEndPositions=[-128, 128];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelMLRSmall/true/construction	fields=207;cubes=306;vertices=7344;quads=1836;sha256=a3e4d39d2a45c16abbacbe89742d48eea66343da306f4055be58144c59e6b5e8
+ModelMLRSmall/true/open-middle-stages	32f034b1272614f55e66df22ac60c66800db33e2b4377bf5a9cccf900277cc63
+ModelMTrainMini/closed-stages	8198ac1c4defa39cb619126b22b24b61295c52dd02e8fe5e7b869be61152709f
+ModelMTrainMini/configuration	BOUNCY_1;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelMTrainMini/construction	fields=115;cubes=163;vertices=3912;quads=978;sha256=e04d0ce4a921969f251d0266048c048e4189abc35f02e0db8bc3c353ac523b8e
+ModelMTrainMini/open-middle-stages	02a0224b8891107a77f29303062f4c0fda6461380ff8893919a8effd4740b20d
+ModelMTrainSmall/closed-stages	9703134efff5085c3b4caa2531260a38e98b4d7d4ac608b1b9359dddd6dc0999
+ModelMTrainSmall/configuration	BOUNCY_1;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelMTrainSmall/construction	fields=115;cubes=163;vertices=3912;quads=978;sha256=e04d0ce4a921969f251d0266048c048e4189abc35f02e0db8bc3c353ac523b8e
+ModelMTrainSmall/open-middle-stages	1bb54970f63e93cd411c94b5dbe7161a88cd23faf6ee9721a1ed40ef8a4b114d
+ModelR179Mini/closed-stages	40c4f98616ceca9d43a438d4574df65114853e0e6ee8799391c637869d9f899b
+ModelR179Mini/configuration	R179;overlay=true;doorMax=12;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelR179Mini/construction	fields=216;cubes=302;vertices=7248;quads=1812;sha256=6ca9b61a5253f66d8507771ac7c9cc41263e70601f32c8e37279114221ae37e0
+ModelR179Mini/open-middle-stages	6b0174f26be9a418c173cd60f2661f6d8e2f141cd8a429bec8e000942a733e27
+ModelR211Mini/false/closed-stages	a6a947714f96d4a65769f337bf02601c28d7f629a1e3c6778d541152f020a76e
+ModelR211Mini/false/configuration	R211;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelR211Mini/false/construction	fields=179;cubes=254;vertices=6096;quads=1524;sha256=90c16918a0bd9e0bc4952b3daefdef139630f245f269a60199456c0e25b33f61
+ModelR211Mini/false/open-middle-stages	e5028c6974e3a86d4fbb8834c26d1586867fb18ebab2c511b2c1614232c2c1eb
+ModelR211Mini/true/closed-stages	a6a947714f96d4a65769f337bf02601c28d7f629a1e3c6778d541152f020a76e
+ModelR211Mini/true/configuration	R211;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelR211Mini/true/construction	fields=179;cubes=254;vertices=6096;quads=1524;sha256=90c16918a0bd9e0bc4952b3daefdef139630f245f269a60199456c0e25b33f61
+ModelR211Mini/true/open-middle-stages	43f926e1edc14f486e26b2fd26e2a094f8e9a94172020443c2ce297d994f62da
+ModelRTrainMini/closed-stages	5e4201c96de0ea9c9b7f6eed8a08a45bf07f8ee6a9eaddb61d18e572c1ab41f5
+ModelRTrainMini/configuration	STANDARD;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelRTrainMini/construction	fields=168;cubes=237;vertices=5688;quads=1422;sha256=08dfa1f0752c8fe528e7667643e68d4ca564fafe3e3e0520136e3c1b728321cb
+ModelRTrainMini/open-middle-stages	fb527c58e47232b62ca2a5d724c18c22c16eac638083e354fafb5f2587fffc34
+ModelRTrainSmall/closed-stages	134a031ddd2498cd5f4aef297edeb8fc394cd1ec04ba6f7f78805c0ee4d7e1cc
+ModelRTrainSmall/configuration	STANDARD;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelRTrainSmall/construction	fields=168;cubes=237;vertices=5688;quads=1422;sha256=08dfa1f0752c8fe528e7667643e68d4ca564fafe3e3e0520136e3c1b728321cb
+ModelRTrainSmall/open-middle-stages	24a70921f1a3b42fc7e245888ad9769be12a027c97f74f8e92c1a2643627825e
+ModelSP1900Mini/false/closed-stages	9653f01f44a804ece893dc235e3185cbedbce7ec5c8835e0d2c9c474cfd65650
+ModelSP1900Mini/false/configuration	STANDARD;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-32, 32];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelSP1900Mini/false/construction	fields=199;cubes=293;vertices=7032;quads=1758;sha256=f0312fc550cdc56a3f05c0264dccd548cf171b8e9460e129c8f52fed213aae9e
+ModelSP1900Mini/false/open-middle-stages	fae4e871c941dc01a6d08a0727b6aaca067fe8e9b60da8b3e18e4c9b4c6debbb
+ModelSP1900Mini/true/closed-stages	b5b4604b78cca41e242244c8a14abb5a27b0268769c585f2e9a56ae928836571
+ModelSP1900Mini/true/configuration	STANDARD;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-32, 32];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelSP1900Mini/true/construction	fields=199;cubes=293;vertices=7032;quads=1758;sha256=f0312fc550cdc56a3f05c0264dccd548cf171b8e9460e129c8f52fed213aae9e
+ModelSP1900Mini/true/open-middle-stages	0de950061bdd878913e1c8699fe9b3976e443a389b91b44c54a1033c2b7d1c2b
+ModelSP1900Small/false/closed-stages	f1c028303dec888545bc43ae6c01077079634c3abe29eb6a10540ce8d7c6f7ff
+ModelSP1900Small/false/configuration	STANDARD;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-64, 0, 64];getDoorPositions=[-96, -32, 32, 96];getEndPositions=[-128, 128];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelSP1900Small/false/construction	fields=199;cubes=293;vertices=7032;quads=1758;sha256=f0312fc550cdc56a3f05c0264dccd548cf171b8e9460e129c8f52fed213aae9e
+ModelSP1900Small/false/open-middle-stages	22ba8c1723fb19a46b8208c9e35aeafa01431744acbd08ef9163fcaafaf5b9e7
+ModelSP1900Small/true/closed-stages	e889066c6197da1db6652664f5b9cbb36cfd7394a4e362266e3550253c0f39ba
+ModelSP1900Small/true/configuration	STANDARD;overlay=true;doorMax=14;duration=0x1.0p-1;getWindowPositions=[-64, 0, 64];getDoorPositions=[-96, -32, 32, 96];getEndPositions=[-128, 128];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelSP1900Small/true/construction	fields=199;cubes=293;vertices=7032;quads=1758;sha256=f0312fc550cdc56a3f05c0264dccd548cf171b8e9460e129c8f52fed213aae9e
+ModelSP1900Small/true/open-middle-stages	c3929123e1fec48299f6287c068664ffcf89edef054ea06251cccb8294bcbe9f
+ModelSTrainMini/closed-stages	066fa39f2c2e988c54818b29497b669985daa1eb21323fde49350a77cba59d7d
+ModelSTrainMini/configuration	STANDARD;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[0];getDoorPositions=[-40, 40];getEndPositions=[-64, 64];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelSTrainMini/construction	fields=181;cubes=228;vertices=5472;quads=1368;sha256=3d753bfb11ec6b500f857d24b5ae5c57e37a862df53571b24b8ec18d64bfb96b
+ModelSTrainMini/open-middle-stages	d31f957c05c8b8c9b2937fe5a97aaf203e31f1fa88ca1b35bdfef7dd42eb5b19
+ModelSTrainSmall/closed-stages	668b779d423629202e8dffbfcfdc9bd46024f6041d601251bb4f17160b8b86bb
+ModelSTrainSmall/configuration	STANDARD;overlay=true;doorMax=13;duration=0x1.0p-1;getWindowPositions=[-80, 0, 80];getDoorPositions=[-120, -40, 40, 120];getEndPositions=[-144, 144];getBogiePositions=absent;renderFirstDestination=absent;renderSecondDestination=absent;
+ModelSTrainSmall/construction	fields=181;cubes=228;vertices=5472;quads=1368;sha256=3d753bfb11ec6b500f857d24b5ae5c57e37a862df53571b24b8ec18d64bfb96b
+ModelSTrainSmall/open-middle-stages	c87c1e92ee257572b226294b10b7d500a1aad406fe6e7f127650d17eaeba16e8

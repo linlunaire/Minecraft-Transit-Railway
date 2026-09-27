@@ -11,6 +11,7 @@ configurations {
 }
 
 dependencies {
+	runtimeOnly files(rootProject.transitCoreLoaderJar('neoforge'))
 	neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 	api "dev.architectury:architectury-neoforge:${rootProject.architectury_version}"
 	common(project(path: ':common', configuration: 'apiElements')) { transitive = false }

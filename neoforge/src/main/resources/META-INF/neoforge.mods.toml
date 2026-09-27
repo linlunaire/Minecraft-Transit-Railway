@@ -19,6 +19,13 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.mtr]]
+modId = "transit_core"
+type = "required"
+versionRange = "[${transitCoreVersion},1)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.mtr]]
 modId = "minecraft"
 type = "required"
 versionRange = "[26.2]"

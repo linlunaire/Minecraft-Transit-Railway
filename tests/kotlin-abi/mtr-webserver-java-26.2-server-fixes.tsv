@@ -1,0 +1,17 @@
+# Java server-fix baseline: branch 26.2, commit b6ab4d366af3e10fda408b062a804805f39adedf (unshaded production classes)
+# Corresponding release JAR SHA256: e243ec1d73af04196c5c07f582a5ddb10f80a07032e2080020daec03182dc588
+# INTENTIONAL IMPLEMENTATION-FLAG DIFFERENCE: the original Java init/start/stop methods
+# have SYNCHRONIZED. Only those three expected flags are removed below: Kotlin uses
+# explicit synchronized(Webserver.class) blocks so Java and Companion callers share
+# one monitor without a second Companion lock. Names/descriptors/access/generics stay
+# unchanged; WebserverCompatibilityCheck verifies both actual entrypoints and rejects
+# the old Companion-only behavior. This is not an unmodified Java flag snapshot.
+C:mtr/servlet/Webserver	[ABSTRACT, PUBLIC] java/lang/Object []
+F:mtr/servlet/Webserver.callback:Ljava/util/function/Consumer;	[PUBLIC, STATIC] Ljava/util/function/Consumer<Ljava/lang/Runnable;>;
+F:mtr/servlet/Webserver.getDataCache:Ljava/util/function/Function;	[PUBLIC, STATIC] Ljava/util/function/Function<Lmtr/data/RailwayData;Lmtr/data/DataCache;>;
+F:mtr/servlet/Webserver.getRoutes:Ljava/util/function/Function;	[PUBLIC, STATIC] Ljava/util/function/Function<Lmtr/data/RailwayData;Ljava/util/Set<Lmtr/data/Route;>;>;
+F:mtr/servlet/Webserver.getWorlds:Ljava/util/function/Supplier;	[PUBLIC, STATIC] Ljava/util/function/Supplier<Ljava/util/List<Lnet/minecraft/world/level/Level;>;>;
+M:mtr/servlet/Webserver.<init>()V	[PUBLIC]  []
+M:mtr/servlet/Webserver.init()V	[PUBLIC, STATIC]  []
+M:mtr/servlet/Webserver.start(Ljava/nio/file/Path;)V	[PUBLIC, STATIC]  []
+M:mtr/servlet/Webserver.stop()V	[PUBLIC, STATIC]  []

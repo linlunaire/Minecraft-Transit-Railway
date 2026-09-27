@@ -6,8 +6,9 @@ import mtr.mappings.Text;
 import mtr.mappings.UtilitiesClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractSliderButton;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -20,9 +21,12 @@ public class WidgetShorterSlider extends AbstractSliderButton implements IGui {
 	private final Function<Integer, String> setMessage;
 	private final Consumer<Integer> shiftClickAction;
 
-	private static final int SLIDER_WIDTH = 6;
+	private static final int SLIDER_WIDTH = HANDLE_WIDTH;
 	private static final int TICK_HEIGHT = SQUARE_SIZE / 2;
-	private static final Identifier WIDGETS_LOCATION = Identifier.withDefaultNamespace("textures/gui/widgets.png");
+	private static final Identifier SLIDER = Identifier.withDefaultNamespace("widget/slider");
+	private static final Identifier SLIDER_HIGHLIGHTED = Identifier.withDefaultNamespace("widget/slider_highlighted");
+	private static final Identifier HANDLE = Identifier.withDefaultNamespace("widget/slider_handle");
+	private static final Identifier HANDLE_HIGHLIGHTED = Identifier.withDefaultNamespace("widget/slider_handle_highlighted");
 
 	public WidgetShorterSlider(int x, int width, int maxValue, int markerFrequency, int markerDisplayedRatio, Function<Integer, String> setMessage, Consumer<Integer> shiftClickAction) {
 		super(x, 0, width, 0, Text.literal(""), 0);
@@ -63,6 +67,7 @@ public class WidgetShorterSlider extends AbstractSliderButton implements IGui {
 	protected void applyValue() {
 	}
 
+	@Override
 	public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
 		render(guiGraphics);
 	}
@@ -87,24 +92,17 @@ public class WidgetShorterSlider extends AbstractSliderButton implements IGui {
 	private void render(GuiGraphicsExtractor guiGraphics) {
 		final Minecraft client = Minecraft.getInstance();
 
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this), UtilitiesClient.getWidgetY(this), 0, 46, width / 2, height / 2, 256, 256);
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this), UtilitiesClient.getWidgetY(this) + height / 2, 0, 66 - height / 2, width / 2, height / 2, 256, 256);
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this) + width / 2, UtilitiesClient.getWidgetY(this), 200 - width / 2, 46, width / 2, height / 2, 256, 256);
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this) + width / 2, UtilitiesClient.getWidgetY(this) + height / 2, 200 - width / 2, 66 - height / 2, width / 2, height / 2, 256, 256);
-
-		final int v = UtilitiesClient.isHovered(this) ? 86 : 66;
-		final int xOffset = (width - SLIDER_WIDTH) * getIntValue() / maxValue;
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this) + xOffset, UtilitiesClient.getWidgetY(this), 0, v, SLIDER_WIDTH / 2, height / 2, 256, 256);
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this) + xOffset, UtilitiesClient.getWidgetY(this) + height / 2, 0, v + 20 - height / 2, SLIDER_WIDTH / 2, height / 2, 256, 256);
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this) + xOffset + SLIDER_WIDTH / 2, UtilitiesClient.getWidgetY(this), 200 - SLIDER_WIDTH / 2, v, SLIDER_WIDTH / 2, height / 2, 256, 256);
-		guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this) + xOffset + SLIDER_WIDTH / 2, UtilitiesClient.getWidgetY(this) + height / 2, 200 - SLIDER_WIDTH / 2, v + 20 - height / 2, SLIDER_WIDTH / 2, height / 2, 256, 256);
+		guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, isActive() && isFocused() && !canChangeValue ? SLIDER_HIGHLIGHTED : SLIDER, getX(), getY(), width, height, ARGB.white(alpha));
+		final int xOffset = (int) (value * (width - SLIDER_WIDTH));
+		guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, isActive() && (isHovered || canChangeValue) ? HANDLE_HIGHLIGHTED : HANDLE, getX() + xOffset, getY(), SLIDER_WIDTH, height, ARGB.white(alpha));
 
 		guiGraphics.text(client.font, getMessage().getString(), UtilitiesClient.getWidgetX(this) + width + TEXT_PADDING, UtilitiesClient.getWidgetY(this) + (height - TEXT_HEIGHT) / 2, ARGB_WHITE);
 
 		if (markerFrequency > 0) {
 			for (int i = 1; i <= maxValue / markerFrequency; i++) {
 				final int xOffset1 = (width - SLIDER_WIDTH) * i * markerFrequency / maxValue;
-				guiGraphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, WIDGETS_LOCATION, UtilitiesClient.getWidgetX(this) + xOffset1 + SLIDER_WIDTH / 3, UtilitiesClient.getWidgetY(this) + height, 10, 68, 2, TICK_HEIGHT, 256, 256);
+				final int tickX = getX() + xOffset1 + SLIDER_WIDTH / 2 - 1;
+				guiGraphics.fill(tickX, getY() + height, tickX + 2, getY() + height + TICK_HEIGHT, ARGB_LIGHT_GRAY);
 				guiGraphics.centeredText(client.font, String.valueOf(i * markerFrequency / markerDisplayedRatio), UtilitiesClient.getWidgetX(this) + xOffset1 + SLIDER_WIDTH / 2, UtilitiesClient.getWidgetY(this) + height + TICK_HEIGHT + 2, ARGB_WHITE);
 			}
 		}

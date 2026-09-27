@@ -1,5 +1,9 @@
 # Kotlin runtime evaluation for MTR
 
+本文保留当时的评估结论。后续已按项目决定开始 Kotlin 迁移，当前进度、
+Transit Core 依赖和验证边界见[迁移记录](../kotlin-migration.md)；下文的
+“未引入 Kotlin”等表述仅描述对应日期，不代表当前工作区。
+
 ## 2026-09-24 补充：26.2、Java 25 与 80 人服务器
 
 本次范围是 Minecraft 26.2 / NeoForge、MTR + ANTE，目标服务器为独占
@@ -61,9 +65,9 @@ Java 对外边界，避免顺手转换这些目标类。
 
 - [ClientData](../../common/src/main/java/mtr/client/ClientData.java) 已有
   `TRAINS_BY_ID`，`getTrainById()` 使用映射查询。
-- [UpdateNearbyMovingObjects](../../common/src/main/java/mtr/data/UpdateNearbyMovingObjects.java)
+- [UpdateNearbyMovingObjects](../../common/src/main/kotlin/mtr/data/UpdateNearbyMovingObjects.kt)
   已采用顺序组包和同 tick 对象序列化缓存，没有原来的组包 `remove(0)`。
-- [RailwayDataRouteFinderModule](../../common/src/main/java/mtr/data/RailwayDataRouteFinderModule.java)
+- [RailwayDataRouteFinderModule](../../common/src/main/kotlin/mtr/data/RailwayDataRouteFinderModule.kt)
   已通过 `tempDataDuration` 维护累计时长。
 - 轨道兴趣查询仍值得优化；客户端渲染候选需另行核验，不能作为服务器
   80 人 TPS 的改善证据。

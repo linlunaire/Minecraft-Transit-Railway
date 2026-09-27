@@ -36,6 +36,7 @@ public class MTR implements IPacket {
 			BiConsumer<String, RegistryObject<? extends EntityType<? extends Entity>>> registerEntityType,
 			BiConsumer<String, SoundEvent> registerSoundEvent
 	) {
+		mtr.path.PathGenerationLifecycle.install();
 		mtr.mappings.NetworkUtilities.registerServerS2CTypes(dev.architectury.platform.Platform.getEnvironment(),
 			PACKET_VERSION_CHECK,
 			PACKET_CHUNK_S2C,

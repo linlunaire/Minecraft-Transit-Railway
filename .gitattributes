@@ -1,3 +1,5 @@
 /gradlew text eol=lf
 /gradlew.bat text eol=crlf
 *.jar binary
+# Golden TSV records may intentionally end with an empty final field.
+/tests/fixtures/*.tsv whitespace=-blank-at-eol

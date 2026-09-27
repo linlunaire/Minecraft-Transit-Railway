@@ -4,6 +4,7 @@ plugins {
 	id 'architectury-plugin' version '3.5.169'
 	id 'dev.architectury.loom-no-remap' version '1.17.491' apply false
 	id 'com.gradleup.shadow' version '9.2.2' apply false
+	id 'org.jetbrains.kotlin.jvm' version '2.4.20' apply false
 }
 
 if (JavaVersion.current() != JavaVersion.VERSION_25) {
@@ -14,6 +15,42 @@ if (minecraft_version != '26.2' || (project.hasProperty('buildVersion') && proje
 }
 
 architectury { minecraft = minecraft_version }
+
+ext.transitCoreRoot = file(providers.gradleProperty('transitCoreProjectDir').getOrElse(file('../Kotlin-LunaCore').isDirectory() ? '../Kotlin-LunaCore' : '../Transit-Core'))
+ext.transitCoreJar = new File(transitCoreRoot, "core/build/libs/transit-core-${transit_core_version}.jar")
+ext.transitCoreLoaderJar = { String loader ->
+	new File(transitCoreRoot, "build/release/Kotlin-LunaCore-${loader}-${minecraft_version}-${transit_core_version}.jar")
+}
+tasks.register('checkTransitCoreArtifacts') {
+	group = 'verification'
+	description = 'Verifies the separately built Transit Core library and loader dependencies are available.'
+	doLast {
+		([transitCoreJar] + ['fabric', 'neoforge'].collect { transitCoreLoaderJar(it) }).each { artifact ->
+			if (!artifact.isFile()) throw new GradleException("Missing Transit Core artifact: ${artifact}. Build Transit-Core first, or set -PtransitCoreProjectDir=<path>.")
+		}
+	}
+}
+
+def kotlinArtifactCheckClasses = layout.buildDirectory.dir('classes/kotlinCoreArtifactCheck')
+tasks.register('compileKotlinCoreArtifactCheck', JavaCompile) {
+	source 'tests/KotlinCoreArtifactCheck.java'
+	classpath = files()
+	destinationDirectory = kotlinArtifactCheckClasses
+	options.encoding = 'UTF-8'
+	options.release = 25
+	sourceCompatibility = '25'
+	targetCompatibility = '25'
+}
+
+tasks.register('compileKotlinMigrationAbiCheck', JavaCompile) {
+	source 'tests/KotlinMigrationAbiCheck.java'
+	classpath = files()
+	destinationDirectory = layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck')
+	options.encoding = 'UTF-8'
+	options.release = 25
+	sourceCompatibility = '25'
+	targetCompatibility = '25'
+}
 
 allprojects {
 	apply plugin: 'architectury-plugin'
@@ -34,18 +71,35 @@ allprojects {
 subprojects {
 	apply plugin: 'dev.architectury.loom-no-remap'
 	apply plugin: 'com.gradleup.shadow'
+	apply plugin: 'org.jetbrains.kotlin.jvm'
+	kotlin {
+		jvmToolchain(25)
+		coreLibrariesVersion = rootProject.kotlin_runtime_version
+		compilerOptions {
+			jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
+			jvmDefault = org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode.NO_COMPATIBILITY
+			moduleName = "mtr_${project.name}"
+		}
+	}
+	tasks.named('compileKotlin') { dependsOn rootProject.tasks.named('checkTransitCoreArtifacts') }
 	java {
 		toolchain.languageVersion = JavaLanguageVersion.of(25)
 		sourceCompatibility = JavaVersion.VERSION_25
 		targetCompatibility = JavaVersion.VERSION_25
 	}
 	tasks.withType(JavaCompile).configureEach {
+		dependsOn rootProject.tasks.named('checkTransitCoreArtifacts')
 		options.encoding = 'UTF-8'
 		options.release = 25
 		options.compilerArgs += ['-Xmaxerrs', '1000']
 	}
-	configurations { shadowCommon }
+	configurations {
+		shadowCommon
+		kotlinArtifactRuntime { canBeConsumed = false }
+	}
 	dependencies {
+		compileOnly files(rootProject.transitCoreJar)
+		kotlinArtifactRuntime "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.kotlin_runtime_version}"
 		minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
 		implementation name: 'Dynmap-3.2.1'
 		implementation name: 'BlueMapAPI-2.1.1'
@@ -72,12 +126,14 @@ subprojects {
 		}
 		sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/sources/keys')
 		tasks.named('compileJava') { dependsOn generateKeys }
+		tasks.named('compileKotlin') { dependsOn generateKeys }
 	}
 
 	processResources {
 		inputs.property 'version', project.version.toString()
+		inputs.property 'transitCoreVersion', rootProject.transit_core_version
 		filesMatching(['fabric.mod.json', 'META-INF/neoforge.mods.toml']) {
-			expand version: project.version
+			expand version: project.version, transitCoreVersion: rootProject.transit_core_version
 		}
 	}
 	shadowJar {
@@ -89,6 +145,30 @@ subprojects {
 		mergeServiceFiles()
 	}
 	if (project.name != 'common') {
+		tasks.register('checkKotlinCoreArtifact', JavaExec) {
+			group = 'verification'
+			dependsOn ':compileKotlinCoreArtifactCheck', tasks.named('shadowJar')
+			classpath = files(kotlinArtifactCheckClasses)
+			mainClass = 'KotlinCoreArtifactCheck'
+			doFirst {
+				def runtime = configurations.kotlinArtifactRuntime.files.find {
+					it.name == "kotlin-stdlib-${rootProject.kotlin_runtime_version}.jar"
+				}
+				if (runtime == null) throw new GradleException('Missing shared Kotlin runtime for artifact check')
+				args tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath, 'mtr', runtime.absolutePath,
+					rootProject.transitCoreLoaderJar(project.name).absolutePath
+			}
+		}
+		tasks.register('checkPackagedKotlinMigration', JavaExec) {
+			group = 'verification'
+			description = 'Verifies migrated JVM contracts and Kotlin implementations in the actual release JAR.'
+			dependsOn ':compileKotlinMigrationAbiCheck', tasks.named('shadowJar')
+			classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+			mainClass = 'KotlinMigrationAbiCheck'
+			args 'check-packaged', rootProject.file('tests/kotlin-abi').absolutePath,
+				tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath
+		}
+		tasks.named('check') { dependsOn 'checkKotlinCoreArtifact', 'checkPackagedKotlinMigration' }
 		def releaseJar = tasks.register('releaseJar', Copy) {
 			dependsOn tasks.named('shadowJar'), tasks.named('check'), ':common:check'
 			from tasks.named('shadowJar').flatMap { it.archiveFile }

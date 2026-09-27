@@ -7,6 +7,7 @@ import mtr.client.IDrawing;
 import mtr.data.*;
 import mtr.mappings.SelectableMapper;
 import mtr.mappings.Text;
+import mtr.mappings.TerrainMapGeometry;
 import mtr.mappings.UtilitiesClient;
 import mtr.mappings.WidgetMapper;
 import mtr.render.RenderTrains;
@@ -19,7 +20,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import mtr.mappings.Tuple;
-import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -82,18 +82,7 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 	public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float delta) {
 		final var matrices = guiGraphics.pose();
 
-		final Tuple<Integer, Integer> topLeft = coordsToWorldPos(0, 0);
-		final Tuple<Integer, Integer> bottomRight = coordsToWorldPos(width, height);
-		final int increment = scale >= 1 ? 1 : (int) Math.ceil(1 / scale);
-		for (int i = topLeft.getA(); i <= bottomRight.getA(); i += increment) {
-			for (int j = topLeft.getB(); j <= bottomRight.getB(); j += increment) {
-				if (world != null) {
-					final BlockPos blockPos = RailwayData.newBlockPos(i, world.getHeight(Heightmap.Types.MOTION_BLOCKING, i, j) - 1, j);
-					final int color = divideColorRGB(world.getBlockState(blockPos).getMapColor(world, blockPos).col, 2);
-					drawRectangleFromWorldCoords(guiGraphics, i, j, i + increment, j + increment, ARGB_BLACK | color);
-				}
-			}
-		}
+		TerrainMapGeometry.capture(world, x, y, width, height, centerX, centerY, scale).submit(guiGraphics);
 
 		final Tuple<Double, Double> mouseWorldPos = coordsToWorldPos((double) mouseX - x, mouseY - y);
 
@@ -366,13 +355,6 @@ public class WidgetMap implements WidgetMapper, SelectableMapper, GuiEventListen
 			final int index = i;
 			drawFromWorldCoords(savedRailPos.getX() + 0.5, savedRailPos.getZ() + (i + 0.5) / savedRailCount, (x1, y1) -> guiGraphics.centeredText( textRenderer, savedRails.get(index).name, x + x1.intValue(), y + y1.intValue() - TEXT_HEIGHT / 2, ARGB_WHITE));
 		}
-	}
-
-	private static int divideColorRGB(int color, int amount) {
-		final int r = ((color >> 16) & 0xFF) / amount;
-		final int g = ((color >> 8) & 0xFF) / amount;
-		final int b = (color & 0xFF) / amount;
-		return (r << 16) + (g << 8) + b;
 	}
 
 	@FunctionalInterface
