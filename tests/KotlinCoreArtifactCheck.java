@@ -21,6 +21,8 @@ import java.util.regex.Pattern;
 /** Invokes Transit Core using release JARs and the runtime nested in its shipped artifact. */
 public final class KotlinCoreArtifactCheck {
     public static void main(String[] args) throws Exception {
+        checkDependencyFloorRegression();
+        if (args.length == 1 && args[0].equals("--check-dependency-floor")) return;
         require(args.length == 4 || args.length == 5, "Expected: releaseJar mtr|ante kotlinStdlibJar transitCoreLoaderJar [mtrReleaseJar]");
         Path artifact = Path.of(args[0]).toRealPath(), sharedArtifact = Path.of(args[3]).toRealPath();
         Path stdlib = Files.createTempFile("mtr-core-runtime-", ".jar");
@@ -163,6 +165,55 @@ public final class KotlinCoreArtifactCheck {
         try (var input = jar.getInputStream(jar.getJarEntry(entry))) { return new String(input.readAllBytes(), StandardCharsets.UTF_8); }
     }
 
+    private static void checkDependencyFloorRegression() throws Exception {
+        Path directory = Files.createTempDirectory("mtr-dependency-check-");
+        Path mtr = directory.resolve("mtr.jar"), ante = directory.resolve("ante.jar");
+        try {
+            for (boolean fabric : new boolean[]{true, false}) {
+                String entry = fabric ? "fabric.mod.json" : "META-INF/neoforge.mods.toml";
+                for (String version : new String[]{"26.2-3.4.0-kotlin.1", "26.2-3.4.0-kotlin.2", "26.2-3.4.1"}) {
+                    writeMetadataFixture(mtr, entry, fabric ? "{\"version\":\"" + version + "\"}" : "version=\"" + version + "\"\n");
+                    for (boolean matches : new boolean[]{true, false}) {
+                        String floor = matches ? version : "26.2-3.3.3";
+                        String metadata = fabric ? "{\"depends\":{\"mtr\":\">=" + floor + " <26.3\"}}"
+                                : "[[dependencies.mtrsteamloco]]\nmodId=\"mtr\"\nversionRange=\"[" + floor + ",26.3)\"\n";
+                        writeMetadataFixture(ante, entry, metadata);
+                        try (JarFile jar = new JarFile(ante.toFile())) {
+                            try {
+                                checkMtrDependency(jar, mtr);
+                                require(matches, "Incorrect dependency floor was accepted");
+                            } catch (AssertionError failure) {
+                                if (matches || !failure.getMessage().startsWith("ANTE dependency floor must match")) throw failure;
+                            }
+                        }
+                    }
+                }
+                writeMetadataFixture(mtr, fabric ? "META-INF/neoforge.mods.toml" : "fabric.mod.json", "wrong loader");
+                try (JarFile jar = new JarFile(ante.toFile())) {
+                    try {
+                        checkMtrDependency(jar, mtr);
+                        throw new AssertionError("Mixed loaders were accepted");
+                    } catch (AssertionError failure) {
+                        require(failure.getMessage().equals("ANTE and MTR must use the same loader"), "Wrong mixed-loader failure");
+                    }
+                }
+            }
+            System.out.println("PASS: 14 dependency metadata cases accept matching preview/stable floors and reject stale floors or mixed loaders");
+        } finally {
+            Files.deleteIfExists(mtr);
+            Files.deleteIfExists(ante);
+            Files.deleteIfExists(directory);
+        }
+    }
+
+    private static void writeMetadataFixture(Path artifact, String entry, String metadata) throws Exception {
+        try (var zip = new java.util.zip.ZipOutputStream(Files.newOutputStream(artifact))) {
+            zip.putNextEntry(new java.util.zip.ZipEntry(entry));
+            zip.write(metadata.getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+        }
+    }
+
     private static void checkMtrDependency(JarFile ante, Path mtrArtifact) throws Exception {
         boolean fabric = ante.getJarEntry("fabric.mod.json") != null;
         String metadata = fabric ? "fabric.mod.json" : "META-INF/neoforge.mods.toml";
@@ -180,15 +231,15 @@ public final class KotlinCoreArtifactCheck {
             String declared = read(ante, metadata);
             if (fabric) {
                 var depends = Pattern.compile("\"depends\"\\s*:\\s*\\{([^}]*)}", Pattern.DOTALL).matcher(declared);
-                require(depends.find() && Pattern.compile("\"mtr\"\\s*:\\s*\"" + Pattern.quote(">=26.2-3.4.0-kotlin.1 <26.3") + "\"")
-                        .matcher(depends.group(1)).find(), "ANTE must declare the Kotlin MTR dependency floor");
+                require(depends.find() && Pattern.compile("\"mtr\"\\s*:\\s*\"" + Pattern.quote(">=" + mtrVersion + " <26.3") + "\"")
+                        .matcher(depends.group(1)).find(), "ANTE dependency floor must match the tested MTR artifact: " + mtrVersion);
             } else {
                 boolean found = false;
                 for (String section : declared.split("(?m)(?=^\\[\\[)")) {
                     if (!section.startsWith("[[dependencies.mtrsteamloco]]")) continue;
                     if (!Pattern.compile("(?m)^modId\\s*=\\s*\"mtr\"\\s*$").matcher(section).find()) continue;
-                    require(Pattern.compile("(?m)^versionRange\\s*=\\s*\"" + Pattern.quote("[26.2-3.4.0-kotlin.1,26.3)") + "\"\\s*$")
-                            .matcher(section).find(), "ANTE must declare the Kotlin MTR dependency floor");
+                    require(Pattern.compile("(?m)^versionRange\\s*=\\s*\"" + Pattern.quote("[" + mtrVersion + ",26.3)") + "\"\\s*$")
+                            .matcher(section).find(), "ANTE dependency floor must match the tested MTR artifact: " + mtrVersion);
                     found = true;
                 }
                 require(found, "ANTE is missing its MTR dependency");
