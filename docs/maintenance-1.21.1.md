@@ -11,6 +11,12 @@ is shared with the Java 26.2 maintenance branch; Kotlin work remains separate.
 
 ## Confirmed fixes
 
+- Dedicated-server networking (3.3.4): register all 41 server-to-client payload
+  codecs during common initialization, before loader registration closes. The
+  previous client-only registration left Architectury's S2C codec map empty on
+  a dedicated server and crashed train synchronization with `codec is null`.
+  Physical clients still register each codec with its receiver, avoiding duplicate
+  registration in singleplayer. Packet IDs and wire formats remain unchanged.
 - Doors: removed recursive world mutations during snapshot/NBT serialization.
   New doors use the entity renderer immediately; legacy doors migrate once on
   the server. Five door variants and all states have repeatable save/update,
@@ -39,6 +45,7 @@ Run the Gradle Wrapper with JDK 21 (on Windows use `gradlew.bat`):
 ./gradlew build
 ./gradlew :common:checkSaveQueueCompatibility -Pbenchmark
 ./gradlew :common:checkRailNodeFluidCompatibility -PnodeAddonJar=<ANTE-common-dev.jar>
+./gradlew :common:checkNetworkCompatibility
 ```
 
 Build MTR first, then build ANTE. In ANTE:
@@ -46,11 +53,21 @@ Build MTR first, then build ANTE. In ANTE:
 ```text
 ./gradlew build
 ./gradlew :fabric:checkRailCompatibility :neoforge:checkRailCompatibility
+./gradlew :common:checkNetworkCompatibility
 ```
 
 The save tests call the compiled save module, including failure injection,
 FIFO ordering, stale-file deletion and full-save reset. The optional benchmark
 measures queue bookkeeping only; it excludes disk access and game load.
+
+The network checks reproduced Architectury 13.0.11's missing-codec exception
+before the fix, including ANTE's own three S2C channels. They execute the actual
+early startup statements and MTR payload factory, use real Architectury encoding
+and vanilla wire codecs, and verify server/client inventories and byte round trips.
+A test-only loader adaptor replaces event registration and packet transport;
+this does not establish a real multiplayer connection. A missing-codec negative
+control and client-side duplicate-registration checks guard against regression.
+ANTE beta.4 requires MTR 3.3.4 or later for the shared registration helper.
 
 The ANTE checks apply the actual Sponge Mixins to Rail/RailAngle/RailType and
 execute new, MessagePack, NBT and packet constructors. Unlike the 26.2 failure,

@@ -9,6 +9,7 @@ architectury {
 
 apply from: rootProject.file('gradle/compatibility-checks.gradle')
 apply from: rootProject.file('gradle/door-snapshot-checks.gradle')
+apply from: rootProject.file('gradle/network-checks.gradle')
 
 // These are standalone maintenance tools, not mod code. Architectury Transformer's
 // development runtime cannot process classes in the default package.

@@ -1,6 +1,7 @@
 package mtr.mappings;
 
 import dev.architectury.networking.NetworkManager;
+import dev.architectury.utils.Env;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,6 +18,17 @@ import java.util.*;
 public interface NetworkUtilities {
 
 	Map<ResourceLocation, PayloadType> PAYLOAD_TYPES = new HashMap<>();
+
+	static void registerServerS2CTypes(Env environment, ResourceLocation... ids) {
+		// Physical clients register these codecs together with their receivers.
+		// Dedicated servers need them before loader networking registration freezes.
+		if (environment == Env.SERVER) {
+			for (final ResourceLocation id : ids) {
+				final PayloadType payloadType = getPayloadType(getS2CId(id));
+				NetworkManager.registerS2CPayloadType(payloadType.type, payloadType.codec);
+			}
+		}
+	}
 
 	static void registerReceiverS2C(ResourceLocation id, NetworkManager.NetworkReceiver receiver) {
 		final PayloadType payloadType = getPayloadType(getS2CId(id));
