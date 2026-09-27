@@ -70,8 +70,8 @@ The build runs compatibility checks and produces both loader JARs:
 
 ```text
 build/release/
-├── MTR-fabric-26.2-3.3.2.jar
-└── MTR-neoforge-26.2-3.3.2.jar
+├── MTR-fabric-26.2-3.3.3.jar
+└── MTR-neoforge-26.2-3.3.3.jar
 ```
 
 ## Development
@@ -79,6 +79,9 @@ build/release/
 Shared code and assets live in `common/`; loader integrations live in `fabric/` and `neoforge/`.
 
 See [`gradle.properties`](gradle.properties) for dependency versions and [compatibility checks](docs/compatibility.md) for the tests in `tests/`.
+
+Increment `mod_version` for each distributed maintenance update. The build uses
+it for JAR names, loader metadata, the in-game version and the web map version.
 
 Report fork-specific problems in [Issues](https://github.com/linlunaire/Minecraft-Transit-Railway/issues), including loader and mod versions, logs and reproduction steps.
 

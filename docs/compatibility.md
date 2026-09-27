@@ -27,6 +27,7 @@ their implementations live in `tests/`.
 | Real-time synchronization | Actual 26.2 clock progression and packets, wall-clock conversion, dimension guards and no plugin-overridable command dispatch |
 | Addon block entities | Fixed-factory APG inheritance, original/custom state retention, save/load and rejection of unrelated or overridden factories |
 | Node fluid resistance | Actual vanilla fluid admission for all node states, empty player collision, selection and unchanged break hardness; optional real ANTE direct-node coverage |
+| Door snapshots | [Five door variants](door-snapshot-fix.md), all block states, pure native/NeoForge snapshot and packet serialization, one-time legacy migration, opening and collision |
 
 The resource checks use vanilla registry projections where a running mod registry
 would otherwise be required. Networking uses a loader registration adapter but

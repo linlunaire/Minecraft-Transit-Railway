@@ -79,6 +79,9 @@ subprojects {
 		filesMatching(['fabric.mod.json', 'META-INF/neoforge.mods.toml']) {
 			expand version: project.version
 		}
+		filesMatching('assets/mtr/website/version.js') {
+			filter(ReplaceTokens, tokens: [version: project.version.toString()])
+		}
 	}
 	shadowJar {
 		configurations = [project.configurations.shadowCommon]
