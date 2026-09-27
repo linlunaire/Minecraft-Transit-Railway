@@ -1,0 +1,20 @@
+def doorClasses = layout.buildDirectory.dir('classes/doorSnapshotCompatibility')
+def commonProject = project
+tasks.register('compileDoorSnapshotCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source rootProject.file('tests/DoorSnapshotCompatibilityCheck.java')
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = doorClasses
+}
+
+['Common', 'NeoForge'].each { platform ->
+	def platformProject = platform == 'Common' ? project : project(':neoforge')
+	def checkTask = platformProject.tasks.register("checkDoorSnapshot${platform}", JavaExec) {
+		group = 'verification'
+		description = 'Checks door serialization against native save/update and loader snapshot paths.'
+		dependsOn ':common:compileDoorSnapshotCompatibility'
+		classpath = files(doorClasses) + commonProject.sourceSets.main.output + platformProject.configurations.compileClasspath
+		mainClass = 'mtr.block.DoorSnapshotCompatibilityCheck'
+	}
+	commonProject.tasks.named('check') { dependsOn checkTask }
+}

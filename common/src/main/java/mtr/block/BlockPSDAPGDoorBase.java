@@ -17,6 +17,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -35,6 +36,25 @@ public abstract class BlockPSDAPGDoorBase extends BlockPSDAPGBase implements Ent
 	public static final BooleanProperty END = BooleanProperty.create("end");
 	public static final BooleanProperty UNLOCKED = BooleanProperty.create("unlocked");
 	public static final BooleanProperty TEMP = BooleanProperty.create("temp");
+
+	public BlockPSDAPGDoorBase() {
+		// Keep TEMP for old saves, but newly placed doors already use the entity renderer.
+		registerDefaultState(defaultBlockState().setValue(TEMP, false));
+	}
+
+	@Override
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
+		if (world.isClientSide() || !state.getValue(TEMP) || !type.isValid(state)) {
+			return null;
+		}
+		// Migrate legacy static models outside NBT serialization. Once TEMP is false,
+		// the chunk replaces this ticker with null; normal doors have no per-tick work.
+		return (level, pos, currentState, entity) -> {
+			if (entity instanceof TileEntityPSDAPGDoorBase && currentState.is(this) && currentState.getValue(TEMP)) {
+				level.setBlock(pos, currentState.setValue(TEMP, false), Block.UPDATE_CLIENTS);
+			}
+		};
+	}
 
 	@Override
 	public BlockState updateShape(BlockState state, Direction direction, BlockState newState, LevelAccessor world, BlockPos pos, BlockPos posFrom) {
@@ -121,10 +141,8 @@ public abstract class BlockPSDAPGDoorBase extends BlockPSDAPGBase implements Ent
 
 		private int open;
 		private float openClient;
-		private boolean temp = true;
 
 		private static final String KEY_OPEN = "open";
-		private static final String KEY_TEMP = "temp";
 
 		public TileEntityPSDAPGDoorBase(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 			super(type, pos, state);
@@ -133,17 +151,13 @@ public abstract class BlockPSDAPGDoorBase extends BlockPSDAPGBase implements Ent
 		@Override
 		public void readCompoundTag(CompoundTag compoundTag) {
 			open = compoundTag.getInt(KEY_OPEN);
-			temp = compoundTag.getBoolean(KEY_TEMP);
 		}
 
 		@Override
 		public void writeCompoundTag(CompoundTag compoundTag) {
+			// NeoForge snapshots call this before setBlock. Mutating the world here
+			// re-enters snapshot serialization and overflows the client/server stack.
 			compoundTag.putInt(KEY_OPEN, open);
-			compoundTag.putBoolean(KEY_TEMP, temp);
-			if (temp && level != null) {
-				level.setBlockAndUpdate(worldPosition, level.getBlockState(worldPosition).setValue(TEMP, false));
-				temp = false;
-			}
 		}
 
 		public AABB getRenderBoundingBox() {
@@ -155,9 +169,6 @@ public abstract class BlockPSDAPGDoorBase extends BlockPSDAPGBase implements Ent
 				this.open = open;
 				setChanged();
 				syncData();
-				if (open == 1 && level != null) {
-					level.setBlockAndUpdate(worldPosition, level.getBlockState(worldPosition).setValue(TEMP, false));
-				}
 			}
 		}
 

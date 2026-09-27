@@ -1,0 +1,22 @@
+def commonProject = project(':common')
+['SaveQueue', 'RailNodeFluid'].each { name ->
+	def output = commonProject.layout.buildDirectory.dir("classes/${name}Compatibility")
+	def compile = commonProject.tasks.register("compile${name}Compatibility", JavaCompile) {
+		dependsOn commonProject.tasks.named('classes')
+		source rootProject.file("tests/${name}CompatibilityCheck.java")
+		classpath = commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+		destinationDirectory = output
+	}
+	def check = commonProject.tasks.register("check${name}Compatibility", JavaExec) {
+		group = 'verification'
+		dependsOn compile
+		classpath = files(output) + commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+		mainClass = name == 'SaveQueue' ? 'mtr.data.SaveQueueCompatibilityCheck' : 'mtr.block.RailNodeFluidCompatibilityCheck'
+		if (name == 'SaveQueue' && rootProject.hasProperty('benchmark')) args '--benchmark'
+		if (name == 'RailNodeFluid' && rootProject.hasProperty('nodeAddonJar')) {
+			classpath += files(rootProject.property('nodeAddonJar'))
+			args 'cn.zbx1425.mtrsteamloco.block.BlockDirectNode'
+		}
+	}
+	commonProject.tasks.named('check') { dependsOn check }
+}

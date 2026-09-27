@@ -1,6 +1,6 @@
-# Minecraft Transit Railway 3.3.2（Minecraft 1.21.1）
+# Minecraft Transit Railway 3.3.3（Minecraft 1.21.1）
 
-这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植版。本 tag 保留 Java 21 / Gradle 8.14.5 构建基线；后续 26.2 工作在 master 延续。
+这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植版。本分支继续维护 Java 21 / Gradle 8.14.5 的 Fabric 与 NeoForge 版本，与 26.2、Kotlin 重构目录分开开发。
 
 MTR 以香港 MTR、伦敦地铁和纽约地铁为灵感，提供自动列车、轨道、车站、PIDS、缆车、船只与飞机等内容，用于建设可实际运行的交通网络。
 
@@ -40,6 +40,10 @@ Windows：
 ```
 
 成功后，JAR 位于 `build/release/`
+
+每次分发修复或优化版本时，递增 `gradle.properties` 中的 `mod_version`，并重新构建；不要只重命名旧 JAR。构建会同步文件名、模组元数据、游戏内版本和网页地图版本。
+
+构建直接使用本仓库的兼容层和资源，不再下载 Minecraft-Mappings 或删除源码资源。`build` 会运行节点防水与存档队列回归，通过后才更新发行 JAR。详细验证范围见 [1.21.1 维护记录](docs/maintenance-1.21.1.md)。
 
 ## 当前移植状态
 

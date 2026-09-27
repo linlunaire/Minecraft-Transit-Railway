@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -120,7 +119,7 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 			canAutoSave = true;
 		}
 
-		if (canAutoSave && checkFilesToDelete.isEmpty()) {
+		if (canAutoSave && checkFilesToDelete.isEmpty() && !hasPendingWrites()) {
 			autoSaveStartMillis = System.currentTimeMillis();
 			filesWritten = 0;
 			filesDeleted = 0;
@@ -163,7 +162,7 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 				hasSpareTime = writeDirtyDataToFile(dirtySignalBlocks, signalBlock -> signalBlock, signalBlock -> signalBlock.id, signalBlocksPath);
 			}
 
-			final boolean doneWriting = dirtyStationIds.isEmpty() && dirtyPlatformIds.isEmpty() && dirtySidingIds.isEmpty() && dirtyRouteIds.isEmpty() && dirtyDepotIds.isEmpty() && dirtyLiftIds.isEmpty() && dirtyRailPositions.isEmpty() && dirtySignalBlocks.isEmpty();
+			final boolean doneWriting = !hasPendingWrites();
 			if (hasSpareTime && !checkFilesToDelete.isEmpty() && doneWriting) {
 				final Iterator<Path> iterator = checkFilesToDelete.iterator();
 				final Path path = iterator.next();
@@ -216,6 +215,10 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 		}
 	}
 
+	private boolean hasPendingWrites() {
+		return !dirtyStationIds.isEmpty() || !dirtyPlatformIds.isEmpty() || !dirtySidingIds.isEmpty() || !dirtyRouteIds.isEmpty() || !dirtyDepotIds.isEmpty() || !dirtyLiftIds.isEmpty() || !dirtyRailPositions.isEmpty() || !dirtySignalBlocks.isEmpty();
+	}
+
 	private <T extends SerializedDataBase> void readMessagePackFromFile(Path path, Function<Map<String, Value>, T> getData, Consumer<T> callback, boolean skipVerify) {
 		try (final Stream<Path> pathStream = Files.list(path)) {
 			pathStream.forEach(idFolder -> {
@@ -264,10 +267,11 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 			final int hash = getHash(data, useReducedHash);
 
 			if (!existingFiles.containsKey(dataPath) || hash != existingFiles.get(dataPath)) {
-				final MessagePacker messagePacker = MessagePack.newDefaultPacker(Files.newOutputStream(dataPath, StandardOpenOption.CREATE));
-				messagePacker.packMapHeader(data.messagePackLength());
-				data.toMessagePack(messagePacker);
-				messagePacker.close();
+				try (final MessageBufferPacker messagePacker = MessagePack.newDefaultBufferPacker()) {
+					messagePacker.packMapHeader(data.messagePackLength());
+					data.toMessagePack(messagePacker);
+					mtr.mappings.SaveFileMapper.write(dataPath, messagePacker.toByteArray());
+				}
 
 				existingFiles.put(dataPath, hash);
 				filesWritten++;
@@ -286,9 +290,13 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 			final U id = dirtyData.removeFirst();
 			final T data = getId.apply(id);
 			if (data != null) {
-				final Path newPath = writeMessagePackToFile(data, idToLong.apply(id), path);
+				final long dataId = idToLong.apply(id);
+				final Path newPath = writeMessagePackToFile(data, dataId, path);
 				if (newPath != null) {
 					checkFilesToDelete.remove(newPath);
+				} else {
+					// Failed encoding or publication must not delete the previous good save.
+					checkFilesToDelete.remove(path.resolve(String.valueOf(dataId % 100)).resolve(String.valueOf(dataId)));
 				}
 			}
 			if (System.currentTimeMillis() - millis >= 2) {
