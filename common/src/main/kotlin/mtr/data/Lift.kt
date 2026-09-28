@@ -147,9 +147,9 @@ abstract class Lift : NameColorDataBase, IPacket {
         packet.writeBoolean(doorOpen)
         packet.writeFloat(doorValue)
         packet.writeInt(ridingEntities.size)
-        ridingEntities.forEach { packet.writeUUID(it!!) }
+        ridingEntities.forEach(java.util.function.Consumer<UUID?> { packet.writeUUID(javaReference(it)) })
         packet.writeInt(floors.size)
-        floors.forEach { packet.writeBlockPos(it) }
+        floors.forEach(java.util.function.Consumer<BlockPos?> { packet.writeBlockPos(javaReference(it)) })
         liftInstructions.writePacket(packet)
     }
 
@@ -183,10 +183,10 @@ abstract class Lift : NameColorDataBase, IPacket {
     open fun getLiftDirection(): LiftDirection? = liftDirection
 
     open fun hasUpDownButtonForFloor(checkFloor: Int, hasButton: BooleanArray?) {
-        floors.forEach { floor ->
-            if (floor.y > checkFloor) hasButton!![0] = true
+        floors.forEach(java.util.function.Consumer<BlockPos?> { floor ->
+            if (floor!!.y > checkFloor) hasButton!![0] = true
             if (floor.y < checkFloor) hasButton!![1] = true
-        }
+        })
     }
 
     open fun pressButton(floor: Int) {
@@ -261,6 +261,11 @@ abstract class Lift : NameColorDataBase, IPacket {
     protected open fun getYaw(): Float = Math.toRadians(-facing!!.clockWise.toYRot().toDouble()).toFloat()
 
     private fun getBlockPos(): BlockPos = RailwayData.newBlockPos(currentPositionX, currentPositionY, currentPositionZ)
+
+    // Java callers can insert null into exposed collections. Preserve dispatch to
+    // overridable packet methods instead of rejecting their input at the Kotlin call site.
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> javaReference(value: T?): T = value as T
 
     private fun checkDoor(world: Level?, front: Boolean): Boolean {
         val directionClockwise = facing!!.clockWise

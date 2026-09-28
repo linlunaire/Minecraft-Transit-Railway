@@ -1,5 +1,8 @@
 package mtr.servlet;
 
+import dev.architectury.platform.Platform;
+import org.bukkit.Bukkit;
+
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.Request;
@@ -15,6 +18,8 @@ import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -23,6 +28,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,6 +48,7 @@ public final class WebserverCompatibilityCheck {
             final Path actual = Path.of(Webserver.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toRealPath();
             require(actual.equals(expected), "Webserver was not loaded from the selected Kotlin production output");
             require(kotlinImplementation, "Webserver is still a Java implementation");
+            require(Path.of(WebMapSupport.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toRealPath().equals(expected), "Map presence policy did not come from selected production output");
         }
         verifyContract(Webserver.class);
         try {
@@ -55,6 +63,8 @@ public final class WebserverCompatibilityCheck {
         HidingSubclass.stop();
         require(hiddenCalls == 3, "Java subclasses cannot hide the static lifecycle entrypoints");
         verifyCallbacks();
+        checkProviderDetection();
+        Platform.MODS.add("dynmap");
 
         final Path directory = Files.createTempDirectory("mtr-webserver-check-");
         final Path config = directory.resolve("mtr_webserver_port.txt");
@@ -72,6 +82,13 @@ public final class WebserverCompatibilityCheck {
             }
             Webserver.init();
             connector().setHost("127.0.0.1");
+            Platform.MODS.clear();
+            Webserver.start(config);
+            require(Files.readString(config).equals("0") && server().isStopped() && connector().getLocalPort() < 0, "Absent providers must preserve config and stop the listener");
+            Files.delete(config);
+            Webserver.start(config);
+            require(!Files.exists(config) && server().isStopped() && connector().getLocalPort() < 0, "Absent providers created a file or opened a listener");
+            Platform.MODS.add("dynmap");
             try (ServerSocket occupied = new ServerSocket(0, 1, InetAddress.getLoopbackAddress())) {
                 Files.writeString(config, Integer.toString(occupied.getLocalPort()));
                 Webserver.start(config);
@@ -91,6 +108,14 @@ public final class WebserverCompatibilityCheck {
             Webserver.start(config);
             Webserver.start(null); // Already-started Java code does not inspect the path.
             require(server() == running && connector().getLocalPort() == port, "Repeated start replaced the live listener");
+            Platform.MODS.clear();
+            Webserver.start(config);
+            require(running.isStopped() && connector().getLocalPort() < 0, "Losing the map provider left a listener running");
+            Bukkit.ENABLED_PLUGINS.add("BlueMap");
+            Webserver.start(config);
+            require(server().isStarted() && connector().getLocalPort() == port, "Enabled hybrid-server map plugin did not permit startup");
+            Bukkit.ENABLED_PLUGINS.clear();
+            Platform.MODS.add("dynmap");
             Webserver.init();
             require(running.isStopped() && ((QueuedThreadPool) running.getThreadPool()).isStopped(), "Repeated init leaked the previous server");
             connector().setHost("127.0.0.1");
@@ -125,8 +150,44 @@ public final class WebserverCompatibilityCheck {
             Webserver.stop();
             Files.deleteIfExists(config);
             Files.deleteIfExists(directory);
+            Platform.MODS.clear();
+            Bukkit.ENABLED_PLUGINS.clear();
         }
     }
+
+	@SuppressWarnings("unchecked")
+	private static void checkProviderDetection() throws Exception {
+		require(!WebMapSupport.isAvailable(), "API dependencies on the test classpath were mistaken for installed map providers");
+		for (String id : new String[]{"dynmap", "bluemap", "squaremap"}) {
+			Platform.MODS.add(id);
+			require(WebMapSupport.isLoaded(id) && WebMapSupport.isAvailable(), "Loaded map mod was not detected: " + id);
+			Platform.MODS.clear();
+			require(!WebMapSupport.isAvailable(), "Map availability was stale after loader inventory changed");
+		}
+		for (String[] plugin : new String[][]{{"dynmap", "dynmap"}, {"bluemap", "BlueMap"}, {"squaremap", "squaremap"}}) {
+			Bukkit.ENABLED_PLUGINS.add(plugin[1]);
+			require(WebMapSupport.isLoaded(plugin[0]) && WebMapSupport.isAvailable(), "Enabled map plugin was not detected: " + plugin[1]);
+			Bukkit.ready = false;
+			require(!WebMapSupport.isAvailable(), "An uninitialized plugin manager enabled the map");
+			Bukkit.ready = true;
+			Bukkit.ENABLED_PLUGINS.clear();
+			require(!WebMapSupport.isAvailable(), "Disabled map plugin was still detected");
+		}
+		require(!WebMapSupport.isLoaded("unrelated"), "An unrelated mod was accepted as a provider");
+		final URL[] classpath = Arrays.stream(System.getProperty("java.class.path").split(Pattern.quote(java.io.File.pathSeparator)))
+				.map(path -> { try { return Path.of(path).toUri().toURL(); } catch (Exception e) { throw new IllegalStateException(e); } }).toArray(URL[]::new);
+		try (URLClassLoader withoutBukkit = new URLClassLoader(classpath, ClassLoader.getPlatformClassLoader()) {
+			@Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+				if (name.startsWith("org.bukkit.")) throw new ClassNotFoundException(name);
+				return super.loadClass(name, resolve);
+			}
+		}) {
+			final Class<?> support = Class.forName("mtr.servlet.WebMapSupport", true, withoutBukkit);
+			require(Boolean.FALSE.equals(support.getMethod("isAvailable").invoke(null)), "A normal loader without Bukkit failed safe absence detection");
+			((Set<String>) Class.forName("dev.architectury.platform.Platform", true, withoutBukkit).getField("MODS").get(null)).add("squaremap");
+			require(Boolean.TRUE.equals(support.getMethod("isAvailable").invoke(null)), "A native map mod incorrectly required Bukkit");
+		}
+	}
 
     private static void verifyContract(Class<?> type) throws Exception {
         contract(Modifier.isPublic(type.getModifiers()) && Modifier.isAbstract(type.getModifiers()) && !Modifier.isFinal(type.getModifiers()), "Webserver must stay public, abstract and subclassable");

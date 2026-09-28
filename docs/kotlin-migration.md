@@ -61,11 +61,11 @@ use. This avoids both a mechanical syntax-only rewrite and a speculative new
 framework. The [architecture notes](architecture.md#incremental-architecture-evolution)
 document the ticket transaction and shared model-variant preparation boundaries.
 
-## Source checkpoint (2026-09-27)
+## Source checkpoint (2026-09-28)
 
 | Repository | Kotlin files | Remaining Java files | Kotlin physical lines | Java physical lines |
 | --- | ---: | ---: | ---: | ---: |
-| MTR | 148 | 269 | 45,718 | 32,734 |
+| MTR | 152 | 266 | 46,257 | 32,169 |
 | ANTE | 64 | 223 | 4,644 | 34,566 |
 
 The first combined preview uses MTR `26.2-3.4.0-kotlin.1`, ANTE
@@ -79,7 +79,24 @@ The `kotlin.2` follow-up aligns all three consumers with LunaCore `0.2.1`.
 LunaCore production sources are now entirely Kotlin; its historical Java
 mappings live in a recoverable fixed Git archive. MTR reuses LunaCore's versioned
 contract-check JAR instead of compiling a file from its old Java test directory.
-This dependency/build cleanup does not change the MTR/ANTE conversion counts above.
+That dependency/build cleanup did not migrate additional MTR/ANTE production code.
+
+The `kotlin.3` increment migrates the complete three-class lift runtime
+(`Lift`, `LiftServer`, `LiftClient`) and carries forward optional-map detection
+from the 1.21.1 maintenance fix as the new Kotlin `WebMapSupport` policy.
+Installed mods and enabled hybrid-server plugins are checked independently of
+API class presence. Without a provider, the web map stays disabled, leaves the
+port config unchanged and emits a Chinese startup message rather than absent-map
+messages for every dimension. Native 26.2 time sync is retained and still does
+not dispatch `/gamerule`, `/time` or `/taw` commands.
+
+Lift compatibility adds 177 Java records, 49,491 assertions and 71 JVM contracts,
+including state/door transitions, passenger range and dirty flags, exact wire/save
+data, render coordination and model invalidation. The original Java golden and
+both packaged Kotlin implementations run through the same fixture; see
+[the lift notes](../tests/fixtures/README-lift.md). Existing subclass/field ownership
+is retained; this batch does not claim a new simulation architecture or higher FPS.
+ANTE and JCM are rebuilt against this increment, not counted as newly converted.
 
 LunaCore now supplies stdlib by canonical loader-managed nesting. Consumers
 do not require FLK/KFF and do not bundle their own core/runtime copies. Internal
@@ -101,8 +118,8 @@ These are conservative whole-source counts, before any vendored-code exclusion.
 MTR's large model files must not disguise the substantial remaining migration.
 
 Completed MTR batches: all 55 model classes (including the three bases), all 16
-item classes, both path classes, 17 block classes and 33 data classes, plus the
-entire seven-class web-map package, all ten sound classes and two new
+item classes, both path classes, 17 block classes and 36 data classes, plus the
+entire seven-class web-map package and its new provider policy, all ten sound classes and two new
 server-fix helpers. Completed ANTE batches: the
 entire 32-class Sowcer package, both path-generation classes, `IRoute`, `RouteMixin`, `DepotMixin`,
 `Tree`, `RelativePosition`, `ShapeSerializer`, `Rolling`, five rail/train/vehicle

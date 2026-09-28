@@ -90,6 +90,8 @@ public final class KotlinCoreArtifactCheck {
             require(transitCore || !name.startsWith("io/github/linlunaire/transitcore/"), "Consumer must not embed Transit Core: " + name);
             require(!name.equals("mtr/mappings/FrameGeometryCache.class"), "Obsolete Java cache in release JAR");
             require(!name.startsWith("legacy/"), "Historical compatibility sources must not enter 26.2 runtime: " + name);
+            require(!name.startsWith("org/bukkit/") && !name.startsWith("dev/architectury/platform/Platform"), "Test-only map provider fixture in release JAR: " + name);
+            require(!name.startsWith("mtr/data/LiftScenario") && !name.startsWith("mtr/data/LiftCompatibilityCheck"), "Lift regression fixture in release JAR: " + name);
         }
     }
 
@@ -104,7 +106,7 @@ public final class KotlinCoreArtifactCheck {
     }
 
     private static void checkKotlinFixes(JarFile jar) throws Exception {
-        for (String name : new String[]{"mtr.servlet.Webserver", "mtr.data.RealTimeSync", "mtr.mappings.BlockEntityTypeMapper", "mtr.mappings.TerrainMapGeometry"}) {
+        for (String name : new String[]{"mtr.servlet.Webserver", "mtr.servlet.WebMapSupport", "mtr.data.RealTimeSync", "mtr.mappings.BlockEntityTypeMapper", "mtr.mappings.TerrainMapGeometry"}) {
             checkClassVersion(jar, name);
             try (var input = jar.getInputStream(jar.getJarEntry(name.replace('.', '/') + ".class"))) {
                 var model = java.lang.classfile.ClassFile.of().parse(input.readAllBytes());

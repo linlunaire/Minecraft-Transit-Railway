@@ -3,6 +3,7 @@ architectury {
 }
 
 apply from: rootProject.file('gradle/depot-screen-checks.gradle')
+apply from: rootProject.file('gradle/lift-checks.gradle')
 
 configurations {
 	coreChecks {
@@ -851,6 +852,7 @@ def webserverClasses = layout.buildDirectory.dir('classes/webserverCompatibility
 tasks.register('compileWebserverCompatibility', JavaCompile) {
 	dependsOn tasks.named('classes')
 	source '../tests/WebserverCompatibilityCheck.java'
+	source rootProject.fileTree('tests/web-map-fixtures') { include '**/*.java' }
 	classpath = sourceSets.main.output + configurations.compileClasspath
 	destinationDirectory = webserverClasses
 }

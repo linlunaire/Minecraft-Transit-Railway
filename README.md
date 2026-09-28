@@ -47,7 +47,12 @@ MTR, ANTE and JCM share Kotlin LunaCore's bundled, loader-managed Kotlin standar
 
 ### Server configuration
 
-The optional web map uses the port in `config/mtr_webserver_port.txt` (default
+The optional web map starts only when Dynmap, BlueMap or Squaremap is loaded
+as a mod or enabled as a plugin on a hybrid server. Without one, MTR leaves
+the map disabled and does not open a port. Bundled API libraries do not count
+as installed providers. Map availability/startup messages are in Chinese.
+
+When enabled, the map uses `config/mtr_webserver_port.txt` (default
 `8888`). Use a free port from `1025` to `65535`, or `0` to disable the web map,
 then restart. A port conflict does not stop Minecraft, but the map remains
 unavailable; MTR does not take over another process or choose an alternate port.
@@ -88,8 +93,8 @@ For a different Kotlin LunaCore checkout location, pass `-PtransitCoreProjectDir
 
 ```text
 build/release/
-├── MTR-fabric-26.2-3.4.0-kotlin.2.jar
-└── MTR-neoforge-26.2-3.4.0-kotlin.2.jar
+├── MTR-fabric-26.2-3.4.0-kotlin.3.jar
+└── MTR-neoforge-26.2-3.4.0-kotlin.3.jar
 ```
 
 ## Development

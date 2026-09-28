@@ -226,23 +226,29 @@ public class RailwayData extends PersistentStateMapper implements IPacket {
 		useTimeAndWindSync = mtr.mappings.CompoundTagMapper.getBoolean(compoundTag, KEY_USE_TIME_AND_WIND_SYNC);
 		runRealTimeSync();
 
-		try {
-			UpdateDynmap.updateDynmap(world, this);
-		} catch (NoClassDefFoundError | IllegalStateException ignored) {
-			System.out.println("Dynamp is not loaded");
-		} catch (Exception ignored) {
+		if (mtr.servlet.WebMapSupport.isLoaded("dynmap")) {
+			try {
+				UpdateDynmap.updateDynmap(world, this);
+			} catch (NoClassDefFoundError | IllegalStateException ignored) {
+				System.out.println("Dynmap 已安装，但地图接口尚未就绪，已跳过本次更新。");
+			} catch (Exception ignored) {
+			}
 		}
-		try {
-			UpdateBlueMap.updateBlueMap(world, this);
-		} catch (NoClassDefFoundError | IllegalStateException ignored) {
-			System.out.println("BlueMap is not loaded");
-		} catch (Exception ignored) {
+		if (mtr.servlet.WebMapSupport.isLoaded("bluemap")) {
+			try {
+				UpdateBlueMap.updateBlueMap(world, this);
+			} catch (NoClassDefFoundError | IllegalStateException ignored) {
+				System.out.println("BlueMap 已安装，但地图接口尚未就绪，已跳过本次更新。");
+			} catch (Exception ignored) {
+			}
 		}
-		try {
-			UpdateSquaremap.updateSquaremap(world, this);
-		} catch (NoClassDefFoundError | IllegalStateException ignored) {
-			System.out.println("Squaremap is not loaded");
-		} catch (Exception ignored) {
+		if (mtr.servlet.WebMapSupport.isLoaded("squaremap")) {
+			try {
+				UpdateSquaremap.updateSquaremap(world, this);
+			} catch (NoClassDefFoundError | IllegalStateException ignored) {
+				System.out.println("Squaremap 已安装，但地图接口尚未就绪，已跳过本次更新。");
+			} catch (Exception ignored) {
+			}
 		}
 	}
 

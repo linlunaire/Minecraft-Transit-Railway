@@ -66,6 +66,11 @@ abstract class Webserver {
         @Suppress("NON_FINAL_MEMBER_IN_OBJECT")
         @JvmStatic
         open fun start(path: Path?): Unit = synchronized(Webserver::class.java) {
+            if (!WebMapSupport.isAvailable()) {
+                stop()
+                LOGGER.info("未检测到 Dynmap、BlueMap 或 Squaremap 模组／已启用插件，已停用 MTR 网页地图，不监听端口。")
+                return@synchronized
+            }
             if (webServer == null) init()
             if (webServer!!.isStarted) return@synchronized
             val port: Int
@@ -79,11 +84,11 @@ abstract class Webserver {
                     throw IllegalArgumentException("Expected 0 or a port from 1025 to 65535")
                 }
             } catch (e: Exception) {
-                LOGGER.error("Web map not started: invalid or unreadable port file {}. Use 0 to disable it or an integer from 1025 to 65535. File left unchanged.", path!!.toAbsolutePath(), e)
+                LOGGER.error("网页地图未启动：端口文件 {} 无效或无法读取。请设为 0（关闭）或 1025～65535 的整数；原文件未修改。", path!!.toAbsolutePath(), e)
                 return@synchronized
             }
             if (port == 0) {
-                LOGGER.info("Web map disabled by {} (port 0).", path!!.toAbsolutePath())
+                LOGGER.info("网页地图已关闭：{} 中的端口设为 0。", path!!.toAbsolutePath())
                 return@synchronized
             }
             serverConnector!!.port = port
@@ -97,9 +102,9 @@ abstract class Webserver {
                 var cause: Throwable = e
                 while (cause.cause != null && cause !is BindException) cause = cause.cause!!
                 if (cause is BindException) {
-                    LOGGER.warn("Web map could not bind port {}: {}. Minecraft can continue, but the web map is unavailable. Set a free port in {} (or 0 to disable) and restart. No alternate port was opened.", port, cause.message, path!!.toAbsolutePath())
+                    LOGGER.warn("网页地图无法监听端口 {}：{}。游戏可继续运行，但网页地图不可用；请在 {} 中设置空闲端口（或设为 0 关闭）并重启。未自动改用其他端口。", port, cause.message, path!!.toAbsolutePath())
                 } else {
-                    LOGGER.error("Web map startup failed on port {}. Check {}; Minecraft can continue without the web map.", port, path!!.toAbsolutePath(), e)
+                    LOGGER.error("网页地图在端口 {} 启动失败，请检查 {}；游戏可在不启用网页地图的情况下继续运行。", port, path!!.toAbsolutePath(), e)
                 }
             }
         }
@@ -113,7 +118,7 @@ abstract class Webserver {
                 // A connector opened before Server.start() also needs closing on failure.
                 serverConnector!!.close()
             } catch (e: Exception) {
-                LOGGER.error("Could not completely stop the web map", e)
+                LOGGER.error("网页地图未能完全停止", e)
             }
         }
     }

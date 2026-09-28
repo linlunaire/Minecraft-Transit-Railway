@@ -1,0 +1,46 @@
+def fixture = rootProject.file('tests/fixtures/lift-java-preview2.tsv')
+def testClasses = layout.buildDirectory.dir('classes/liftCompatibility')
+tasks.register('compileLiftCompatibility', JavaCompile) {
+    dependsOn tasks.named('classes')
+    source '../tests/LiftCompatibilityCheck.java', '../tests/LiftScenario.java'
+    classpath = sourceSets.main.output + configurations.compileClasspath
+    destinationDirectory = testClasses
+}
+tasks.register('checkLiftCompatibility', JavaExec) {
+    group = 'verification'
+    dependsOn 'compileLiftCompatibility'
+    classpath = files(testClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'mtr.data.LiftCompatibilityCheck'
+    args fixture.absolutePath, tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+if (rootProject.hasProperty('javaLiftBaselineJar')) {
+    tasks.register('checkJavaLiftBaseline', JavaExec) {
+        group = 'verification'
+        dependsOn 'compileLiftCompatibility'
+        classpath = files(testClasses) + sourceSets.main.output + configurations.compileClasspath
+        mainClass = 'mtr.data.LiftCompatibilityCheck'
+        args fixture.absolutePath, rootProject.file(rootProject.property('javaLiftBaselineJar')).absolutePath, '--java'
+        if (rootProject.hasProperty('recordLiftBaseline')) args '--record'
+    }
+}
+tasks.register('checkKotlinLiftAbi', JavaExec) {
+    group = 'verification'
+    dependsOn ':compileKotlinMigrationAbiCheck', 'compileKotlin'
+    classpath = files(rootProject.layout.buildDirectory.dir('classes/kotlinMigrationAbiCheck'))
+    mainClass = 'KotlinMigrationAbiCheck'
+    args 'check', rootProject.file('tests/kotlin-abi/mtr-lift-java-preview2.tsv').absolutePath,
+            tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkLiftCompatibility', 'checkKotlinLiftAbi' }
+['fabric', 'neoforge'].each { loader ->
+    def packagedCheck = tasks.register("checkPackagedLift${loader.capitalize()}", JavaExec) {
+        group = 'verification'
+        dependsOn 'compileLiftCompatibility', ":${loader}:shadowJar"
+        classpath = files(testClasses) + sourceSets.main.output + configurations.compileClasspath
+        mainClass = 'mtr.data.LiftCompatibilityCheck'
+        doFirst {
+            setArgs([fixture.absolutePath, project(":${loader}").tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath])
+        }
+    }
+    project(":${loader}").tasks.named('check') { dependsOn packagedCheck }
+}
