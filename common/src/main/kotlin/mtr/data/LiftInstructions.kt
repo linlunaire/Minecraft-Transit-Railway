@@ -113,12 +113,12 @@ open class LiftInstructions {
 
 			blockEntity.forEachTrackPosition(world) { trackPosition, _ ->
 				railwayData.lifts.stream().filter { it.hasFloor(trackPosition) }.findFirst().ifPresent { lift ->
-					val liftFloor = Math.round(lift.positionY).toInt()
+					val liftFloor = Math.round(lift.getPositionY()).toInt()
 					val newLiftFloor = trackPosition.y
 					val hasButton = booleanArrayOf(false, false)
 					lift.hasUpDownButtonForFloor(newLiftFloor, hasButton)
 					val newMovingUp = if (topHalfClicked) hasButton[0] else !hasButton[1]
-					val liftMovingUp = lift.liftDirection == Lift.LiftDirection.UP
+					val liftMovingUp = lift.getLiftDirection() == Lift.LiftDirection.UP
 					val weight = lift.liftInstructions.addInstruction(liftFloor, liftMovingUp, newLiftFloor, newMovingUp, false, false)
 					if (weight >= 0 && (topHalfClicked == newMovingUp && weight < currentWeight || newMovingUp && !hasButtonOverall[0] || !newMovingUp && !hasButtonOverall[1])) {
 						currentWeight = weight
