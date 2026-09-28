@@ -1,59 +1,55 @@
-package mtr.data;
+package mtr.data
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import org.msgpack.value.Value;
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
+import org.msgpack.value.Value
+import java.util.HashSet
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+@JvmSuppressWildcards
+open class LiftServer : Lift {
+    constructor(pos: BlockPos?, facing: Direction?) : super(pos, facing)
+    constructor(map: MutableMap<String?, Value?>?) : super(map)
 
-public class LiftServer extends Lift {
+    open fun tickServer(world: Level?, liftsInPlayerRange: MutableMap<Player, MutableSet<LiftServer>?>?, liftsToSync: MutableSet<LiftServer>?) {
+        if (floors.isNotEmpty()) {
+            for (player in world!!.players()) {
+                var inRange = ridingEntities.contains(player.uuid)
+                if (!inRange) {
+                    val playerPos = player.blockPosition()
+                    for (floor in floors) {
+                        if (playerPos.distManhattan(floor) < LIFT_UPDATE_DISTANCE) {
+                            inRange = true
+                            break
+                        }
+                    }
+                }
+                if (inRange) {
+                    var lifts = liftsInPlayerRange!![player]
+                    if (lifts == null) {
+                        lifts = HashSet()
+                        liftsInPlayerRange[player] = lifts
+                    }
+                    lifts.add(this)
+                }
+            }
+        }
 
-	private static final int LIFT_UPDATE_DISTANCE = 64;
+        tick(world, 1F)
 
-	public LiftServer(BlockPos pos, Direction facing) {
-		super(pos, facing);
-	}
+        val ridingEntitiesCount = ridingEntities.size
+        VehicleRidingServer.mountRider(world, ridingEntities, id, 1,
+            currentPositionX + liftOffsetX / 2F, currentPositionY + liftOffsetY, currentPositionZ + liftOffsetZ / 2F,
+            (liftWidth - 1).toDouble(), (liftDepth - 1).toDouble(), getYaw(), 0F, doorValue > 0, true, 0,
+            mtr.packet.IPacket.PACKET_UPDATE_LIFT_PASSENGERS, { true }, {})
 
-	public LiftServer(Map<String, Value> map) {
-		super(map);
-	}
+        if (liftInstructions.isDirty() || ridingEntitiesCount != ridingEntities.size) {
+            liftsToSync!!.add(this)
+        }
+    }
 
-	public void tickServer(Level world, Map<Player, Set<LiftServer>> liftsInPlayerRange, Set<LiftServer> liftsToSync) {
-		if (!floors.isEmpty()) {
-			for (final Player player : world.players()) {
-				boolean inRange = ridingEntities.contains(player.getUUID());
-				if (!inRange) {
-					final BlockPos playerPos = player.blockPosition();
-					for (final BlockPos floor : floors) {
-						if (playerPos.distManhattan(floor) < LIFT_UPDATE_DISTANCE) {
-							inRange = true;
-							break;
-						}
-					}
-				}
-				if (inRange) {
-					Set<LiftServer> lifts = liftsInPlayerRange.get(player);
-					if (lifts == null) {
-						lifts = new HashSet<>();
-						liftsInPlayerRange.put(player, lifts);
-					}
-					lifts.add(this);
-				}
-			}
-		}
-
-		tick(world, 1);
-
-		final int ridingEntitiesCount = ridingEntities.size();
-		VehicleRidingServer.mountRider(world, ridingEntities, id, 1, currentPositionX + liftOffsetX / 2F, currentPositionY + liftOffsetY, currentPositionZ + liftOffsetZ / 2F, liftWidth - 1, liftDepth - 1, getYaw(), 0, doorValue > 0, true, 0, PACKET_UPDATE_LIFT_PASSENGERS, player -> true, player -> {
-		});
-
-		if (liftInstructions.isDirty() || ridingEntitiesCount != ridingEntities.size()) {
-			liftsToSync.add(this);
-		}
-	}
+    private companion object {
+        const val LIFT_UPDATE_DISTANCE = 64
+    }
 }
