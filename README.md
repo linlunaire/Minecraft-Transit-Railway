@@ -70,8 +70,8 @@ The build runs compatibility checks and produces both loader JARs:
 
 ```text
 build/release/
-├── MTR-fabric-26.2-3.3.3.jar
-└── MTR-neoforge-26.2-3.3.3.jar
+├── MTR-fabric-26.2-3.3.4.jar
+└── MTR-neoforge-26.2-3.3.4.jar
 ```
 
 ## Development
