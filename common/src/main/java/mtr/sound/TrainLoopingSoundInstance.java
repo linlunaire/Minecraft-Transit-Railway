@@ -36,6 +36,9 @@ public class TrainLoopingSoundInstance extends TickableSoundInstanceMapper {
 		if (soundManager != null && !train.isRemoved && volume > 0 && !soundManager.isActive(this)) {
 			looping = true;
 			soundManager.play(this);
+		} else if (soundManager != null && volume <= 0 && soundManager.isActive(this)) {
+			// Release the channel, not the reusable instance, so the next playback starts at the beginning.
+			soundManager.stop(this);
 		}
 	}
 

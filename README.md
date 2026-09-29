@@ -1,4 +1,4 @@
-# Minecraft Transit Railway 3.3.4（Minecraft 1.21.1）
+# Minecraft Transit Railway 3.3.6（Minecraft 1.21.1）
 
 这是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的 Minecraft **1.21.1** 社区移植版。本分支继续维护 Java 21 / Gradle 8.14.5 的 Fabric 与 NeoForge 版本，与 26.2、Kotlin 重构目录分开开发。
 
@@ -47,6 +47,7 @@ Windows：
 
 ## 当前移植状态
 
+- 3.3.6 修复列车循环音效静音后继续旧进度的问题；恢复播放会从头开始，详见[验证说明](docs/train-audio-restart.md)。
 - 本地开发客户端已完成启动与资源加载验证。
 - 建议在使用前测试既有存档、多人联机、PIDS、列车、轨道和资源包工作流。
 
