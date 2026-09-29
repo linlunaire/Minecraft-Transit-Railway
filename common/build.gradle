@@ -4,6 +4,7 @@ architectury {
 
 apply from: rootProject.file('gradle/depot-screen-checks.gradle')
 apply from: rootProject.file('gradle/lift-checks.gradle')
+apply from: rootProject.file('gradle/sound-restart-checks.gradle')
 
 configurations {
 	coreChecks {

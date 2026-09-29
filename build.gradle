@@ -32,6 +32,16 @@ tasks.register('checkTransitCoreArtifacts') {
 }
 
 def kotlinArtifactCheckClasses = layout.buildDirectory.dir('classes/kotlinCoreArtifactCheck')
+
+def releaseArchiveClass = new GroovyClassLoader(getClass().classLoader).parseClass(file('gradle/ReleaseArchive.groovy'))
+def checkReleaseArchive = tasks.register('checkReleaseArchive') {
+	group = 'verification'
+	inputs.files('gradle/ReleaseArchive.groovy', 'tests/ReleaseArchiveCheck.groovy')
+	doLast {
+		new GroovyShell(getClass().classLoader, new Binding([args: [rootProject.projectDir.absolutePath] as String[]]))
+			.evaluate(rootProject.file('tests/ReleaseArchiveCheck.groovy'))
+	}
+}
 tasks.register('compileKotlinCoreArtifactCheck', JavaCompile) {
 	source 'tests/KotlinCoreArtifactCheck.java'
 	classpath = files()
@@ -138,7 +148,7 @@ subprojects {
 	}
 	shadowJar {
 		configurations = [project.configurations.shadowCommon]
-		archiveBaseName = "MTR-${project.name}"
+		archiveBaseName = "${rootProject.archives_base_name}-${project.name}"
 		archiveClassifier = ''
 		relocate 'javax.servlet', 'mtr.libraries.javax.servlet'
 		relocate 'org.eclipse', 'mtr.libraries.org.eclipse'
@@ -170,12 +180,14 @@ subprojects {
 		}
 		tasks.named('check') { dependsOn 'checkKotlinCoreArtifact', 'checkPackagedKotlinMigration' }
 		def releaseJar = tasks.register('releaseJar', Copy) {
-			dependsOn tasks.named('shadowJar'), tasks.named('check'), ':common:check'
+			dependsOn tasks.named('shadowJar'), tasks.named('check'), ':common:check', checkReleaseArchive
 			from tasks.named('shadowJar').flatMap { it.archiveFile }
 			into rootProject.layout.buildDirectory.dir('release')
-			doFirst {
-				delete fileTree(destinationDir).matching {
-					include "MTR-${project.name}-${rootProject.minecraft_version}-*.jar"
+			outputs.upToDateWhen { false }
+			doLast {
+				def currentName = tasks.named('shadowJar').get().archiveFile.get().asFile.name
+				releaseArchiveClass.archivePrevious(destinationDir, project.name, currentName).each {
+					logger.lifecycle("Archived previous ${project.name} 26.2 release: ${it}")
 				}
 			}
 		}

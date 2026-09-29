@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="fabric/src/main/resources/icon.png" alt="Minecraft Transit Railway" width="128">
+  <img src="fabric/src/main/resources/icon.png" alt="Yanling Metro" width="128">
 
-  <h1>Minecraft Transit Railway</h1>
+  <h1>Yanling Metro</h1>
 
   <p>Automated trains, stations, signalling and passenger information displays.</p>
-  <p>A community-maintained <strong>MTR 3</strong> port for Fabric and NeoForge.</p>
+  <p><strong>YLM</strong> — an independent MTR 3 fork for Fabric and NeoForge.</p>
 
   <p>
     <img src="https://img.shields.io/badge/Minecraft-26.2-62B47A?style=flat-square" alt="Minecraft 26.2">
@@ -34,28 +34,28 @@ The [`26.2` maintenance branch](https://github.com/linlunaire/Minecraft-Transit-
 
 ## Installation
 
-Use **Java 25** and the MTR JAR for your loader. Place MTR, the matching [Kotlin LunaCore 0.2.1+](https://github.com/linlunaire/Kotlin-LunaCore) loader JAR, and these dependencies for **Minecraft 26.2** in `mods/`:
+Use **Java 25** and the YLM JAR for your loader. Place YLM, the matching [Kotlin LunaCore 0.2.1+](https://github.com/linlunaire/Kotlin-LunaCore) loader JAR, and these dependencies for **Minecraft 26.2** in `mods/`:
 
 | Loader | Required dependencies |
 | :--- | :--- |
 | **Fabric** | [Fabric API](https://modrinth.com/mod/fabric-api) · [Architectury API](https://modrinth.com/mod/architectury-api) |
 | **NeoForge** | [Architectury API](https://modrinth.com/mod/architectury-api) |
 
-Use matching MTR versions on the server and clients.
+Use matching YLM versions on the server and clients. YLM retains the `mtr` mod ID, registry and resource namespaces, configuration paths and network channels. Replace the previous MTR fork JAR; do not install both together. Repository URLs and historical tags retain their original names.
 
-MTR, ANTE and JCM share Kotlin LunaCore's bundled, loader-managed Kotlin standard library. They do not need a separate FLK/KFF installation; other mods may still require one. Install the **Fabric or NeoForge Mod JAR**, not Kotlin LunaCore's pure JVM library or sources JAR.
+YLM, YLM-ANTE and JCM share Kotlin LunaCore's bundled, loader-managed Kotlin standard library. They do not need a separate FLK/KFF installation; other mods may still require one. Install the **Fabric or NeoForge Mod JAR**, not Kotlin LunaCore's pure JVM library or sources JAR.
 
 ### Server configuration
 
 The optional web map starts only when Dynmap, BlueMap or Squaremap is loaded
-as a mod or enabled as a plugin on a hybrid server. Without one, MTR leaves
+as a mod or enabled as a plugin on a hybrid server. Without one, YLM leaves
 the map disabled and does not open a port. Bundled API libraries do not count
 as installed providers. Map availability/startup messages are in Chinese.
 
 When enabled, the map uses `config/mtr_webserver_port.txt` (default
 `8888`). Use a free port from `1025` to `65535`, or `0` to disable the web map,
 then restart. A port conflict does not stop Minecraft, but the map remains
-unavailable; MTR does not take over another process or choose an alternate port.
+unavailable; YLM does not take over another process or choose an alternate port.
 
 The Overworld time-sync option uses Minecraft 26.2's native clock API; Time &
 Wind is not required. The saved option key is retained for existing worlds.
@@ -67,7 +67,7 @@ owner changed them. After a restart, the earlier in-memory settings are
 unavailable, so disabling an unchanged saved real-time rate falls back to the
 normal rate.
 
-**Optional:** [ANTE](https://github.com/linlunaire/mtr-ante) adds custom models, scripting and rail tools. Choose a compatible build.
+**Optional:** [YLM-ANTE](https://github.com/linlunaire/mtr-ante) adds custom models, scripting and rail tools. Choose a compatible build.
 
 > [!IMPORTANT]
 > Back up worlds, configuration and resource packs before upgrading. Test existing worlds on a copy first.
@@ -83,23 +83,23 @@ workspace/
 └── mtr-ante/                         optional add-on
 ```
 
-Build **Kotlin LunaCore first, then MTR, then ANTE** if needed. Run the same command from each repository root:
+Build **Kotlin LunaCore first, then YLM, then YLM-ANTE** if needed. Run the same command from each repository root:
 
 ```sh
 ./gradlew build
 ```
 
-For a different Kotlin LunaCore checkout location, pass `-PtransitCoreProjectDir=<path>`. The MTR build consumes its versioned artifacts without embedding the prerequisite, runs compatibility checks, and produces both loader JARs:
+For a different Kotlin LunaCore checkout location, pass `-PtransitCoreProjectDir=<path>`. The YLM build consumes its versioned artifacts without embedding the prerequisite, runs compatibility checks, and produces both loader JARs:
 
 ```text
 build/release/
-├── MTR-fabric-26.2-3.4.0-kotlin.3.jar
-└── MTR-neoforge-26.2-3.4.0-kotlin.3.jar
+├── YLM-fabric-26.2-3.4.0-kotlin.4.jar
+└── YLM-neoforge-26.2-3.4.0-kotlin.4.jar
 ```
 
 ## Development
 
-Minecraft-independent Kotlin policies live in the separate [Kotlin LunaCore](https://github.com/linlunaire/Kotlin-LunaCore) project. MTR and ANTE are its first consumers. Game code and assets stay in `common/`; loader integrations live in `fabric/` and `neoforge/`. See [architecture](docs/architecture.md) for ownership and compatibility constraints.
+Minecraft-independent Kotlin policies live in the separate [Kotlin LunaCore](https://github.com/linlunaire/Kotlin-LunaCore) project. YLM and YLM-ANTE are its first consumers. Game code and assets stay in `common/`; loader integrations live in `fabric/` and `neoforge/`. See [architecture](docs/architecture.md) for ownership and compatibility constraints.
 
 See [`gradle.properties`](gradle.properties) for dependency versions and [compatibility checks](docs/compatibility.md) for the tests in `tests/`.
 

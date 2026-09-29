@@ -31,7 +31,7 @@ abstract class Webserver {
 
         private var webServer: Server? = null
         private var serverConnector: ServerConnector? = null
-        private val LOGGER = LoggerFactory.getLogger("MTR Web Map")
+        private val LOGGER = LoggerFactory.getLogger("YLM Web Map")
 
         // Explicitly share the class monitor across Java bridges and Kotlin Companion
         // calls. @Synchronized would additionally lock Companion and split the contract.
@@ -68,7 +68,7 @@ abstract class Webserver {
         open fun start(path: Path?): Unit = synchronized(Webserver::class.java) {
             if (!WebMapSupport.isAvailable()) {
                 stop()
-                LOGGER.info("未检测到 Dynmap、BlueMap 或 Squaremap 模组／已启用插件，已停用 MTR 网页地图，不监听端口。")
+                LOGGER.info("未检测到 Dynmap、BlueMap 或 Squaremap 模组／已启用插件，已停用 YLM 网页地图，不监听端口。")
                 return@synchronized
             }
             if (webServer == null) init()

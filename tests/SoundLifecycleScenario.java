@@ -47,6 +47,10 @@ public final class SoundLifecycleScenario {
         if (failPlay) throw new IllegalStateException("fixture audio failure");
         ACTIVE.add(sound); return null;
     }
+    public static void stop(SoundManager receiver, SoundInstance sound) {
+        require(receiver == manager, "Stop manager receiver"); EVENTS.add("stop:" + sound.getIdentifier());
+        ACTIVE.remove(sound);
+    }
     public static float frameDuration() { EVENTS.add("frame:" + bits(elapsed)); return elapsed; }
     public static boolean canPlay() { EVENTS.add("audible:" + audible); return audible; }
     public static void playLocal(ClientLevel receiver, BlockPos pos, SoundEvent event, SoundSource source, float volume, float pitch, boolean delay) {

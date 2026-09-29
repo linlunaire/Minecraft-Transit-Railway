@@ -9,5 +9,5 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'Minecraft-Transit-Railway'
+rootProject.name = 'Yanling-Metro'
 include 'common', 'fabric', 'neoforge'

@@ -27,6 +27,9 @@ open class TrainLoopingSoundInstance(event: SoundEvent?, private val train: Trai
         if (soundManager != null && !train!!.isRemoved && volume > 0F && !soundManager.isActive(this)) {
             looping = true
             soundManager.play(this)
+        } else if (soundManager != null && volume <= 0F && soundManager.isActive(this)) {
+            // Release the channel, not the reusable instance, so the next playback starts at the beginning.
+            soundManager.stop(this)
         }
     }
 
