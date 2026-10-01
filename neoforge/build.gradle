@@ -3,6 +3,8 @@ architectury {
 	neoForge()
 }
 
+tasks.named('shadowJar') { exclude 'META-INF/mods.toml' }
+
 configurations {
 	common
 	compileClasspath.extendsFrom common

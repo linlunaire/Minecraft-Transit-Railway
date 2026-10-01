@@ -3,12 +3,23 @@
 ## Current module layout
 
 ```text
-fabric / neoforge       Java loader entrypoints and metadata
-        |
-      common           Kotlin migration of models/gameplay/adapters; remaining Java and assets
-        |
-   Transit Core        Separate prerequisite Mod: reusable Kotlin/JVM policies
+YanlingMTR repository
+  common / fabric / neoforge      YanlingMTR gameplay and loader integrations
+  ante/
+    common / fabric / neoforge    ANTE models, scripts, tools and loader integrations
+
+Production dependencies: ANTE -> YanlingMTR -> Transit Core
+                        ANTE --------> Transit Core
+Transit Core remains a separate prerequisite Mod and repository.
 ```
+
+The Kotlin 26.2 line uses one repository and one coordinated build, with two
+isolated Architectury builds connected through Gradle composite tasks. YanlingMTR owns
+trains, stations, ticketing, persistence and network data. ANTE owns custom
+models, scripts and extension tools. They still produce separate loader JARs;
+YanlingMTR does not acquire a runtime dependency on ANTE. Existing class names, mod IDs
+(`mtr`, `mtrsteamloco`), packet channels and saved-data keys are unchanged.
+The 1.21.1 and Java maintenance branches are outside this consolidation.
 
 [Transit Core](https://github.com/linlunaire/Transit-Core) is a standalone library Mod for the wider Mod ecosystem; MTR, ANTE and JCM are its first consumers. Its pure JVM library is a compile-time dependency. Its matching Fabric or NeoForge Mod JAR supplies the runtime implementation and nested Kotlin stdlib. Consumers embed neither the core nor another runtime copy.
 
@@ -194,7 +205,32 @@ Do not create more modules until a real caller or dependency justifies them. Kee
 
 ## Build and verification
 
-Keep Transit Core, MTR and optionally ANTE in sibling directories. Build in that order. Set `-PtransitCoreProjectDir=<path>` when the prerequisite checkout is elsewhere. Missing library or loader artifacts fail with an instruction to build Transit Core first.
+Keep Transit Core beside the YanlingMTR repository and build it first. ANTE is now
+in-tree under `ante/`; no separate ANTE checkout is required. Root `build`
+checks and builds both mods for Fabric and NeoForge. `buildMtr` retains the
+YanlingMTR-only workflow. `:ante:build` also builds and verifies its in-tree MTR
+prerequisite before any ANTE compilation. ANTE targets `buildMtr`, not the root
+aggregate `build`, so the task graph has no recursive build dependency.
+
+Both release versions and shared dependency versions live in root
+`gradle.properties`; ANTE's loader metadata requires the matching YanlingMTR version.
+ANTE-specific script/configuration dependencies remain in
+`ante/gradle.properties`. Both builds write their checked loader JARs into root
+`build/release/`. Their existing archive policies distinguish YanlingMTR and ANTE and
+preserve earlier releases under `archive/`.
+
+Set `-PtransitCoreProjectDir=<path>` when the prerequisite checkout is elsewhere;
+relative paths resolve from the repository root in both builds. Missing library
+or loader artifacts fail with an instruction to build Transit Core first.
+`-PmtrProjectDir` is intentionally rejected: a monorepo build must not silently
+compile ANTE against unrelated sibling sources or stale binaries.
+
+The composite arrangement follows Gradle's [included-build task
+dependencies](https://docs.gradle.org/current/userguide/composite_builds.html#depending_on_tasks).
+It preserves each mod's tested shading, Mixin and loader configuration rather
+than assuming that merging source directories makes those contracts identical.
+The root CI builds the pair together on Temurin and GraalVM; local success is
+not evidence that a remote CI run has executed.
 
 MTR's `build` retains render/model/Mixin/persistence checks and the 4,096-mesh fixture. Transit Core owns the dependency-isolation, Java interoperability, dispatch lifecycle and warm-path allocation fixtures. MTR also runs the shared cache fixture against the external library. Release checks load real Kotlin classes from the matching prerequisite Mod JAR, require resolved dependency metadata, and reject accidentally embedded core classes or stdlib.
 

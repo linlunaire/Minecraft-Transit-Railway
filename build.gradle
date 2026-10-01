@@ -1,11 +1,16 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
+	id 'base'
 	id 'architectury-plugin' version '3.5.169'
 	id 'dev.architectury.loom-no-remap' version '1.17.491' apply false
 	id 'com.gradleup.shadow' version '9.2.2' apply false
 	id 'org.jetbrains.kotlin.jvm' version '2.4.20' apply false
 }
+
+apply from: 'gradle/monorepo.gradle'
+
+ext.loader_version = "${mtr_compat_version}+yanlingmtr.${mod_version}"
 
 if (JavaVersion.current() != JavaVersion.VERSION_25) {
 	throw new GradleException('Minecraft 26.2 requires JDK 25. Set JAVA_HOME to a JDK 25 installation.')
@@ -141,12 +146,17 @@ subprojects {
 
 	processResources {
 		inputs.property 'version', project.version.toString()
+		inputs.property 'loaderVersion', rootProject.loader_version
 		inputs.property 'transitCoreVersion', rootProject.transit_core_version
 		filesMatching(['fabric.mod.json', 'META-INF/neoforge.mods.toml']) {
-			expand version: project.version, transitCoreVersion: rootProject.transit_core_version
+			expand version: rootProject.loader_version, transitCoreVersion: rootProject.transit_core_version
+		}
+		filesMatching('assets/mtr/website/version.js') {
+			filter(ReplaceTokens, tokens: [version: project.version.toString()])
 		}
 	}
 	shadowJar {
+		from(rootProject.file('LICENSE')) { rename { 'LICENSE-YanlingMTR' } }
 		configurations = [project.configurations.shadowCommon]
 		archiveBaseName = "${rootProject.archives_base_name}-${project.name}"
 		archiveClassifier = ''

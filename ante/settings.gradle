@@ -1,0 +1,15 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url = 'https://maven.architectury.dev/' }
+        maven { url = 'https://maven.fabricmc.net/' }
+        maven { url = 'https://neoforged.forgecdn.net/releases/' }
+        maven { url = 'https://maven.neoforged.net/releases/' }
+    }
+}
+
+rootProject.name = 'ante'
+include 'common', 'fabric', 'neoforge'
+// Also supports ../gradlew -p ante ... without a prebuilt or sibling MTR checkout.
+includeBuild('..') { name = 'YanlingMTR' }

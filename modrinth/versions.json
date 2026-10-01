@@ -1,0 +1,130 @@
+[
+  {
+    "file": "YanlingMTR-fabric-1.21.1-1.0.0.jar",
+    "public_version": "1.0.0",
+    "loader_compatibility_version": "1.21.1-3.3.9+yanlingmtr.1.0.0",
+    "upload": {
+      "name": "YanlingMTR 1.0.0 — Minecraft 1.21.1 Fabric",
+      "version_number": "1.0.0+mc1.21.1.fabric",
+      "version_type": "release",
+      "game_versions": [
+        "1.21.1"
+      ],
+      "loaders": [
+        "fabric"
+      ],
+      "environment": "client_and_server",
+      "featured": true,
+      "dependencies": [
+        {
+          "project_id": "lhGA9TYQ",
+          "dependency_type": "required"
+        },
+        {
+          "project_id": "P7dR8mSH",
+          "dependency_type": "required"
+        }
+      ],
+      "changelog": "First YanlingMTR public version, based on the checked MTR 3.3.9 maintenance build. New branding and public numbering; preserves mtr save/API identity and addon dependency compatibility. Includes dashboard background/icon fixes and existing networking, train audio, lift and persistence fixes."
+    },
+    "requirements": {
+      "java": 21,
+      "architectury": "13.0.11",
+      "fabric_api": "0.116.15+1.21.1"
+    }
+  },
+  {
+    "file": "YanlingMTR-neoforge-1.21.1-1.0.0.jar",
+    "public_version": "1.0.0",
+    "loader_compatibility_version": "1.21.1-3.3.9+yanlingmtr.1.0.0",
+    "upload": {
+      "name": "YanlingMTR 1.0.0 — Minecraft 1.21.1 NeoForge",
+      "version_number": "1.0.0+mc1.21.1.neoforge",
+      "version_type": "release",
+      "game_versions": [
+        "1.21.1"
+      ],
+      "loaders": [
+        "neoforge"
+      ],
+      "environment": "client_and_server",
+      "featured": true,
+      "dependencies": [
+        {
+          "project_id": "lhGA9TYQ",
+          "dependency_type": "required"
+        }
+      ],
+      "changelog": "First YanlingMTR public version, based on the checked MTR 3.3.9 maintenance build. New branding and public numbering; preserves mtr save/API identity and addon dependency compatibility. Includes dashboard background/icon fixes and existing networking, train audio, lift and persistence fixes."
+    },
+    "requirements": {
+      "java": 21,
+      "architectury": "13.0.11"
+    }
+  },
+  {
+    "file": "YanlingMTR-fabric-26.2-1.0.0-beta.1.jar",
+    "public_version": "1.0.0-beta.1",
+    "loader_compatibility_version": "26.2-3.4.0-kotlin.5+yanlingmtr.1.0.0-beta.1",
+    "upload": {
+      "name": "YanlingMTR 1.0.0-beta.1 — Minecraft 26.2 Fabric",
+      "version_number": "1.0.0-beta.1+mc26.2.fabric",
+      "version_type": "beta",
+      "game_versions": [
+        "26.2"
+      ],
+      "loaders": [
+        "fabric"
+      ],
+      "environment": "client_and_server",
+      "featured": false,
+      "dependencies": [
+        {
+          "project_id": "lhGA9TYQ",
+          "dependency_type": "required"
+        },
+        {
+          "project_id": "P7dR8mSH",
+          "dependency_type": "required"
+        }
+      ],
+      "changelog": "First YanlingMTR 26.2 Kotlin beta, based on preview 5. New branding and public numbering; preserves mtr save/API identity and addon dependency compatibility. Requires Kotlin LunaCore 0.2.1. Kotlin migration and multiplayer validation remain in progress."
+    },
+    "requirements": {
+      "java": 25,
+      "architectury": "21.0.7",
+      "fabric_api": "0.159.0+26.2",
+      "kotlin_lunacore": "0.2.1 (separate matching-loader mod; Modrinth project unresolved)"
+    }
+  },
+  {
+    "file": "YanlingMTR-neoforge-26.2-1.0.0-beta.1.jar",
+    "public_version": "1.0.0-beta.1",
+    "loader_compatibility_version": "26.2-3.4.0-kotlin.5+yanlingmtr.1.0.0-beta.1",
+    "upload": {
+      "name": "YanlingMTR 1.0.0-beta.1 — Minecraft 26.2 NeoForge",
+      "version_number": "1.0.0-beta.1+mc26.2.neoforge",
+      "version_type": "beta",
+      "game_versions": [
+        "26.2"
+      ],
+      "loaders": [
+        "neoforge"
+      ],
+      "environment": "client_and_server",
+      "featured": false,
+      "dependencies": [
+        {
+          "project_id": "lhGA9TYQ",
+          "dependency_type": "required"
+        }
+      ],
+      "changelog": "First YanlingMTR 26.2 Kotlin beta, based on preview 5. New branding and public numbering; preserves mtr save/API identity and addon dependency compatibility. Requires Kotlin LunaCore 0.2.1. Kotlin migration and multiplayer validation remain in progress."
+    },
+    "requirements": {
+      "java": 25,
+      "architectury": "21.0.7",
+      "kotlin_lunacore": "0.2.1 (separate matching-loader mod; Modrinth project unresolved)"
+    }
+  }
+]

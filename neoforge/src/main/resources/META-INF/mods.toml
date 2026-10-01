@@ -5,9 +5,9 @@ license = "MIT"
 [[mods]]
 modId = "mtr"
 version = "${version}"
-displayName = "Yanling Metro"
+displayName = "YanlingMTR"
 authors = "linlunaire, Jonathan Ho, MTR contributors"
-description = "Yanling Metro (YLM): automated railways for Minecraft. An independent community fork of Minecraft Transit Railway."
+description = "YanlingMTR: automated railways for Minecraft. An independent community fork of Minecraft Transit Railway."
 logoFile = "icon.png"
 
 [[dependencies.mtr]]

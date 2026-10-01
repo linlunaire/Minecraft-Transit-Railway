@@ -4,9 +4,20 @@ The 26.2 build compiles Kotlin and the remaining Java source in `common/`, `fabr
 directly and consumes the separately built [Transit Core](https://github.com/linlunaire/Transit-Core) Kotlin library at compile time. At runtime, both loaders require its matching Mod JAR. It does not download mapping source, rewrite Java source, convert
 legacy data packs or select an older Minecraft build.
 
-`build` runs the checks below before copying either loader JAR to
-`build/release/`. Individual checks are Gradle tasks in `common/build.gradle`;
-their implementations live in `tests/`.
+Root `build` now runs YanlingMTR and the in-tree ANTE checks before completing the
+four-JAR release set in `build/release/`. `buildMtr` retains YanlingMTR-only verification.
+The YanlingMTR checks below are Gradle tasks in `common/build.gradle`; their
+implementations live in `tests/`. ANTE's tests and fixtures remain in
+`ante/tests/`, with tasks in `ante/common/build.gradle`, `ante/gradle/` and its
+loader builds. ANTE compilation depends on the freshly checked YanlingMTR development
+and release JARs, including when invoked through `:ante:build` directly.
+
+ANTE coverage includes material factories, model loaders/variants, dynamic
+resources, script runtime/module packaging, and real Mixin weaving for camera,
+rail, route, depot and riding integrations. Both loaders' finished artifacts
+retain their separate Mod IDs and reject embedded copies of MTR, shared core or
+Kotlin stdlib where inappropriate. This is a repository/build consolidation,
+not an automatic backport of fixes from the separate 1.21.1 maintenance line.
 
 | Area | Contract checked |
 | --- | --- |

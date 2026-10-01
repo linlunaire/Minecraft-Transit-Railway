@@ -1,0 +1,23 @@
+// Keep the two Architectury builds isolated, with one checked task graph.
+// ANTE's prerequisite points at buildMtr, never at the aggregate build task.
+tasks.register('buildMtr') {
+    group = 'build'
+    description = 'Builds and verifies YanlingMTR without ANTE, including its common development JAR.'
+    dependsOn ':common:jar', ':fabric:build', ':neoforge:build'
+}
+
+tasks.named('assemble') {
+    dependsOn ':common:assemble', ':fabric:assemble', ':neoforge:assemble',
+            gradle.includedBuild('ante').task(':assemble')
+}
+tasks.named('check') {
+    dependsOn ':common:check', ':fabric:check', ':neoforge:check',
+            gradle.includedBuild('ante').task(':check')
+}
+tasks.named('build') {
+    dependsOn 'buildMtr', gradle.includedBuild('ante').task(':build')
+}
+tasks.named('clean') {
+    dependsOn ':common:clean', ':fabric:clean', ':neoforge:clean',
+            gradle.includedBuild('ante').task(':clean')
+}

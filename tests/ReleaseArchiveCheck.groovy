@@ -9,7 +9,7 @@ def fixture = Files.createTempDirectory(fixtureParent, 'fixture-')
 def release = Files.createDirectory(fixture.resolve('release'))
 def oldName = 'MTR-neoforge-26.2-3.3.2.jar'
 def previousBrandedName = 'YLM-neoforge-26.2-3.4.0-kotlin.2.jar'
-def currentName = 'YLM-neoforge-26.2-3.4.0-kotlin.3.jar'
+def currentName = 'YanlingMTR-neoforge-26.2-1.0.0-beta.1.jar'
 def retained = [
         currentName,
         'MTR-fabric-26.2-3.3.2.jar',

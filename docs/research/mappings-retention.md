@@ -2,11 +2,11 @@
 
 Historical finding, verified 2026-09-25 before the standalone Transit Core migration: the unchanged 1.21.1 tags require `linlunaire/Minecraft-Mappings`. Archiving would preserve their original download URLs. No repository was archived or deleted during this investigation.
 
-**Migration now implemented:** [Transit Core preserves the exact historical inputs and a preparation script](https://github.com/linlunaire/Transit-Core/blob/650800892192395a8755ef41efcfe90b913a3c4a/docs/legacy-mappings.md). Prepared 1.21.1 MTR and ANTE checkouts both build without the old repository. The original tags remain unchanged and still need that preparation step if their dependency repository is removed. The sections below record the original dependency audit, not an outstanding requirement to create another archive.
+**Migration implemented and recovery verified on 2026-10-01:** [Kotlin LunaCore preserves the exact historical inputs and a preparation script](https://github.com/linlunaire/Kotlin-LunaCore/blob/master/docs/legacy-mappings.md). The `transit-core-0.1.0` archive tag is published at commit `650800892192395a8755ef41efcfe90b913a3c4a`. A fresh shallow clone retrieved that tag and verified all 31 original payload hashes. Current 1.21.1 and 26.2 maintenance builds keep their required mappings in the MTR source tree; YLTE compiles against those MTR artifacts. They do not download the separate Minecraft-Mappings repository. The original historical tags still require the preparation step below. The remaining audit records their old dependencies.
 
 ## Current 26.2
 
-MTR master tracks its mapping/compatibility Java sources directly. Its build, settings and CI no longer download `Minecraft-Mappings` or run `setupFiles`. ANTE's current build depends on MTR artifacts, not this repository. Already-built game JARs do not need GitHub mapping downloads at runtime.
+The 26.2 maintenance and Kotlin branches track their mapping/compatibility sources directly. Their build, settings and CI do not download `Minecraft-Mappings`. ANTE's current build depends on MTR artifacts, not this repository. Already-built game JARs do not need GitHub mapping downloads at runtime.
 
 ## Historical source builds still need it
 
@@ -19,10 +19,22 @@ MTR tag `1.21.1-3.3.2` resolves to `52095c771f8ab36527a723bb922fc6d8650bd4b5`:
 
 ANTE tag `1.1.1-1.21.1-beta.2` resolves to `da16869dee6c14a1b50dc04150081c3a211d06eb`; its [CI checks out and builds that MTR tag](https://github.com/linlunaire/mtr-ante/blob/da16869dee6c14a1b50dc04150081c3a211d06eb/.github/workflows/build.yml#L25), so it is indirectly affected too.
 
-Both historical download URLs were checked live and returned HTTP 200. The old username redirects to `linlunaire`; it is not a separate backup. The mapping repository's remote `1.21.1` branch is still the pinned commit.
+Both historical download URLs returned HTTP 200 at the original audit. The old username redirects to `linlunaire`; it is not a separate backup. Deleting that repository removes these historical download endpoints.
 
-## If deletion is required later
+## Rebuild after repository deletion
 
-First create a new 1.21.1 maintenance commit/tag with the required mapping sources and `fabric.min.js` vendored, remove compulsory downloads, update the corresponding ANTE build reference, and test a clean source build without a local mapping cache. Do not overwrite existing release tags. Even then, deleting the dependency makes the original tags non-reproducible, so retaining an archive remains preferable.
+Use the current YanlingMTR 1.21.1 maintenance branch or the current 26.2 branch for new builds. To rebuild the frozen MTR `1.21.1-3.3.2` / ANTE `1.1.1-1.21.1-beta.2` pair, clone Kotlin LunaCore and fetch the preserved archive if the checkout is shallow:
 
-[GitHub's archiving documentation](https://docs.github.com/en/repositories/archiving-a-github-repository/archiving-repositories) describes the read-only, reversible archival behavior.
+```sh
+git fetch --depth=1 origin tag transit-core-0.1.0
+```
+
+Run the preparation script from that Kotlin LunaCore checkout against the historical MTR checkout:
+
+```powershell
+pwsh -File tools/prepare-legacy-1.21.1.ps1 -MtrPath ../Minecraft-Transit-Railway-3.x.x
+```
+
+Then build MTR first and ANTE second with Java 21 and their Gradle wrappers. The preparation script preserves the historical Java compatibility fixes, vendors the archived dashboard input and removes the old repository downloads. The original tags remain unchanged; checking them out alone does not perform this migration. The original licenses, byte-level checksums and maintenance patch are kept together in the preserved archive.
+
+The owner can delete the separate repository after this recovery path is available. This migration does not delete the GitHub repository or local checkouts.

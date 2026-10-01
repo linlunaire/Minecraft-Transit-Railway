@@ -9,5 +9,6 @@ pluginManagement {
 	}
 }
 
-rootProject.name = 'Yanling-Metro'
+rootProject.name = 'YanlingMTR'
 include 'common', 'fabric', 'neoforge'
+includeBuild('ante')

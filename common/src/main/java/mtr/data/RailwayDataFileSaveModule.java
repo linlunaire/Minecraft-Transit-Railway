@@ -89,7 +89,7 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 		readMessagePackFromFile(railsPath, RailEntry::new, railEntry -> rails.put(railEntry.pos, railEntry.connections), true);
 		readMessagePackFromFile(signalBlocksPath, SignalBlocks.SignalBlock::new, signalBlocks.signalBlocks::add, true);
 
-		System.out.println("Yanling Metro data successfully loaded for " + world.dimension().identifier());
+		System.out.println("YanlingMTR data successfully loaded for " + world.dimension().identifier());
 		canAutoSave = true;
 		dataLoaded = true;
 	}
@@ -189,7 +189,7 @@ public class RailwayDataFileSaveModule extends RailwayDataModuleBase {
 				}));
 
 				if (!useReducedHash || filesWritten > 0 || filesDeleted > 0) {
-					System.out.println("Yanling Metro save complete for " + world.dimension().identifier() + " in " + (System.currentTimeMillis() - autoSaveStartMillis) / 1000 + " second(s)");
+					System.out.println("YanlingMTR save complete for " + world.dimension().identifier() + " in " + (System.currentTimeMillis() - autoSaveStartMillis) / 1000 + " second(s)");
 					if (filesWritten > 0) {
 						System.out.println("- Changed: " + filesWritten);
 					}

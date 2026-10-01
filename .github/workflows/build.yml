@@ -13,8 +13,12 @@ permissions:
 
 jobs:
   build:
-    name: Minecraft 26.2
+    name: Minecraft 26.2 (${{ matrix.java }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [temurin, graalvm]
 
     steps:
       - name: Checkout repository
@@ -32,7 +36,7 @@ jobs:
       - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:
-          distribution: temurin
+          distribution: ${{ matrix.java }}
           java-version: '25'
 
       - name: Set up Gradle
@@ -45,13 +49,13 @@ jobs:
         working-directory: Kotlin-LunaCore
         run: ./gradlew build --stacktrace
 
-      - name: Build Fabric and NeoForge JARs
+      - name: Build and verify YanlingMTR and ANTE for both loaders
         working-directory: Minecraft-Transit-Railway-3.x.x
         run: ./gradlew build --stacktrace
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: YLM-26.2
-          path: Minecraft-Transit-Railway-3.x.x/build/release/YLM-*-26.2-*.jar
+          name: YanlingMTR-suite-26.2-${{ matrix.java }}
+          path: Minecraft-Transit-Railway-3.x.x/build/release/YanlingMTR-*.jar
           if-no-files-found: error

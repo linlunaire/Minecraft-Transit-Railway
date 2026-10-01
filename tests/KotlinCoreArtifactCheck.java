@@ -151,23 +151,23 @@ public final class KotlinCoreArtifactCheck {
         var identity = Pattern.compile(fabric ? "\"id\"\\s*:\\s*\"([^\"]+)\"" : "(?m)^modId\\s*=\\s*\"([^\"]+)\"").matcher(metadata);
         require(identity.find() && identity.group(1).equals(modId), "Branding must not change the compatibility mod ID: " + modId);
         if (!modId.equals("transit_core")) {
-            String displayName = modId.equals("mtr") ? "Yanling Metro" : "YLM-ANTE";
+            String displayName = modId.equals("mtr") ? "YanlingMTR" : "YanlingMTR-ANTE";
             var name = Pattern.compile(fabric ? "\"name\"\\s*:\\s*\"([^\"]+)\"" : "(?m)^displayName\\s*=\\s*\"([^\"]+)\"").matcher(metadata);
             require(name.find() && name.group(1).equals(displayName), "Wrong branded mod display name: " + displayName);
-            String prefix = modId.equals("mtr") ? "YLM-" : "YLM-ANTE-";
+            String prefix = modId.equals("mtr") ? "YanlingMTR-" : "YanlingMTR-ANTE-";
             require(Path.of(jar.getName()).getFileName().toString().startsWith(prefix + (fabric ? "fabric-" : "neoforge-")), "Wrong branded release filename");
         }
         if (modId.equals("mtr")) {
             for (String locale : new String[]{"en_us", "zh_cn"}) {
                 String translations = read(jar, "assets/mtr/lang/" + locale + ".json");
                 for (String key : new String[]{"gui.mtr.mtr_options", "gui.mtr.mismatched_versions", "key.category.mtr.keybinding", "itemGroup.mtr.core"}) {
-                    require(Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*\"[^\"]*Yanling Metro")
+                    require(Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*:\\s*\"[^\"]*YanlingMTR")
                             .matcher(translations).find(), "Missing branded translation: " + locale + "/" + key);
                 }
             }
-            require(read(jar, "assets/mtr/website/index.html").contains("<title>Yanling Metro"), "Web map title uses the old brand");
-            require(read(jar, "pack.mcmeta").contains("Yanling Metro resources"), "Resource pack description uses the old brand");
-            System.out.println("PASS: YLM display name, artifact prefix, English/Chinese UI and web map; legacy mtr identity retained");
+            require(read(jar, "assets/mtr/website/index.html").contains("<title>YanlingMTR"), "Web map title uses the old brand");
+            require(read(jar, "pack.mcmeta").contains("YanlingMTR resources"), "Resource pack description uses the old brand");
+            System.out.println("PASS: YanlingMTR display name, artifact prefix, English/Chinese UI and web map; legacy mtr identity retained");
         }
         if (fabric) {
             String json = read(jar, "fabric.mod.json");
