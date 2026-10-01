@@ -4,8 +4,15 @@ pluginManagement {
         gradlePluginPortal()
         maven { url = 'https://maven.architectury.dev/' }
         maven { url = 'https://maven.fabricmc.net/' }
-        maven { url = 'https://neoforged.forgecdn.net/releases/' }
-        maven { url = 'https://maven.neoforged.net/releases/' }
+        ['https://neoforged.forgecdn.net/releases/', 'https://maven.neoforged.net/releases/'].each { neoForgeRepository ->
+            maven {
+                url = neoForgeRepository
+                content {
+                    includeGroupByRegex '(net\\.neoforged|net\\.minecraftforge|cpw\\.mods)(\\..*)?'
+                    includeGroup 'de.oceanlabs.mcp'
+                }
+            }
+        }
     }
 }
 
