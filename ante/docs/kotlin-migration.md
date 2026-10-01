@@ -11,7 +11,7 @@ the matching MTR Kotlin line (`26.2-3.4.0-kotlin.5` or newer) and Kotlin LunaCor
 with ANTE's Kotlin-companion Mixin targets. Kotlin LunaCore's public branding and
 repository changed; its runtime mod ID remains `transit_core` for compatibility.
 
-Preview 5 consolidates ANTE under `ante/` in the YLM repository. The root build
+Preview 5 consolidates ANTE under `ante/` in the YanlingMTR repository. The root build
 verifies both mods against the same sources, shares release/dependency versions,
 and emits separate loader JARs. The import does not change gameplay sources or
 the conversion inventory below. See [import provenance](../IMPORT.md).
@@ -41,6 +41,13 @@ oracle retains the historical parser, primitive geometry, locale, per-line
 recovery and resource/atlas behavior. Ordinary verification consumes committed
 goldens; the historical Git blob is required only for explicitly regenerating
 the oracle. See [the CSV loader checks](../tests/fixtures/README-csv-model-loader.md).
+
+The model-helper oracle keeps its original 228 raw-bit Java records unchanged.
+Comparison canonicalizes NaNs only in geometry fields: their sign/payload is
+not a portable arithmetic contract, as confirmed by interpreter/JIT differences.
+Finite UV bits, signed zero, infinities, aliases, failure order, material state,
+texture identifiers and warning text still compare exactly. This changes only
+the test oracle, not production geometry or shader behavior.
 
 `ModelVariantPreparation` is a new Kotlin policy module used by the existing
 `EyeCandyRegistry` and `RailModelRegistry`. Its single preparation entrypoint

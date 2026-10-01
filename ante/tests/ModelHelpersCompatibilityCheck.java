@@ -19,16 +19,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.regex.Pattern;
 
-/** CPU-only original-Java oracle: mutable builder state, exact UV bits and failure ordering. */
+/** CPU-only original-Java oracle: mutable builder state, finite UV bits and failure ordering. */
 public final class ModelHelpersCompatibilityCheck {
     private static int assertions;
+    private static final Pattern FLOAT_BITS = Pattern.compile("(?<![0-9a-f])[0-9a-f]{8}(?![0-9a-f])");
     private static final Identifier OLD = Identifier.parse("test:old");
     private static final Identifier SHEET = Identifier.parse("test:sheet");
     private static final List<String> records = new ArrayList<>();
     private static final List<String> warnings = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
+        recordComparisons();
         Path source = Path.of(args[1]).toRealPath();
         boolean kotlin = Files.isDirectory(source);
         for (Class<?> type : List.of(RawMeshBuilder.class, AtlasSprite.class)) {
@@ -51,9 +54,45 @@ public final class ModelHelpersCompatibilityCheck {
         } else {
             List<String> expected = Files.readAllLines(Path.of(args[0]));
             require(expected.size() == records.size(), "Record count changed: " + records.size());
-            for (int i = 0; i < records.size(); i++) require(expected.get(i).equals(records.get(i)), "Record " + i + " differs\nJava: " + expected.get(i) + "\nActual: " + records.get(i));
+            for (int i = 0; i < records.size(); i++) require(sameRecord(expected.get(i), records.get(i)), "Record " + i + " differs\nJava: " + expected.get(i) + "\nActual: " + records.get(i));
         }
-        System.out.println("PASS: model helpers, " + assertions + " assertions / " + records.size() + " Java records; builder aliases, partial failures, UV raw bits and warning order (no GPU)");
+        System.out.println("PASS: model helpers, " + assertions + " assertions / " + records.size() + " Java records; builder aliases, partial failures, exact finite UV bits, NaN equivalence and warning order (no GPU)");
+    }
+
+    private static void recordComparisons() {
+        require(sameRecord("atlas-13\tffc00000:7fc00000;\ttest:sheet\t[WARN:UV bleeding]",
+                "atlas-13\tffc00000:ffc00000;\ttest:sheet\t[WARN:UV bleeding]"), "CI NaN sign difference must not change the verdict");
+        require(sameRecord("builder-test\t7fc00000/ffc00000|unchanged", "builder-test\t7f800001/ffffffff|unchanged"), "NaN payloads must compare equivalently");
+        require(sameRecord("face-3-2\tOK\t7fc00000|[0, 1, 2]", "face-3-2\tOK\tffc00000|[0, 1, 2]"), "Face records must normalize only their geometry field");
+        require(!sameRecord("atlas-test\t0:0;", "atlas-test\t80000000:0;"), "Signed zero difference must remain visible");
+        require(!sameRecord("atlas-test\t3f800000:0;", "atlas-test\t3f800001:0;"), "One-bit finite UV difference must remain visible");
+        require(!sameRecord("atlas-test\t7f800000:0;", "atlas-test\tff800000:0;"), "Infinity signs must remain visible");
+        require(!sameRecord("atlas-test\t7fc00000:0;", "atlas-test\t7f800000:0;"), "NaN must not match infinity");
+        require(!sameRecord("atlas-test\t7fc00000:0;\ttest:7fc00000", "atlas-test\tffc00000:0;\ttest:ffc00000"), "Texture identifiers must not be normalized");
+        require(!sameRecord("atlas-test\t7fc00000:0;\ttest:sheet\t[WARN:7fc00000]", "atlas-test\tffc00000:0;\ttest:sheet\t[WARN:ffc00000]"), "Warning text must remain exact");
+        require(!sameRecord("builder-test\t7fc00000|material:7fc00000", "builder-test\tffc00000|material:ffc00000"), "Material state must remain exact");
+    }
+
+    private static boolean sameRecord(String expected, String actual) {
+        return canonicalNaNs(expected).equals(canonicalNaNs(actual));
+    }
+
+    private static String canonicalNaNs(String record) {
+        int geometryStart = record.indexOf('\t') + 1;
+        if (geometryStart == 0) return record;
+        if (record.startsWith("face-")) geometryStart = record.indexOf('\t', geometryStart) + 1;
+        if (geometryStart == 0) return record;
+        int geometryEnd = record.indexOf('\t', geometryStart);
+        if (geometryEnd < 0) geometryEnd = record.length();
+        int materialStart = record.indexOf('|', geometryStart);
+        if (materialStart >= 0 && materialStart < geometryEnd) geometryEnd = materialStart;
+        // Arithmetic NaN sign/payload bits are not a portable Java contract.
+        // Keep the frozen raw-bit fixture; normalize only geometry for comparison.
+        String geometry = FLOAT_BITS.matcher(record.substring(geometryStart, geometryEnd)).replaceAll(match -> {
+            int bits = Integer.parseUnsignedInt(match.group(), 16);
+            return Float.isNaN(Float.intBitsToFloat(bits)) ? "7fc00000" : match.group();
+        });
+        return record.substring(0, geometryStart) + geometry + record.substring(geometryEnd);
     }
 
     private static void builders() {

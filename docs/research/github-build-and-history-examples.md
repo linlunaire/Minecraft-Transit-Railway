@@ -33,3 +33,9 @@ Node.js 的示例脚本调用校验助手时未传入预先保存的摘要，助
 本次 26.2 GraalVM CI 的首个依赖解析失败，是 NeoForge 镜像请求 `com.github.jonafanho:Minecraft-Mod-API-Tools` 的 POM 返回 502；随后无关的 `bcutil` 动态版本查询也受该仓库停用影响。修复按 Gradle 官方的仓库内容过滤方式处理：两处 NeoForge Maven 仓库只查询 `net.neoforged`、`net.minecraftforge`、`cpw.mods` 和 `de.oceanlabs.mcp` 范围，settings 的仓库声明同步限制。保留 `de.oceanlabs.mcp` 是为了现有 Loom 依赖的 `mcinjector:3.8.0` 工具，首轮本地解析已确认它仍需要该仓库。JitPack 的 `exclusiveContent` 只接管 API Tools 这个模块，使其他依赖继续从自己的仓库解析。[Gradle 官方说明](https://docs.gradle.org/current/userguide/filtering_repository_content.html)
 
 官方区分了普通 `content` 过滤与 `exclusiveContent`：前者限制该仓库接受哪些请求，后者同时排除其他仓库查询指定依赖。这里采用模块级独占范围，避免把 API Tools 的所有传递依赖也交给 JitPack。实际修复是否完成，以本项目对应提交的 CI 结果为准；外部仓库里的例子不能替代该验证。
+
+## 本次回归发现：浮点记录的跨 JVM 比较
+
+云端 Temurin 在模型辅助检查中报告的差异，是同一 NaN 的 `7fc00000` / `ffc00000` 编码。对本机同一 Kotlin 产物，`-Xint` 和 `-Xcomp` 也能复现这类差异。Java 的浮点语义不承诺算术结果的特定 NaN 符号和载荷；`Float.floatToIntBits` 提供统一的 NaN 编码，而 `floatToRawIntBits` 暴露原始编码。[Java 浮点规范](https://docs.oracle.com/javase/specs/jls/se25/html/jls-4.html#jls-4.2.3)、[Float API](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Float.html#floatToIntBits(float))
+
+本次只在回归比较时规范化几何字段里的 NaN，保留原始 228 条 Java 基准记录。有限值、正负零、无穷值仍逐位检查，材质、贴图标识和告警文本不参与规范化；负例检查防止它掩盖真正的变化。生产代码与发布 JAR 无需因这个测试问题修改。
