@@ -46,14 +46,18 @@ public interface NetworkUtilities {
 	}
 
 	static void sendToPlayer(ServerPlayer player, ResourceLocation id, FriendlyByteBuf packet) {
-		NetworkManager.sendToPlayer(player, createPayload(id, packet));
+		if (NetworkManager.canPlayerReceive(player, getS2CId(id))) {
+			NetworkManager.sendToPlayer(player, createPayload(id, packet));
+		}
 	}
 
 	static void sendToPlayers(Iterable<? extends Player> players, Player excludedPlayer, ResourceLocation id, FriendlyByteBuf packet) {
 		final UUID excludedPlayerId = excludedPlayer == null ? null : excludedPlayer.getUUID();
+		final ResourceLocation payloadId = getS2CId(id);
 		final List<ServerPlayer> playersToSend = new ArrayList<>();
 		for (final Player player : players) {
-			if (excludedPlayerId == null || !player.getUUID().equals(excludedPlayerId)) {
+			if ((excludedPlayerId == null || !player.getUUID().equals(excludedPlayerId))
+					&& NetworkManager.canPlayerReceive((ServerPlayer) player, payloadId)) {
 				playersToSend.add((ServerPlayer) player);
 			}
 		}

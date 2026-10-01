@@ -10,7 +10,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -23,7 +22,7 @@ import java.util.function.Supplier;
 public class DashboardList implements IGui {
 
 	private static ImageButton newImageButton(ResourceLocation texture, ImageButton.OnPress onPress) {
-		return new ImageButton(0, 0, 0, SQUARE_SIZE, new WidgetSprites(texture, texture), onPress);
+		return new WidgetSilentImageButton(0, 0, 0, SQUARE_SIZE, 0, 0, 20, texture, 20, 40, onPress, true);
 	}
 
 	public int x;

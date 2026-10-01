@@ -2,14 +2,14 @@
 	"schemaVersion": 1,
 	"id": "mtr",
 	"version": "${version}",
-	"name": "Minecraft Transit Railway",
-	"description": "A Minecraft mod that adds automated train systems into the game.",
+	"name": "YanlingMTR",
+	"description": "Automated railways, stations and passenger information displays. An independent community fork of Minecraft Transit Railway for Minecraft 1.21.1.",
 	"authors": [
-		"Jonathan Ho"
+		"linlunaire", "Jonathan Ho", "MTR contributors"
 	],
 	"contact": {
-		"homepage": "https://www.curseforge.com/minecraft/mc-mods/minecraft-transit-railway",
-		"sources": "https://github.com/jonafanho/Minecraft-Transit-Railway"
+		"sources": "https://github.com/linlunaire/Minecraft-Transit-Railway",
+		"issues": "https://github.com/linlunaire/Minecraft-Transit-Railway/issues"
 	},
 	"license": "MIT",
 	"icon": "icon.png",

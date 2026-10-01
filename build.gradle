@@ -36,7 +36,8 @@ rootProject.ext.sshj_version = "0.40.0"
 
 rootProject.ext.architectury_id = minecraft_main_version == 16 ? "me.shedaniel" : "dev.architectury"
 rootProject.ext.variation = rootProject.properties.containsKey("variation") ? rootProject.getProperties().get("variation").toString() : "normal"
-rootProject.ext.variation_header = rootProject.variation == "normal" ? "MTR" : rootProject.variation == "server" ? "MTR-server" : "Modern-Elevators-Escalators"
+rootProject.ext.variation_header = rootProject.variation == "normal" ? rootProject.archives_base_name : rootProject.variation == "server" ? "${rootProject.archives_base_name}-server" : "Modern-Elevators-Escalators"
+rootProject.ext.loader_version = "${rootProject.mtr_compat_version}+yanlingmtr.${rootProject.mod_version}"
 
 architectury {
 	minecraft = minecraft_version
@@ -57,6 +58,10 @@ subprojects {
 
 	configurations {
 		shadowCommon
+	}
+
+	tasks.named('shadowJar') {
+		from(rootProject.file('LICENSE')) { rename { 'LICENSE-YanlingMTR' } }
 	}
 
 	dependencies {
@@ -135,6 +140,8 @@ tasks.register("setupFiles") {
 		}
 	}
 }
+
+apply from: 'gradle/release-checks.gradle'
 
 allprojects {
 	apply plugin: "architectury-plugin"

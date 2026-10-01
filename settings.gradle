@@ -14,4 +14,4 @@ include("fabric")
 include("neoforge")
 project(":neoforge").projectDir = file("forge")
 
-rootProject.name = "Minecraft-Transit-Railway"
+rootProject.name = "YanlingMTR"

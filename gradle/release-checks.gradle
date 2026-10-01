@@ -1,0 +1,45 @@
+def releaseArchiveClass = new GroovyClassLoader(getClass().classLoader)
+        .parseClass(rootProject.file('gradle/ReleaseArchive.groovy'))
+
+def checkReleaseArchive = tasks.register('checkReleaseArchive') {
+    group = 'verification'
+    description = 'Checks scoped, recoverable release publication and failure paths.'
+    inputs.files('gradle/ReleaseArchive.groovy', 'tests/ReleaseArchiveCheck.groovy')
+    doLast {
+        new GroovyShell(getClass().classLoader, new Binding([args: [rootProject.projectDir.absolutePath] as String[]]))
+                .evaluate(rootProject.file('tests/ReleaseArchiveCheck.groovy'))
+    }
+}
+
+rootProject.ext.publishReleaseJar = { File artifact, String loader ->
+    releaseArchiveClass.publish(artifact, rootProject.layout.buildDirectory.dir('release').get().asFile,
+            rootProject.variation_header, loader, rootProject.version.toString(), rootProject.loader_version.toString()).each {
+        logger.lifecycle("Archived previous ${loader} 1.21.1 release: ${it}")
+    }
+}
+
+subprojects {
+    tasks.named('check') { dependsOn checkReleaseArchive }
+}
+
+// Import artifacts only after the isolated source checkout's build/check succeeds.
+// This entrypoint does not compile the unrelated working-tree changes.
+tasks.register('publishRelease') {
+    group = 'distribution'
+    description = 'Imports an already checked isolated build, preserving older releases in archive/.'
+    dependsOn checkReleaseArchive
+    doLast {
+        if (!rootProject.hasProperty('releaseSourceDir')) {
+            throw new GradleException('Set -PreleaseSourceDir=<checked-build/release>; build/check that source checkout first.')
+        }
+        def sourceDirectory = rootProject.file(rootProject.property('releaseSourceDir'))
+        def sources = ['fabric', 'neoforge'].collectEntries { loader ->
+            [(loader): new File(sourceDirectory, "${rootProject.variation_header}-${loader}-${rootProject.version}.jar")]
+        }
+        // A missing or mismatched platform must fail before either loader is published.
+        sources.each { loader, artifact ->
+            releaseArchiveClass.validateArtifact(artifact, loader, rootProject.loader_version.toString())
+        }
+        sources.each { loader, artifact -> rootProject.publishReleaseJar(artifact, loader) }
+    }
+}

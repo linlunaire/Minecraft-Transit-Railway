@@ -1,0 +1,32 @@
+def guiCheckClasses = layout.buildDirectory.dir('classes/guiCompatibility')
+def compileGuiCheck = tasks.register('compileGuiCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source rootProject.file('tests/GuiCompatibilityCheck.java')
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = guiCheckClasses
+	options.compilerArgs += ['-proc:none']
+}
+
+tasks.register('checkGuiCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Runs real dashboard/Screen background ordering and legacy PNG button regressions without a window.'
+	dependsOn compileGuiCheck
+	def testedJar = rootProject.hasProperty('guiTestJar') ? rootProject.file(rootProject.property('guiTestJar')) : null
+	classpath = files(guiCheckClasses) + (testedJar == null ? files() : files(testedJar)) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.screen.GuiCompatibilityCheck'
+	args((testedJar == null ? sourceSets.main.output.resourcesDir : testedJar).absolutePath)
+}
+tasks.named('check') { dependsOn 'checkGuiCompatibility' }
+
+['fabric', 'neoforge'].each { loader ->
+	def platform = project(":${loader}")
+	def packagedCheck = tasks.register("checkPackagedGui${loader.capitalize()}", JavaExec) {
+		group = 'verification'
+		dependsOn compileGuiCheck, platform.tasks.named('shadowJar')
+		def packagedJar = platform.tasks.named('shadowJar').flatMap { it.archiveFile }
+		classpath = files(guiCheckClasses, packagedJar) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.screen.GuiCompatibilityCheck'
+		doFirst { setArgs([packagedJar.get().asFile.absolutePath]) }
+	}
+	platform.tasks.named('check') { dependsOn packagedCheck }
+}

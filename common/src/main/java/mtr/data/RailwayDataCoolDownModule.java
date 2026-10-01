@@ -77,6 +77,8 @@ public class RailwayDataCoolDownModule extends RailwayDataModuleBase {
 	}
 
 	public void onPlayerDisconnect(Player player) {
+		playerRidingCoolDown.remove(player);
+		playerRidingRoute.remove(player);
 		playerSeats.remove(player);
 		playerSeatCoolDowns.remove(player);
 		playerShiftCoolDowns.remove(player);

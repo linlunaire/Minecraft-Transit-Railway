@@ -103,7 +103,9 @@ public class TrainClient extends Train implements IGui {
 			final Vec3 thisPos0 = new Vec3(0, 0, -(spacing / 2D - 1)).xRot(carPitch).yRot(carYaw).add(newX, newY, newZ);
 			final Vec3 connectPos = prevPos0.add(thisPos0).scale(0.5);
 			final float connectYaw = (float) Mth.atan2(thisPos0.x - prevPos0.x, thisPos0.z - prevPos0.z);
-			final float connectPitch = realSpacing == 0 ? 0 : (float) asin((thisPos0.y - prevPos0.y) / realSpacing);
+			final double connectRealSpacing = thisPos0.distanceTo(prevPos0);
+			final float connectPitch = connectRealSpacing > 0 && Double.isFinite(connectRealSpacing)
+					? (float) asin(Mth.clamp((thisPos0.y - prevPos0.y) / connectRealSpacing, -1, 1)) : 0;
 			if (!TrainRendererBase.isPositionVisible(getViewOffset(), connectPos.x, connectPos.y, connectPos.z)) {
 				return;
 			}

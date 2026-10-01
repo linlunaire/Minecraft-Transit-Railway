@@ -5,9 +5,9 @@ license = "MIT"
 [[mods]]
 modId = "mtr"
 version = "${version}"
-displayName = "Minecraft Transit Railway"
-authors = "Jonathan Ho"
-description = "A Minecraft mod that adds automated train systems into the game."
+displayName = "YanlingMTR"
+authors = "linlunaire, Jonathan Ho, MTR contributors"
+description = "Automated railways, stations and passenger information displays. An independent community fork of Minecraft Transit Railway for Minecraft 1.21.1."
 logoFile = "icon.png"
 
 [[mixins]]
