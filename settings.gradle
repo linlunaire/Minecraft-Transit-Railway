@@ -1,0 +1,21 @@
+pluginManagement {
+	repositories {
+		mavenCentral()
+		gradlePluginPortal()
+		maven { url = 'https://maven.architectury.dev/' }
+		maven { url = 'https://maven.fabricmc.net/' }
+		['https://neoforged.forgecdn.net/releases/', 'https://maven.neoforged.net/releases/'].each { neoForgeRepository ->
+			maven {
+				url = neoForgeRepository
+				content {
+					includeGroupByRegex '(net\\.neoforged|net\\.minecraftforge|cpw\\.mods)(\\..*)?'
+					includeGroup 'de.oceanlabs.mcp'
+				}
+			}
+		}
+	}
+}
+
+rootProject.name = 'YanlingMTR'
+include 'common', 'fabric', 'neoforge'
+includeBuild('ante')

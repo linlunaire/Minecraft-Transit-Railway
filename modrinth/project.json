@@ -1,0 +1,27 @@
+{
+  "project": {
+    "slug": "yanlingmtr",
+    "title": "YanlingMTR",
+    "description": "Automated trains, stations and passenger information displays, with maintained Minecraft 1.21.1 and 26.2 builds.",
+    "project_type": "mod",
+    "license_id": "MIT",
+    "client_side": "required",
+    "server_side": "required",
+    "source_url": "https://github.com/linlunaire/Minecraft-Transit-Railway",
+    "issues_url": "https://github.com/linlunaire/Minecraft-Transit-Railway/issues",
+    "body": "# YanlingMTR\n\nYanlingMTR is an independent community fork of [Minecraft Transit Railway](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway). Build working transport networks with automated trains, stations, signalling, passenger information displays, cable cars and other transport modes.\n\n## Choose your build\n\n- **Minecraft 1.21.1 — 1.0.0:** Java 21; Fabric or NeoForge. This release carries the verified 3.3.9 maintenance fixes, including dashboard blur and missing GUI icons, train sound restart, network-channel checks, door snapshots and save scheduling.\n- **Minecraft 26.2 — 1.0.0-beta.1:** Java 25; Fabric or NeoForge. This is the Kotlin preview line and requires the separate **Kotlin LunaCore 0.2.1** mod for the same loader. Kotlin migration and multiplayer validation are still in progress.\n\n## Dependencies and installation\n\nBoth loaders require [Architectury API](https://modrinth.com/mod/architectury-api). Fabric also requires [Fabric API](https://modrinth.com/mod/fabric-api). Use dependencies for your exact Minecraft version. For 26.2, install the matching [Kotlin LunaCore](https://github.com/linlunaire/Kotlin-LunaCore) loader JAR as well; it supplies the shared Kotlin runtime.\n\nInstall one YanlingMTR JAR for your game version and loader on the server and clients, with matching YanlingMTR versions on both sides. Replace the previous MTR fork JAR. YanlingMTR retains the `mtr` mod ID, saved-data and resource namespaces, configuration paths and network channels, so a second MTR JAR cannot be loaded alongside it. Test existing worlds on a backup before upgrading.\n\nPublic versions restart at 1.0.0. Loader metadata keeps the prior MTR compatibility version followed by `+yanlingmtr.<version>` so existing addon minimum-version requirements still work. This does not guarantee that every third-party addon or resource pack is compatible.\n\n## ANTE and YLTE\n\nThe new **26.2 ANTE** line has been merged into YanlingMTR's source repository and unified build. It supplies custom models, JavaScript rendering and rail tools. This is a source/build integration: the current package still provides the YanlingMTR core and optional ANTE module as separate JARs. Install the matching ANTE JAR as well when using those features; it is not embedded in the core JAR.\n\nThe older **Minecraft 1.21.1** standalone addon is now **YLTE — Yanling Transit Expansion**, maintained in the [addon repository](https://github.com/linlunaire/mtr-ante). Replace the old ANTE JAR with YLTE, rather than installing both. YLTE retains the `mtrsteamloco` mod ID, resource/script interfaces and saved-data keys. The 1.21.1 YLTE and 26.2 ANTE JARs are not interchangeable. Both retain attribution to Aphrodite281 and Zbx1425 and their original licenses.\n\n## Credits and licenses\n\nBased on Minecraft Transit Railway by Jonathan Ho and contributors; maintained as YanlingMTR by linlunaire. This is a community fork, not an official upstream release. Source code remains under MIT, with the original copyright notice included. Bundled Noto fonts retain their Google/Adobe notices and SIL Open Font License 1.1.\n\nThe 1.21.1 GUI fix has an automated native-client rendering check. The 26.2 build has source and packaged compatibility checks; its beta label does not imply completed gameplay or multiplayer acceptance testing."
+  },
+  "manual_publication": {
+    "state": "prepared_not_uploaded",
+    "layout": "One YanlingMTR project, with four separate version entries. Each loader/game build is its own primary JAR, not an additional file.",
+    "derivative_content": {
+      "source": "Minecraft Transit Railway",
+      "url": "https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway"
+    },
+    "ai_content_disclosure": "Select the applicable AI disclosure. Portions of maintenance code and the draft project description were prepared with AI assistance; do not describe the project as entirely hand-written.",
+    "icon": "Use an existing licensed project image or a new human-made image. This preparation did not generate an icon.",
+    "unresolved_26_2_dependency": "Kotlin LunaCore was not found in Modrinth search on 2026-10-01. Link its Modrinth project as a required dependency when available and clearly provide its external download link in the meantime.",
+    "rules": "https://modrinth.com/legal/rules",
+    "loader_guidance": "https://support.modrinth.com/en/articles/8824810-multiple-loaders-on-one-project"
+  }
+}

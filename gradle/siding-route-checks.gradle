@@ -1,0 +1,72 @@
+def sidingRouteClasses = layout.buildDirectory.dir('classes/sidingRoutePlan')
+def sidingRouteFixture = rootProject.file('tests/fixtures/siding-route-java-26.2-3.3.2.tsv')
+tasks.register('compileSidingRoutePlanCheck', JavaCompile) {
+    dependsOn tasks.named('classes')
+    source rootProject.file('tests/SidingRoutePlanCheck.java'), rootProject.file('tests/PathGenerationLifecycleCheck.java')
+    classpath = sourceSets.main.output + configurations.compileClasspath
+    destinationDirectory = sidingRouteClasses
+}
+tasks.register('checkSidingRoutePlan', JavaExec) {
+    group = 'verification'
+    description = 'Checks siding route planning and its adapter against the original Java method.'
+    dependsOn 'compileSidingRoutePlanCheck'
+    classpath = files(sidingRouteClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'mtr.path.SidingRoutePlanCheck'
+    args sidingRouteFixture.absolutePath,
+            tasks.named('compileJava').get().destinationDirectory.get().asFile.absolutePath,
+            "--module-source=${tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath}"
+}
+if (rootProject.hasProperty('javaBaselineJar')) {
+    tasks.register('checkJavaSidingRouteBaseline', JavaExec) {
+        group = 'verification'
+        dependsOn 'compileSidingRoutePlanCheck'
+        classpath = files(sidingRouteClasses) + sourceSets.main.output + configurations.compileClasspath
+        mainClass = 'mtr.path.SidingRoutePlanCheck'
+        args sidingRouteFixture.absolutePath, rootProject.file(rootProject.property('javaBaselineJar')).absolutePath, '--java-baseline'
+        if (rootProject.hasProperty('recordSidingRouteBaseline')) args '--record'
+    }
+}
+
+tasks.register('checkSidingPublication', JavaExec) {
+    group = 'verification'
+    dependsOn 'compileSidingRoutePlanCheck'
+    classpath = files(sidingRouteClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'mtr.path.SidingRoutePlanCheck'
+    args sidingRouteFixture.absolutePath,
+            tasks.named('compileJava').get().destinationDirectory.get().asFile.absolutePath,
+            "--module-source=${tasks.named('compileKotlin').get().destinationDirectory.get().asFile.absolutePath}", '--publication-check'
+}
+tasks.named('check') { dependsOn 'checkSidingRoutePlan', 'checkSidingPublication' }
+
+tasks.register('checkPathGenerationLifecycle', JavaExec) {
+    group = 'verification'
+    dependsOn 'compileSidingRoutePlanCheck'
+    classpath = files(sidingRouteClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'mtr.path.PathGenerationLifecycleCheck'
+}
+tasks.named('check') { dependsOn 'checkPathGenerationLifecycle' }
+
+def sidingRouteCommonProject = project
+['fabric', 'neoforge'].each { loader ->
+    def platform = rootProject.project(":${loader}")
+    def artifact = platform.tasks.named('shadowJar').flatMap { it.archiveFile }
+    platform.tasks.register('checkPackagedSidingRoutePlan', JavaExec) {
+        group = 'verification'
+        dependsOn ':common:compileSidingRoutePlanCheck', platform.tasks.named('shadowJar')
+        // Artifact first: provenance checks reject fallback to development Rail/Platform classes.
+        classpath = platform.files(artifact, sidingRouteClasses) +
+                sidingRouteCommonProject.configurations.compileClasspath + sidingRouteCommonProject.configurations.coreChecks
+        mainClass = 'mtr.path.SidingRoutePlanCheck'
+        args sidingRouteFixture.absolutePath, artifact.get().asFile.absolutePath
+    }
+    platform.tasks.named('check') { dependsOn 'checkPackagedSidingRoutePlan' }
+    platform.tasks.register('checkPackagedSidingPublication', JavaExec) {
+        group = 'verification'
+        dependsOn ':common:compileSidingRoutePlanCheck', platform.tasks.named('shadowJar')
+        classpath = platform.files(artifact, sidingRouteClasses) +
+                sidingRouteCommonProject.configurations.compileClasspath + sidingRouteCommonProject.configurations.coreChecks
+        mainClass = 'mtr.path.SidingRoutePlanCheck'
+        args sidingRouteFixture.absolutePath, artifact.get().asFile.absolutePath, '--publication-check'
+    }
+    platform.tasks.named('check') { dependsOn 'checkPackagedSidingPublication' }
+}

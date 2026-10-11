@@ -1,0 +1,30 @@
+C:mtr/data/DataCache	[PUBLIC] java/lang/Object []
+F:mtr/data/DataCache.blockPosToPlatformId:Lit/unimi/dsi/fastutil/longs/Long2LongOpenHashMap;	[FINAL, PUBLIC]
+F:mtr/data/DataCache.blockPosToStation:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Lnet/minecraft/core/BlockPos;Lmtr/data/Station;>;
+F:mtr/data/DataCache.depotIdMap:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Depot;>;
+F:mtr/data/DataCache.depots:Ljava/util/Set;	[FINAL, PROTECTED] Ljava/util/Set<Lmtr/data/Depot;>;
+F:mtr/data/DataCache.liftsServerIdMap:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/LiftServer;>;
+F:mtr/data/DataCache.platformConnections:Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;	[FINAL, PUBLIC] Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<Lmtr/data/RailwayDataRouteFinderModule$ConnectionDetails;>;>;
+F:mtr/data/DataCache.platformIdMap:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Platform;>;
+F:mtr/data/DataCache.platformIdToStation:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Station;>;
+F:mtr/data/DataCache.platforms:Ljava/util/Set;	[FINAL, PROTECTED] Ljava/util/Set<Lmtr/data/Platform;>;
+F:mtr/data/DataCache.routeIdMap:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Route;>;
+F:mtr/data/DataCache.routeIdToOneDepot:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Depot;>;
+F:mtr/data/DataCache.routes:Ljava/util/Set;	[FINAL, PROTECTED] Ljava/util/Set<Lmtr/data/Route;>;
+F:mtr/data/DataCache.sidingIdMap:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Siding;>;
+F:mtr/data/DataCache.sidingIdToDepot:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Depot;>;
+F:mtr/data/DataCache.sidings:Ljava/util/Set;	[FINAL, PROTECTED] Ljava/util/Set<Lmtr/data/Siding;>;
+F:mtr/data/DataCache.stationIdMap:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Ljava/lang/Long;Lmtr/data/Station;>;
+F:mtr/data/DataCache.stationIdToConnectingStations:Ljava/util/Map;	[FINAL, PUBLIC] Ljava/util/Map<Lmtr/data/Station;Ljava/util/Set<Lmtr/data/Station;>;>;
+F:mtr/data/DataCache.stations:Ljava/util/Set;	[FINAL, PROTECTED] Ljava/util/Set<Lmtr/data/Station;>;
+M:mtr/data/DataCache.<init>(Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;Ljava/util/Set;)V	[PUBLIC] (Ljava/util/Set<Lmtr/data/Station;>;Ljava/util/Set<Lmtr/data/Platform;>;Ljava/util/Set<Lmtr/data/Siding;>;Ljava/util/Set<Lmtr/data/Route;>;Ljava/util/Set<Lmtr/data/Depot;>;Ljava/util/Set<Lmtr/data/LiftServer;>;)V []
+M:mtr/data/DataCache.mapIds(Ljava/util/Map;Ljava/util/Set;)V	[PROTECTED, STATIC] <U:Lmtr/data/NameColorDataBase;>(Ljava/util/Map<Ljava/lang/Long;TU;>;Ljava/util/Set<TU;>;)V []
+M:mtr/data/DataCache.needsRefresh(J)Z	[PUBLIC]  []
+M:mtr/data/DataCache.put(Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;JJLjava/util/function/Function;)V	[PUBLIC, STATIC] <U:Ljava/lang/Object;>(Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<TU;>;>;JJLjava/util/function/Function<TU;TU;>;)V []
+M:mtr/data/DataCache.put2(Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;JJLjava/util/function/Function;)V	[PUBLIC, STATIC] (Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<Lit/unimi/dsi/fastutil/longs/Long2IntOpenHashMap;>;JJLjava/util/function/Function<Ljava/lang/Integer;Ljava/lang/Integer;>;)V []
+M:mtr/data/DataCache.sync()V	[FINAL, PUBLIC]  []
+M:mtr/data/DataCache.syncAdditional()V	[PROTECTED]  []
+M:mtr/data/DataCache.tryGet(Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;JJ)Ljava/lang/Object;	[PUBLIC, STATIC] <U:Ljava/lang/Object;>(Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<TU;>;>;JJ)TU; []
+M:mtr/data/DataCache.tryGet(Ljava/util/Map;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;	[PUBLIC, STATIC] <T:Ljava/lang/Object;U:Ljava/lang/Object;>(Ljava/util/Map<TT;Ljava/util/Map<TT;TU;>;>;TT;TT;)TU; []
+M:mtr/data/DataCache.tryGet(Ljava/util/Map;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;	[PUBLIC, STATIC] <T:Ljava/lang/Object;U:Ljava/lang/Object;>(Ljava/util/Map<TT;Ljava/util/Map<TT;TU;>;>;TT;TT;TU;)TU; []
+M:mtr/data/DataCache.tryGet2(Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;JJI)I	[PUBLIC, STATIC] (Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap<Lit/unimi/dsi/fastutil/longs/Long2IntOpenHashMap;>;JJI)I []

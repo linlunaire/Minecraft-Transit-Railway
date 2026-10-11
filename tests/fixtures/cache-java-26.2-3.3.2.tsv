@@ -1,0 +1,9 @@
+null-map	java.lang.NullPointerException
+object-callback	java.lang.IllegalStateException
+null-object-callback	java.lang.NullPointerException
+null-int-value	java.lang.NullPointerException
+null-source	java.lang.NullPointerException
+null-source-entry	java.lang.NullPointerException
+initial-graph	a1=[2];a2=[1];a3=[];e274877911104>4123168608320=10:13:{7=13};e4123168608320>28862180233280=20:19:{7=19};n274877911104=1;n28862180233280=0;n4123168608320=1;p10=1;p20=2;p30=3;s5=100
+pruned-graph	a1=[];a3=[];p10=1;p30=3;s5=100
+seeded-graphs	ba83529da721e8c74aa1fe52d7c721ebc6b08580ba5aef816e4b3e374840093d
