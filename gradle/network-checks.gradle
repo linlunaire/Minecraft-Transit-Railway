@@ -1,0 +1,16 @@
+def networkClasses = layout.buildDirectory.dir('classes/networkCompatibility')
+def networkGroovy = configurations.detachedConfiguration(dependencies.localGroovy())
+def compileNetwork = tasks.register('compileNetworkCompatibility', JavaCompile) {
+	source 'src/main/java/mtr/mappings/NetworkUtilities.java', '../tests/NetworkCompatibilityCheck.java', '../tests/NetworkTestAdaptor.java'
+	classpath = configurations.compileClasspath + networkGroovy
+	destinationDirectory = networkClasses
+}
+tasks.register('checkNetworkCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks dedicated-server payload registration and real Architectury codecs without a game connection.'
+	dependsOn compileNetwork
+	classpath = files(networkClasses) + configurations.compileClasspath + networkGroovy
+	mainClass = 'mtr.mappings.NetworkCompatibilityCheck'
+	args rootProject.projectDir.absolutePath
+}
+tasks.named('check') { dependsOn 'checkNetworkCompatibility' }

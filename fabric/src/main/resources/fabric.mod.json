@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "mtr",
+	"version": "${version}",
+	"name": "YanlingMTR",
+	"description": "Automated railways, stations and passenger information displays. An independent community fork of Minecraft Transit Railway for Minecraft 1.21.1.",
+	"authors": [
+		"linlunaire", "Jonathan Ho", "MTR contributors"
+	],
+	"contact": {
+		"sources": "https://github.com/linlunaire/Minecraft-Transit-Railway",
+		"issues": "https://github.com/linlunaire/Minecraft-Transit-Railway/issues"
+	},
+	"license": "MIT",
+	"icon": "icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"mtr.MTRFabric"
+		],
+		"client": [
+			"mtr.MTRFabricClient"
+		],
+		"modmenu": [
+			"mtr.ModMenuConfig"
+		]
+	},
+	"mixins": [
+		"mtr.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"fabric-api": "*",
+		"architectury": ">=13.0.11 <14",
+		"minecraft": "1.21.1",
+		"java": ">=21"
+	}
+}

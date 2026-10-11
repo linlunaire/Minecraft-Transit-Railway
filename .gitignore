@@ -1,0 +1,62 @@
+# gradle
+
+.gradle/
+.gradle-1.21/
+.gradle-26.2/
+build/
+out/
+classes/
+
+# eclipse
+
+*.launch
+
+# idea
+
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# vscode
+
+.settings/
+.vscode/
+bin/
+.classpath
+.project
+
+# macos
+
+*.DS_Store
+
+# fabric
+
+run/
+# Runtime logs (including rotated .log.gz files) in the root and Gradle modules.
+logs/
+latest.log
+Keys.java
+# Downloaded by setupFiles. Keep the Java compatibility layers in Git so a
+# clean CI checkout has the same sources as the local development environment.
+common/src/main/java/mtr/mappings/mappings.zip
+BlockEntityExtension.java
+RandomSource.java
+UnknownPacketMixin.java
+LevelRendererMixin.java
+**/lang/*.json
+!en_us.json
+!common/src/main/resources/assets/mtr/lang/zh_cn.json
+
+common/src/main/resources/assets/mtr/sounds/
+common/src/main/resources/assets/mtr/textures/
+common/src/main/resources/assets/mtr/website/
+common/src/main/resources/assets/mtr/sounds.json
+common/src/main/resources/data/minecraft/
+common/src/main/resources/data/mtr/
+fabric/src/main/resources
+forge/src/main/resources
+fabric/server
+forge/server
+
+.architectury-transformer/

@@ -1,0 +1,25 @@
+def commonProject = project
+def platform = project(':neoforge')
+def channelClasses = layout.buildDirectory.dir('classes/networkChannelCompatibility')
+def compileChannels = tasks.register('compileNetworkChannelCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source rootProject.file('tests/NetworkTestAdaptor.java'), rootProject.fileTree('tests/network') { include '*.java' }
+	classpath = commonProject.sourceSets.main.output + platform.configurations.compileClasspath
+	destinationDirectory = channelClasses
+}
+def channelCheck = platform.tasks.register('checkNetworkChannels', JavaExec) {
+	group = 'verification'
+	description = 'Checks actual MTR sends against NeoForge channel negotiation and packet rejection.'
+	dependsOn compileChannels
+	def productionClasses = rootProject.hasProperty('networkTestJar')
+		? files(rootProject.file(rootProject.property('networkTestJar')))
+		: commonProject.sourceSets.main.output.classesDirs
+	classpath = files(channelClasses) + productionClasses + platform.configurations.compileClasspath
+	mainClass = 'mtr.mappings.NetworkChannelSendCheck'
+	doFirst {
+		def javaArgs = rootProject.layout.buildDirectory.file('diagnostics/network-channel-java.args').get().asFile
+		javaArgs.parentFile.mkdirs()
+		javaArgs.text = "-cp\n\"${classpath.asPath.replace('\\', '/')}\"\n${mainClass.get()}\n"
+	}
+}
+platform.tasks.named('check') { dependsOn channelCheck }

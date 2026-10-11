@@ -1,0 +1,52 @@
+def regressionClasses = layout.buildDirectory.dir('classes/neomtrCompatibility')
+def productionSource = rootProject.hasProperty('neomtrTestJar')
+	? rootProject.file(rootProject.property('neomtrTestJar'))
+	: tasks.named('compileJava').get().destinationDirectory.get().asFile
+
+tasks.register('compileNeoMtrCompatibility', JavaCompile) {
+	dependsOn tasks.named('classes')
+	source rootProject.file('tests/NeoMtrCompatibilityCheck.java')
+	classpath = sourceSets.main.output + configurations.compileClasspath
+	destinationDirectory = regressionClasses
+}
+
+def regressionAgent = tasks.register('neoMtrRegressionAgent', Jar) {
+	dependsOn 'compileNeoMtrCompatibility'
+	from regressionClasses
+	archiveBaseName.set('neomtr-regression-agent')
+	destinationDirectory.set(layout.buildDirectory.dir('diagnostics'))
+	manifest { attributes 'Premain-Class': 'mtr.data.NeoMtrCompatibilityCheck' }
+}
+
+tasks.register('checkNeoMtrCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks lift exit flags, disconnect cleanup and real train connection geometry.'
+	dependsOn regressionAgent
+	classpath = files(regressionClasses, productionSource) + sourceSets.main.output + configurations.compileClasspath
+	mainClass = 'mtr.data.NeoMtrCompatibilityCheck'
+	args productionSource.absolutePath
+	doFirst {
+		def agent = "-javaagent:${regressionAgent.get().archiveFile.get().asFile.absolutePath}"
+		jvmArgs agent
+		def javaArgs = rootProject.layout.buildDirectory.file('diagnostics/neomtr-java.args').get().asFile
+		javaArgs.parentFile.mkdirs()
+		javaArgs.text = "\"${agent.replace('\\', '/')}\"\n-cp\n\"${classpath.asPath.replace('\\', '/')}\"\n${mainClass.get()}\n\"${productionSource.absolutePath.replace('\\', '/')}\"\n"
+	}
+}
+tasks.named('check') { dependsOn 'checkNeoMtrCompatibility' }
+
+['fabric', 'neoforge'].each { loader ->
+	def platform = project(":${loader}")
+	def packagedCheck = tasks.register("checkPackagedNeoMtr${loader.capitalize()}", JavaExec) {
+		group = 'verification'
+		dependsOn regressionAgent, platform.tasks.named('shadowJar')
+		def packagedJar = platform.tasks.named('shadowJar').flatMap { it.archiveFile }
+		classpath = files(regressionClasses, packagedJar) + sourceSets.main.output + configurations.compileClasspath
+		mainClass = 'mtr.data.NeoMtrCompatibilityCheck'
+		doFirst {
+			setArgs([packagedJar.get().asFile.absolutePath])
+			jvmArgs "-javaagent:${regressionAgent.get().archiveFile.get().asFile.absolutePath}"
+		}
+	}
+	platform.tasks.named('check') { dependsOn packagedCheck }
+}

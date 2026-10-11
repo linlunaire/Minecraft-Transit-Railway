@@ -1,0 +1,7 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+[[mods]]
+modId="rail_persistence_probe"
+version="1"
+displayName="Disposable rail persistence and search runtime test"

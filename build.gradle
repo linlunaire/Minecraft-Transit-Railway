@@ -1,0 +1,193 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+	// Latest Architectury toolchain combination compatible with Gradle 8.14.x.
+	id "architectury-plugin" version "3.4.164"
+	id "de.undercouch.download" version "5.7.0"
+	// Loom 1.11 supports Gradle 8.14 and Java 21; newer Loom 1.17 requires Gradle 9.4+.
+	id "dev.architectury.loom" version "1.11.458" apply false
+	// Shadow 8.3 supports Java 21 class files and Gradle 8.3+.
+	id "com.gradleup.shadow" version "8.3.0" apply false
+}
+
+// This release baseline owns the Java 21 / Minecraft 1.21.1 source set.
+def requested_minecraft_version = gradle.startParameter.projectProperties.get("buildVersion")?.toString()
+if (requested_minecraft_version != null && requested_minecraft_version != "1.21.1") {
+	throw new GradleException("This release baseline builds Minecraft 1.21.1 only.")
+}
+def minecraft_version = "1.21.1"
+def minecraft_main_version = 21
+rootProject.ext.minecraft_version = minecraft_version
+def patreon_api_key = rootProject.properties.containsKey("patreonApiKey") ? rootProject.getProperties().get("patreonApiKey").toString() : ""
+def is_1_19_3 = minecraft_version == "1.19.3" || minecraft_version == "1.19.4"
+def parchment_version = "2024.11.17"
+def testServer = rootProject.properties.containsKey("testServer") ? rootProject.getProperties().get("testServer").toString() : ""
+
+rootProject.ext.fabric_loader_version = [minecraft_version, "0.19.3"]
+rootProject.ext.neoforge_version = "21.1.248"
+rootProject.ext.fabric_api_data = ["0.116.15+1.21.1", ""]
+rootProject.ext.mod_menu_data = ["11.0.4", ""]
+rootProject.ext.architectury_data = ["13.0.11", ""]
+rootProject.ext.squaremap_version = "1.3.15"
+rootProject.ext.jetty_version = "9.4.58.v20250814"
+rootProject.ext.servlet_version = "4.0.1"
+rootProject.ext.msgpack_version = "0.9.12"
+rootProject.ext.sshj_version = "0.40.0"
+
+rootProject.ext.architectury_id = minecraft_main_version == 16 ? "me.shedaniel" : "dev.architectury"
+rootProject.ext.variation = rootProject.properties.containsKey("variation") ? rootProject.getProperties().get("variation").toString() : "normal"
+rootProject.ext.variation_header = rootProject.variation == "normal" ? rootProject.archives_base_name : rootProject.variation == "server" ? "${rootProject.archives_base_name}-server" : "Modern-Elevators-Escalators"
+rootProject.ext.loader_version = "${rootProject.mtr_compat_version}+yanlingmtr.${rootProject.mod_version}"
+
+architectury {
+	minecraft = minecraft_version
+}
+
+subprojects {
+	apply plugin: "dev.architectury.loom"
+	apply plugin: "com.gradleup.shadow"
+
+	loom {
+		silentMojangMappingsLicense()
+
+		mixin {
+			useLegacyMixinAp = true
+			defaultRefmapName.set("mtr-refmap.json")
+		}
+	}
+
+	configurations {
+		shadowCommon
+	}
+
+	tasks.named('shadowJar') {
+		from(rootProject.file('LICENSE')) { rename { 'LICENSE-YanlingMTR' } }
+	}
+
+	dependencies {
+		minecraft "com.mojang:minecraft:${minecraft_version}"
+		mappings loom.layered() {
+			officialMojangMappings()
+			parchment("org.parchmentmc.data:parchment-${is_1_19_3 ? "1.19.3" : minecraft_version}:${parchment_version}@zip")
+		}
+		implementation name: "Dynmap-3.2.1"
+		implementation name: "BlueMapAPI-2.1.1"
+		implementation "xyz.jpenilla:squaremap-api:${rootProject.squaremap_version}"
+		implementation "org.eclipse.jetty:jetty-http:${rootProject.jetty_version}"
+		implementation "org.eclipse.jetty:jetty-io:${rootProject.jetty_version}"
+		implementation "org.eclipse.jetty:jetty-security:${rootProject.jetty_version}"
+		implementation "org.eclipse.jetty:jetty-server:${rootProject.jetty_version}"
+		implementation "org.eclipse.jetty:jetty-servlet:${rootProject.jetty_version}"
+		implementation "org.eclipse.jetty:jetty-util:${rootProject.jetty_version}"
+		implementation "org.eclipse.jetty:jetty-util-ajax:${rootProject.jetty_version}"
+		implementation "javax.servlet:javax.servlet-api:${rootProject.servlet_version}"
+		implementation "org.msgpack:msgpack-core:${rootProject.msgpack_version}"
+		implementation "com.hierynomus:sshj:${rootProject.sshj_version}"
+		implementation "com.github.jonafanho:Minecraft-Mod-API-Tools:${rootProject.minecraft_mod_api_tools_version}"
+		shadowCommon "org.eclipse.jetty:jetty-http:${rootProject.jetty_version}"
+		shadowCommon "org.eclipse.jetty:jetty-io:${rootProject.jetty_version}"
+		shadowCommon "org.eclipse.jetty:jetty-security:${rootProject.jetty_version}"
+		shadowCommon "org.eclipse.jetty:jetty-server:${rootProject.jetty_version}"
+		shadowCommon "org.eclipse.jetty:jetty-servlet:${rootProject.jetty_version}"
+		shadowCommon "org.eclipse.jetty:jetty-util:${rootProject.jetty_version}"
+		shadowCommon "org.eclipse.jetty:jetty-util-ajax:${rootProject.jetty_version}"
+		shadowCommon "javax.servlet:javax.servlet-api:${rootProject.servlet_version}"
+		shadowCommon "org.msgpack:msgpack-core:${rootProject.msgpack_version}"
+	}
+}
+
+// Sources and resources are maintained in this checkout, not downloaded and
+// overwritten during every compile. Keep setupFiles for existing build callers.
+tasks.register("setupFiles") {
+	inputs.files("common/src/main/KeysTemplate.java", "common/src/main/latest.json",
+			"common/src/main/version-template.js", "fabric/src/main/UnknownPacketMixinTemplate.java",
+			"forge/src/main/LevelRendererMixinTemplate.java")
+	inputs.properties(version: project.version.toString(), variation: rootProject.variation,
+			server: testServer, patreonApiKey: patreon_api_key)
+	outputs.files("common/src/main/java/mtr/Keys.java", "build/latest/latest.json",
+			"common/src/main/resources/assets/mtr/website/version.js",
+			"fabric/src/main/java/mtr/mixin/UnknownPacketMixin.java",
+			"forge/src/main/java/mtr/mixin/LevelRendererMixin.java")
+	doLast {
+		copy {
+			from "common/src/main/KeysTemplate.java"
+			into "common/src/main/java/mtr"
+			filter(ReplaceTokens, tokens: [key: patreon_api_key, version: minecraft_version + "-" + rootProject.mod_version,
+					lifts: rootProject.variation, server: testServer])
+			rename "KeysTemplate.java", "Keys.java"
+		}
+		copy {
+			from "common/src/main/latest.json"
+			into "build/latest"
+			filter(ReplaceTokens, tokens: [version: rootProject.mod_version])
+		}
+		copy {
+			from "common/src/main/version-template.js"
+			into "common/src/main/resources/assets/mtr/website"
+			filter(ReplaceTokens, tokens: [version: minecraft_version + "-" + rootProject.mod_version])
+			rename "version-template.js", "version.js"
+		}
+		copy {
+			from "fabric/src/main/UnknownPacketMixinTemplate.java"
+			into "fabric/src/main/java/mtr/mixin"
+			rename "UnknownPacketMixinTemplate.java", "UnknownPacketMixin.java"
+		}
+		copy {
+			from "forge/src/main/LevelRendererMixinTemplate.java"
+			into "forge/src/main/java/mtr/mixin"
+			filter(ReplaceTokens, tokens: [path: "org.joml"])
+			rename "LevelRendererMixinTemplate.java", "LevelRendererMixin.java"
+		}
+	}
+}
+
+allprojects {
+	apply plugin: "architectury-plugin"
+
+	version = minecraft_version + "-" + rootProject.mod_version
+	group = rootProject.maven_group
+	if (project != rootProject && minecraft_main_version >= 21) {
+		plugins.withId("java") {
+			java {
+				sourceCompatibility = JavaVersion.VERSION_21
+				targetCompatibility = JavaVersion.VERSION_21
+			}
+		}
+	}
+
+	repositories {
+		maven { url = "https://jitpack.io/" }
+		maven { url = "https://maven.terraformersmc.com/" }
+		maven { url = "https://maven.parchmentmc.org/" }
+		maven { url = "https://neoforged.forgecdn.net/releases" }
+		maven { url = "https://maven.neoforged.net/releases" }
+		flatDir {
+			dirs "../libs"
+		}
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = "UTF-8"
+
+		if (minecraft_main_version == 16) {
+			def targetVersion = 8
+			if (JavaVersion.current().isJava9Compatible()) {
+				options.release = targetVersion
+			}
+		} else if (minecraft_main_version == 17) {
+			options.release = 16
+		} else if (minecraft_main_version >= 21) {
+			options.release = 21
+		} else {
+			options.release = 17
+		}
+	}
+
+	if (project != rootProject) {
+		tasks.configureEach {
+			dependsOn(rootProject.tasks.named("setupFiles"))
+		}
+	}
+}
+
+apply from: 'gradle/release-checks.gradle'

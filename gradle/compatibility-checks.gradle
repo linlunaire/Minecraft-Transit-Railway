@@ -1,0 +1,77 @@
+def commonProject = project(':common')
+[
+	SaveQueue: 'mtr.data.SaveQueueCompatibilityCheck',
+	RailPersistence: 'mtr.data.RailPersistenceCompatibilityCheck',
+	RailNodeFluid: 'mtr.block.RailNodeFluidCompatibilityCheck',
+	BlockEntityExtension: 'mtr.mappings.BlockEntityExtensionCompatibilityCheck'
+].each { name, checkClass ->
+	def output = commonProject.layout.buildDirectory.dir("classes/${name}Compatibility")
+	def compile = commonProject.tasks.register("compile${name}Compatibility", JavaCompile) {
+		dependsOn commonProject.tasks.named('classes')
+		source rootProject.file("tests/${name}CompatibilityCheck.java")
+		classpath = commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+		destinationDirectory = output
+	}
+	def check = commonProject.tasks.register("check${name}Compatibility", JavaExec) {
+		group = 'verification'
+		dependsOn compile
+		classpath = files(output) + commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+		mainClass = checkClass
+		if (name == 'SaveQueue' && rootProject.hasProperty('benchmark')) args '--benchmark'
+		if (name == 'RailNodeFluid' && rootProject.hasProperty('nodeAddonJar')) {
+			classpath += files(rootProject.property('nodeAddonJar'))
+			args 'cn.zbx1425.mtrsteamloco.block.BlockDirectNode'
+		}
+		if (name == 'BlockEntityExtension' && rootProject.hasProperty('blockEntityAddonJar')) {
+			classpath += files(rootProject.property('blockEntityAddonJar'))
+			args 'com.jsblock.block.APGGlassDRL'
+		}
+	}
+	commonProject.tasks.named('check') { dependsOn check }
+	if (name == 'RailPersistence') {
+		['fabric', 'neoforge'].each { loader ->
+			def platform = project(":${loader}")
+			// Fabric's remapped JAR needs its loader's intermediary namespace.
+			// NeoForge can be exercised directly from the final delivery JAR.
+			def artifactTask = platform.tasks.named(loader == 'fabric' ? 'shadowJar' : 'remapJar')
+			def packagedCheck = platform.tasks.register('checkPackagedRailPersistence', JavaExec) {
+				group = 'verification'
+				dependsOn compile, artifactTask
+				classpath = files(output, artifactTask.flatMap { it.archiveFile }) + platform.configurations.compileClasspath
+				mainClass = checkClass
+				doFirst { setArgs([artifactTask.get().archiveFile.get().asFile.absolutePath]) }
+			}
+			platform.tasks.named('check') { dependsOn packagedCheck }
+		}
+	}
+	if (name == 'BlockEntityExtension') {
+		def neoCheck = project(':neoforge').tasks.register("check${name}NeoForge", JavaExec) {
+			group = 'verification'
+			dependsOn compile
+			classpath = files(output) + commonProject.sourceSets.main.output + project(':neoforge').configurations.compileClasspath
+			mainClass = checkClass
+			if (name == 'BlockEntityExtension' && rootProject.hasProperty('blockEntityAddonJar')) {
+				classpath += files(rootProject.property('blockEntityAddonJar'))
+				args 'com.jsblock.block.APGGlassDRL'
+			}
+		}
+		commonProject.tasks.named('check') { dependsOn neoCheck }
+	}
+}
+
+apply from: rootProject.file('gradle/real-time-sync-checks.gradle')
+
+def webMapClasses = commonProject.layout.buildDirectory.dir('classes/webserverCompatibility')
+def compileWebMap = commonProject.tasks.register('compileWebserverCompatibility', JavaCompile) {
+	dependsOn commonProject.tasks.named('classes')
+	source rootProject.file('tests/WebserverCompatibilityCheck.java'), rootProject.fileTree('tests/web-map-fixtures') { include '**/*.java' }
+	classpath = commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+	destinationDirectory = webMapClasses
+}
+def checkWebMap = commonProject.tasks.register('checkWebserverCompatibility', JavaExec) {
+	group = 'verification'
+	dependsOn compileWebMap
+	classpath = files(webMapClasses) + commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+	mainClass = 'mtr.servlet.WebserverCompatibilityCheck'
+}
+commonProject.tasks.named('check') { dependsOn checkWebMap }

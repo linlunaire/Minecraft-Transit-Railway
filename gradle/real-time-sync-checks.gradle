@@ -1,0 +1,38 @@
+def commonProject = project(':common')
+def output = commonProject.layout.buildDirectory.dir('classes/RealTimeSyncCompatibility')
+def compile = commonProject.tasks.register('compileRealTimeSyncCompatibility', JavaCompile) {
+	dependsOn commonProject.tasks.named('classes')
+	source rootProject.file('tests/RealTimeSyncCompatibilityCheck.java')
+	classpath = commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+	destinationDirectory = output
+}
+def testedJar = rootProject.hasProperty('realTimeSyncTestJar')
+	? rootProject.file(rootProject.property('realTimeSyncTestJar')) : null
+
+['common', 'neoforge'].each { loader ->
+	def platform = project(":${loader}")
+	def name = loader == 'common' ? 'checkRealTimeSyncCompatibility' : 'checkRealTimeSyncNeoForge'
+	def check = platform.tasks.register(name, JavaExec) {
+		group = 'verification'
+		description = 'Checks native real-time sync, persisted daylight ownership and zero command dispatch.'
+		dependsOn compile
+		classpath = files(output) + (testedJar == null ? files() : files(testedJar)) + commonProject.sourceSets.main.output + platform.configurations.compileClasspath
+		mainClass = 'mtr.data.RealTimeSyncCompatibilityCheck'
+		if (testedJar != null) args testedJar.absolutePath
+		if (rootProject.hasProperty('realTimeSyncBaseline')) args '--baseline'
+	}
+	commonProject.tasks.named('check') { dependsOn check }
+}
+
+['fabric', 'neoforge'].each { loader ->
+	def platform = project(":${loader}")
+	def packagedCheck = commonProject.tasks.register("checkPackagedRealTimeSync${loader.capitalize()}", JavaExec) {
+		group = 'verification'
+		dependsOn compile, platform.tasks.named('shadowJar')
+		def packagedJar = platform.tasks.named('shadowJar').flatMap { it.archiveFile }
+		classpath = files(output, packagedJar) + commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+		mainClass = 'mtr.data.RealTimeSyncCompatibilityCheck'
+		doFirst { setArgs([packagedJar.get().asFile.absolutePath]) }
+	}
+	platform.tasks.named('check') { dependsOn packagedCheck }
+}
