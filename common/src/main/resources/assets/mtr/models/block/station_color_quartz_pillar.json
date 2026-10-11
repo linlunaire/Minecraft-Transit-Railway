@@ -1,0 +1,7 @@
+{
+	"parent": "mtr:block/leaves_column",
+	"textures": {
+		"end": "block/quartz_pillar_top",
+		"side": "minecraft:block/quartz_pillar_side"
+	}
+}
