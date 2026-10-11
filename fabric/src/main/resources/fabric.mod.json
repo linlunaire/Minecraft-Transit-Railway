@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "mtr",
+	"version": "${version}",
+	"name": "Minecraft Transit Railway",
+	"description": "A Minecraft mod that adds automated train systems into the game.",
+	"authors": ["Jonathan Ho"],
+	"license": "MIT",
+	"icon": "icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["mtr.MTRFabric"],
+		"client": ["mtr.MTRFabricClient"],
+		"modmenu": ["mtr.ModMenuConfig"]
+	},
+	"mixins": ["mtr.mixins.json"],
+	"depends": {
+		"java": ">=25",
+		"fabricloader": ">=0.19.3",
+		"fabric-api": ">=0.159.0",
+		"architectury": ">=21.0.7 <22",
+		"minecraft": "26.2"
+	}
+}
