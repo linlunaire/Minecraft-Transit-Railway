@@ -1,0 +1,32 @@
+def dashboardMapClasses = layout.buildDirectory.dir('classes/dashboardMapCompatibility')
+tasks.register('compileDashboardMapCompatibility', JavaCompile) {
+    dependsOn tasks.named('classes')
+    source rootProject.file('tests/DashboardMapCompatibilityCheck.java')
+    classpath = sourceSets.main.output + configurations.compileClasspath
+    destinationDirectory = dashboardMapClasses
+}
+tasks.register('checkDashboardMapCompatibility', JavaExec) {
+    group = 'verification'
+    description = 'Checks bounded Kotlin dashboard terrain submission against the real 26.2 GUI state.'
+    dependsOn 'compileDashboardMapCompatibility'
+    classpath = files(dashboardMapClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'mtr.screen.DashboardMapCompatibilityCheck'
+    args layout.buildDirectory.dir('classes/java/main').get().asFile.absolutePath
+}
+
+def guiWidgetClasses = layout.buildDirectory.dir('classes/guiWidgetCompatibility')
+tasks.register('compileGuiWidgetCompatibility', JavaCompile) {
+    dependsOn tasks.named('classes')
+    source rootProject.file('tests/GuiWidgetCompatibilityCheck.java')
+    classpath = sourceSets.main.output + configurations.compileClasspath
+    destinationDirectory = guiWidgetClasses
+}
+tasks.register('checkGuiWidgetCompatibility', JavaExec) {
+    group = 'verification'
+    description = 'Checks GUI widget textures and legacy icon slicing against 26.2.'
+    dependsOn 'compileGuiWidgetCompatibility'
+    classpath = files(guiWidgetClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'mtr.screen.GuiWidgetCompatibilityCheck'
+    args rootProject.projectDir.absolutePath
+}
+tasks.named('check') { dependsOn 'checkDashboardMapCompatibility', 'checkGuiWidgetCompatibility' }

@@ -1,0 +1,40 @@
+license = "MIT"
+
+[[mods]]
+modId = "mtr"
+version = "${version}"
+displayName = "Yanling Metro"
+authors = "linlunaire, Jonathan Ho, MTR contributors"
+description = "Yanling Metro (YLM): automated railways for Minecraft. An independent community fork of Minecraft Transit Railway."
+logoFile = "icon.png"
+
+[[mixins]]
+config = "mtr.mixins.json"
+
+[[dependencies.mtr]]
+modId = "neoforge"
+type = "required"
+versionRange = "[26.2.0.75,26.3)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mtr]]
+modId = "transit_core"
+type = "required"
+versionRange = "[${transitCoreVersion},1)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.mtr]]
+modId = "minecraft"
+type = "required"
+versionRange = "[26.2]"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.mtr]]
+modId = "architectury"
+type = "required"
+versionRange = "[21.0.7,22)"
+ordering = "AFTER"
+side = "BOTH"
