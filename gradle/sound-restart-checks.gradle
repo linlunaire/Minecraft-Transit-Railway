@@ -1,0 +1,26 @@
+def soundRestartClasses = layout.buildDirectory.dir('classes/soundRestartCompatibility')
+tasks.register('compileSoundRestartCompatibility', JavaCompile) {
+    dependsOn tasks.named('classes')
+    source rootProject.file('tests/SoundRestartCompatibilityCheck.java')
+    classpath = sourceSets.main.output + configurations.compileClasspath
+    destinationDirectory = soundRestartClasses
+}
+tasks.register('checkSoundRestartCompatibility', JavaExec) {
+    group = 'verification'
+    description = 'Checks real train sound replay after silence without an audio device.'
+    dependsOn 'compileSoundRestartCompatibility'
+    classpath = files(soundRestartClasses) + sourceSets.main.output + configurations.compileClasspath
+    mainClass = 'SoundRestartCompatibilityCheck'
+    args tasks.named('compileJava').get().destinationDirectory.get().asFile.absolutePath
+}
+tasks.named('check') { dependsOn 'checkSoundRestartCompatibility' }
+['fabric', 'neoforge'].each { loader ->
+    def packaged = tasks.register("checkPackagedSoundRestart${loader.capitalize()}", JavaExec) {
+        group = 'verification'
+        dependsOn 'compileSoundRestartCompatibility', ":${loader}:shadowJar"
+        classpath = files(soundRestartClasses) + sourceSets.main.output + configurations.compileClasspath
+        mainClass = 'SoundRestartCompatibilityCheck'
+        doFirst { setArgs([project(":${loader}").tasks.named('shadowJar').get().archiveFile.get().asFile.absolutePath]) }
+    }
+    project(":${loader}").tasks.named('check') { dependsOn packaged }
+}

@@ -1,0 +1,107 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+	id 'architectury-plugin' version '3.5.169'
+	id 'dev.architectury.loom-no-remap' version '1.17.491' apply false
+	id 'com.gradleup.shadow' version '9.2.2' apply false
+}
+
+if (JavaVersion.current() != JavaVersion.VERSION_25) {
+	throw new GradleException('Minecraft 26.2 requires JDK 25. Set JAVA_HOME to a JDK 25 installation.')
+}
+if (minecraft_version != '26.2' || (project.hasProperty('buildVersion') && project.buildVersion != '26.2')) {
+	throw new GradleException('This branch builds Minecraft 26.2 only. Use tag 1.21.1-3.3.2 for Minecraft 1.21.1.')
+}
+
+architectury { minecraft = minecraft_version }
+
+allprojects {
+	apply plugin: 'architectury-plugin'
+	group = rootProject.maven_group
+	version = "${rootProject.minecraft_version}-${rootProject.mod_version}"
+	repositories {
+		mavenCentral()
+		maven { url = 'https://maven.architectury.dev/' }
+		maven { url = 'https://maven.fabricmc.net/' }
+		maven { url = 'https://neoforged.forgecdn.net/releases/' }
+		maven { url = 'https://maven.neoforged.net/releases/' }
+		maven { url = 'https://maven.terraformersmc.com/' }
+		maven { url = 'https://jitpack.io/' }
+		flatDir { dirs rootProject.file('libs') }
+	}
+}
+
+subprojects {
+	apply plugin: 'dev.architectury.loom-no-remap'
+	apply plugin: 'com.gradleup.shadow'
+	java {
+		toolchain.languageVersion = JavaLanguageVersion.of(25)
+		sourceCompatibility = JavaVersion.VERSION_25
+		targetCompatibility = JavaVersion.VERSION_25
+	}
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = 'UTF-8'
+		options.release = 25
+		options.compilerArgs += ['-Xmaxerrs', '1000']
+	}
+	configurations { shadowCommon }
+	dependencies {
+		minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+		implementation name: 'Dynmap-3.2.1'
+		implementation name: 'BlueMapAPI-2.1.1'
+		implementation 'xyz.jpenilla:squaremap-api:1.3.15'
+		implementation 'com.hierynomus:sshj:0.40.0'
+		implementation "com.github.jonafanho:Minecraft-Mod-API-Tools:${rootProject.minecraft_mod_api_tools_version}"
+		['jetty-http', 'jetty-io', 'jetty-security', 'jetty-server', 'jetty-servlet', 'jetty-util', 'jetty-util-ajax'].each {
+			implementation "org.eclipse.jetty:${it}:9.4.58.v20250814"
+			shadowCommon "org.eclipse.jetty:${it}:9.4.58.v20250814"
+		}
+		implementation 'javax.servlet:javax.servlet-api:4.0.1'
+		shadowCommon 'javax.servlet:javax.servlet-api:4.0.1'
+		implementation 'org.msgpack:msgpack-core:0.9.12'
+		shadowCommon 'org.msgpack:msgpack-core:0.9.12'
+	}
+
+	if (project.name == 'common') {
+		def generateKeys = tasks.register('generateKeys', Copy) {
+			from 'src/main/KeysTemplate.java'
+			into layout.buildDirectory.dir('generated/sources/keys/mtr')
+			inputs.property 'version', project.version.toString()
+			filter(ReplaceTokens, tokens: [key: '', version: project.version.toString(), lifts: 'normal', server: ''])
+			rename 'KeysTemplate.java', 'Keys.java'
+		}
+		sourceSets.main.java.srcDir layout.buildDirectory.dir('generated/sources/keys')
+		tasks.named('compileJava') { dependsOn generateKeys }
+	}
+
+	processResources {
+		inputs.property 'version', project.version.toString()
+		filesMatching(['fabric.mod.json', 'META-INF/neoforge.mods.toml']) {
+			expand version: project.version
+		}
+		filesMatching('assets/mtr/website/version.js') {
+			filter(ReplaceTokens, tokens: [version: project.version.toString()])
+		}
+	}
+	shadowJar {
+		configurations = [project.configurations.shadowCommon]
+		archiveBaseName = "MTR-${project.name}"
+		archiveClassifier = ''
+		relocate 'javax.servlet', 'mtr.libraries.javax.servlet'
+		relocate 'org.eclipse', 'mtr.libraries.org.eclipse'
+		mergeServiceFiles()
+	}
+	if (project.name != 'common') {
+		def releaseJar = tasks.register('releaseJar', Copy) {
+			dependsOn tasks.named('shadowJar'), tasks.named('check'), ':common:check'
+			from tasks.named('shadowJar').flatMap { it.archiveFile }
+			into rootProject.layout.buildDirectory.dir('release')
+			doFirst {
+				delete fileTree(destinationDir).matching {
+					include "MTR-${project.name}-${rootProject.minecraft_version}-*.jar"
+				}
+			}
+		}
+		tasks.named('build') { dependsOn releaseJar }
+	}
+}
