@@ -41,16 +41,14 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 
 	public void tick() {
 		final int platformCount = railwayData.dataCache.platformConnections.size();
-		if (platformCount < 4) {
-			return;
-		}
 
 		final long startTime = System.currentTimeMillis();
 		while (System.currentTimeMillis() - startTime < (currentRouteFinderRequest == null ? 2 : currentRouteFinderRequest.maxTickTime)) {
 			switch (tickStage) {
 				case GET_POS:
 					if (routeFinderQueue.isEmpty()) {
-						if (DEBUG_DISABLE_DENSITY) {
+						currentRouteFinderRequest = null;
+						if (platformCount < 4 || DEBUG_DISABLE_DENSITY) {
 							return;
 						}
 
@@ -58,7 +56,6 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 						int shortestDistance = Integer.MAX_VALUE;
 						BlockPos tempStartPos = null;
 						BlockPos tempEndPos = null;
-						currentRouteFinderRequest = null;
 						final List<Long> platformConnectionKeys = new ArrayList<>(railwayData.dataCache.platformConnections.keySet());
 
 						for (int i = 0; i <= Math.min(200, platformCount * platformCount / 10000); i++) {
@@ -88,6 +85,7 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 						endPos = currentRouteFinderRequest.endPos;
 					}
 
+					data.clear();
 					globalBlacklist.clear();
 					startMillis = System.currentTimeMillis();
 					totalTime = Integer.MAX_VALUE;
@@ -149,7 +147,9 @@ public class RailwayDataRouteFinderModule extends RailwayDataModuleBase {
 	public boolean findRoute(BlockPos posStart, BlockPos posEnd, int maxTickTime, BiConsumer<List<RouteFinderData>, Integer> callback) {
 		if (routeFinderQueue.size() < MAX_REQUESTS) {
 			routeFinderQueue.add(new RouteFinderRequest(posStart, posEnd, maxTickTime, callback));
-			tickStage = TickStage.GET_POS;
+			if (currentRouteFinderRequest == null) {
+				tickStage = TickStage.GET_POS;
+			}
 			return true;
 		} else {
 			return false;

@@ -1,0 +1,35 @@
+def commonProject = project(':common')
+def output = commonProject.layout.buildDirectory.dir('classes/gameplayCompatibility')
+def compile = commonProject.tasks.register('compileGameplayCompatibility', JavaCompile) {
+	dependsOn commonProject.tasks.named('classes')
+	source rootProject.file('tests/GameplayCompatibilityCheck.java')
+	classpath = commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+	destinationDirectory = output
+	options.compilerArgs += ['-proc:none']
+}
+def testedSource = rootProject.hasProperty('gameplayTestJar')
+		? rootProject.file(rootProject.property('gameplayTestJar'))
+		: commonProject.tasks.named('compileJava').get().destinationDirectory.get().asFile
+
+commonProject.tasks.register('checkGameplayCompatibility', JavaExec) {
+	group = 'verification'
+	description = 'Checks server-side ticket payments, native PIDS sorting and route request completion.'
+	dependsOn compile
+	classpath = files(output, testedSource) + commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+	mainClass = 'mtr.data.GameplayCompatibilityCheck'
+	args testedSource.absolutePath
+}
+commonProject.tasks.named('check') { dependsOn 'checkGameplayCompatibility' }
+
+['fabric', 'neoforge'].each { loader ->
+	def platform = project(":${loader}")
+	def artifact = platform.tasks.named('shadowJar')
+	def check = commonProject.tasks.register("checkPackagedGameplay${loader.capitalize()}", JavaExec) {
+		group = 'verification'
+		dependsOn compile, artifact
+		classpath = files(output, artifact.flatMap { it.archiveFile }) + commonProject.sourceSets.main.output + commonProject.configurations.compileClasspath
+		mainClass = 'mtr.data.GameplayCompatibilityCheck'
+		doFirst { setArgs([artifact.get().archiveFile.get().asFile.absolutePath]) }
+	}
+	platform.tasks.named('check') { dependsOn check }
+}

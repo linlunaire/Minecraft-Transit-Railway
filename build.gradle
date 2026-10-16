@@ -191,3 +191,4 @@ allprojects {
 }
 
 apply from: 'gradle/release-checks.gradle'
+apply from: 'gradle/gameplay-checks.gradle'

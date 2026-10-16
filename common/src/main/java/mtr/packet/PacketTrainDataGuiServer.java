@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Items;
@@ -353,13 +354,27 @@ public class PacketTrainDataGuiServer extends PacketTrainDataBase {
 		final int emeralds = packet.readInt();
 
 		minecraftServer.execute(() -> {
+			if (addAmount <= 0 || addAmount != TicketSystem.getTopUpAmount(emeralds)) {
+				return;
+			}
+			final Inventory inventory = Utilities.getInventory(player);
+			if (inventory.countItem(Items.EMERALD) < emeralds) {
+				return;
+			}
 			final Level world = player.level();
 
 			TicketSystem.addObjectivesIfMissing(world);
 			ScoreAccess balanceScore = TicketSystem.getPlayerScore(world, player, TicketSystem.BALANCE_OBJECTIVE);
-			balanceScore.set(balanceScore.get() + addAmount);
+			final long newBalance = (long) balanceScore.get() + addAmount;
+			if (newBalance > Integer.MAX_VALUE) {
+				return;
+			}
 
-			ContainerHelper.clearOrCountMatchingItems(Utilities.getInventory(player), itemStack -> itemStack.getItem() == Items.EMERALD, emeralds, false);
+			final int removed = ContainerHelper.clearOrCountMatchingItems(inventory, itemStack -> itemStack.getItem() == Items.EMERALD, emeralds, false);
+			if (removed != emeralds) {
+				return;
+			}
+			balanceScore.set((int) newBalance);
 			world.playSound(null, player.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, 1, 1);
 		});
 	}

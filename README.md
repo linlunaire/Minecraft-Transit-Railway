@@ -1,51 +1,107 @@
-# YanlingMTR 1.0.3（Minecraft 1.21.1）
+<div align="center">
+  <img src="fabric/src/main/resources/icon.png" alt="YanlingMTR icon" width="128">
 
-YanlingMTR 是 [Minecraft Transit Railway（MTR）](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) 的社区分支，提供自动列车、轨道、车站、到站信息屏（PIDS）、缆车、船只和飞机。本分支维护 Minecraft 1.21.1 的 Fabric 与 NeoForge 版本。
+  <h1>YanlingMTR</h1>
+  <p><strong>Build a railway. Run a network.</strong></p>
+  <p>Automated trains, stations and passenger information for Minecraft 1.21.1.</p>
 
-## 安装
+  <p>
+    <a href="#whats-new"><img src="https://img.shields.io/badge/YanlingMTR-1.0.4-B52650?style=flat-square" alt="YanlingMTR 1.0.4"></a>
+    <img src="https://img.shields.io/badge/Minecraft-1.21.1-62A854?style=flat-square" alt="Minecraft 1.21.1">
+    <img src="https://img.shields.io/badge/Loaders-Fabric%20%2B%20NeoForge-546E7A?style=flat-square" alt="Fabric and NeoForge">
+    <img src="https://img.shields.io/badge/Java-21-E58A2B?style=flat-square" alt="Java 21">
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-327E88?style=flat-square" alt="MIT license"></a>
+  </p>
+  <p>
+    <a href="https://github.com/linlunaire/YanlingMTR/actions/workflows/build.yml?query=branch%3A1.21.1"><img src="https://github.com/linlunaire/YanlingMTR/actions/workflows/build.yml/badge.svg?branch=1.21.1" alt="1.21.1 build status"></a>
+  </p>
+  <p>
+    <a href="#download--install">Download &amp; install</a> &nbsp;·&nbsp;
+    <a href="#whats-new">What's new</a> &nbsp;·&nbsp;
+    <a href="#build-from-source">Build</a> &nbsp;·&nbsp;
+    <a href="https://github.com/linlunaire/YanlingMTR/issues">Report an issue</a> &nbsp;·&nbsp;
+    <a href="https://github.com/linlunaire/mtr-ante/tree/1.21.1">YLTE</a>
+  </p>
+</div>
 
-使用 Java 21，下载与你的加载器对应的 YanlingMTR JAR，并安装以下依赖：
+---
 
-| 加载器 | 依赖 |
-| --- | --- |
-| Fabric | [Fabric API](https://modrinth.com/mod/fabric-api)、[Architectury API](https://modrinth.com/mod/architectury-api) |
-| NeoForge | [Architectury API](https://modrinth.com/mod/architectury-api) |
+YanlingMTR is a community continuation of [Minecraft Transit Railway](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway). This branch maintains the MTR 3 experience on **Minecraft 1.21.1**, with Fabric and NeoForge builds.
 
-升级时替换原有 MTR JAR，不要同时安装两份。模组继续使用 `mtr` 标识、存档命名空间、配置路径和网络通道。
+## 🚆 Build your network
 
-原 ANTE 附属在 1.21.1 上更名为 [YLTE（Yanling Transit Expansion）](https://github.com/linlunaire/mtr-ante)，需要单独安装。它保留 `mtrsteamloco` 标识以及原有资源包、脚本和存档接口，安装时替换原 ANTE JAR。1.21.1 与 26.2 的模组文件不能混用。
+| Railways & operations | Stations & passengers |
+| :--- | :--- |
+| Connect tracks, assign routes and run automated trains. | Build stations with platforms, gates and ticket machines. |
+| Set up depots and timetables for your network. | Show live arrivals on passenger information displays. |
+| Extend your routes with cable cars, boats and aircraft. | Add custom models, scripts and rail tools with [YLTE](https://github.com/linlunaire/mtr-ante/tree/1.21.1). |
 
-升级前请备份存档和资源包。本地开发客户端已完成启动与资源加载验证；已有存档、多人联机和自定义资源包仍建议先在副本中测试。
+## Download & install
 
-## 近期更新
+Download **`YanlingMTR-1.21.1`** from the Artifacts section of a successful [1.21.1 build](https://github.com/linlunaire/YanlingMTR/actions/workflows/build.yml?query=branch%3A1.21.1). GitHub requires sign-in to download workflow artifacts.
 
-- 1.0.3：修复铁路数据保存流程，补齐连续保存和关服保存，并修正负坐标区块判断。
-- 1.0.2：现实时间同步改用原版 API，不再依赖 Time & Wind，也不会被混合服的同名命令接管。
-- 1.0.1：修复车厂时刻表界面短滑动条的紫黑缺图。
-- 1.0.0：更名为 YanlingMTR，继承此前 3.3.9 的修复，包括控制面板重复模糊和 PNG 图标显示问题。
+Use **Java 21** and place the JAR for your loader in `mods/`, together with its Minecraft 1.21.1 dependencies:
 
-详细修复与测试记录：[维护记录](docs/maintenance-1.21.1.md)、[存档与编辑检查](docs/health-review-2026-10-11.md)、[时间同步](docs/real-time-sync-1.21.1.md)、[滑动条](docs/gui-short-slider-1.21.1.md)、[NeoMTR 修复核对](docs/neomtr-gap-audit-2026-09-30.md)、[列车音效](docs/train-audio-restart.md)。
+| Loader | Required dependencies | Mod file |
+| :--- | :--- | :--- |
+| Fabric | [Fabric API](https://modrinth.com/mod/fabric-api) · [Architectury API 13.0.11+](https://modrinth.com/mod/architectury-api) | `YanlingMTR-fabric-1.21.1-1.0.4.jar` |
+| NeoForge 21.1.248+ | [Architectury API 13.0.11+](https://modrinth.com/mod/architectury-api) | `YanlingMTR-neoforge-1.21.1-1.0.4.jar` |
 
-## 可选功能
+Replace your existing MTR JAR and use matching versions on clients and servers. For custom models and scripting, install [YLTE 1.1.3](https://github.com/linlunaire/mtr-ante/tree/1.21.1) separately.
 
-现实时间同步按服务端本地时间运行，只影响主世界。关闭后恢复原先的昼夜循环规则，不修改世界运行时间。
+> [!IMPORTANT]
+> Back up worlds, configuration and resource packs before upgrading. The `mtr` ID, save namespaces, configuration paths and network channels are retained. The separate [26.2 development branch](https://github.com/linlunaire/YanlingMTR/tree/master) uses different builds.
 
-网页地图在检测到 Dynmap、BlueMap 或 Squaremap 模组（或混合服上对应的已启用插件）时启动。未安装时不会监听端口；将 `config/mtr_webserver_port.txt` 设为 `0` 可停用地图。端口冲突不影响铁路功能。
+## What's new
 
-## 从源码构建
+**1.0.4 · October 16, 2026**
 
-使用 JDK 21 和项目自带的 Gradle Wrapper（Gradle 8.14.5）。Windows 下运行：
+- Fixed ticket top-ups accepting invalid payments and overflowing balances. Update the server to apply this fix.
+- Fixed arrival sorting that could leave PIDS text missing.
+- Fixed web-map route requests hanging on small networks, reusing old results or interrupting an earlier request.
+
+<details>
+<summary>Previous updates</summary>
+
+- **1.0.3** — Fixed railway data persistence, repeated saves, shutdown saves and negative chunk coordinates.
+- **1.0.2** — Moved real-time synchronization to the vanilla API, removing the Time & Wind dependency and command conflicts on hybrid servers.
+- **1.0.1** — Fixed missing textures on short depot timetable scrollbars.
+- **1.0.0** — Renamed the fork to YanlingMTR, carrying forward the 3.3.9 fixes for repeated dashboard blur and PNG icons.
+
+</details>
+
+## ⚙️ Optional features
+
+**Real-time synchronization** follows the server's local time in the Overworld. Turning it off restores the previous daylight-cycle rule without changing world game time.
+
+**Web maps** start when Dynmap, BlueMap or Squaremap is available, including supported plugin detection on hybrid servers. Set `config/mtr_webserver_port.txt` to `0` to disable the map. A port conflict does not stop railway operation.
+
+## Build from source
+
+Set `JAVA_HOME` to **JDK 21**. The included wrapper uses Gradle 8.14.5.
 
 ```powershell
+# Windows
 .\gradlew.bat build
 ```
 
-构建通过后，JAR 位于 `build/release/`。兼容源码和资源已保存在仓库中，不需要另行下载 Minecraft-Mappings。
+```sh
+# Linux / macOS
+./gradlew build
+```
 
-重建旧 `1.21.1-3.3.2` 标签时，请先阅读 [历史构建恢复说明](https://github.com/linlunaire/Kotlin-LunaCore/blob/master/docs/legacy-mappings.md)。
+Both loader JARs are written to **`build/release/`** after the build checks pass. Compatibility sources and resources are included in this repository; a separate Minecraft-Mappings checkout is not required.
 
-## 上游与许可证
+Older local JARs are retained in `build/release/archive/`. This is build output and is removed by `clean`; keep permanent backups elsewhere.
 
-本项目基于 [Minecraft Transit Railway](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway)。上游作者和贡献者信息保留在源码与模组元数据中。
+## 📚 Documentation & support
 
-代码采用 [MIT License](LICENSE)，随模组分发的 Noto 字体采用 [SIL Open Font License](https://openfontlicense.org/)。
+See the [maintenance notes](docs/maintenance-1.21.1.md), [save and editing checks](docs/health-review-2026-10-11.md), [real-time synchronization](docs/real-time-sync-1.21.1.md), [GUI fixes](docs/gui-short-slider-1.21.1.md), [NeoMTR comparison](docs/neomtr-gap-audit-2026-09-30.md) and [train audio notes](docs/train-audio-restart.md). These technical notes are currently in Chinese. The old `1.21.1-3.3.2` tag has separate [build recovery instructions](https://github.com/linlunaire/Kotlin-LunaCore/blob/master/docs/legacy-mappings.md).
+
+For bugs in this fork, [open an issue](https://github.com/linlunaire/YanlingMTR/issues) with your loader and mod versions, reproduction steps and logs. Include the shader pack and rendering mods for visual problems.
+
+## Credits & license
+
+Based on [Minecraft Transit Railway](https://github.com/Minecraft-Transit-Railway/Minecraft-Transit-Railway) by **Jonathan Ho and contributors**. Maintained by **linlunaire** as an independent community fork.
+
+Code is available under the [MIT License](LICENSE). Bundled Noto fonts use the [SIL Open Font License](https://openfontlicense.org/). Original authorship and third-party notices are retained.

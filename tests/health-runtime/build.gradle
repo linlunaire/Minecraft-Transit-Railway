@@ -16,8 +16,8 @@ repositories {
     maven { url = 'https://neoforged.forgecdn.net/releases' }
     maven { url = 'https://maven.neoforged.net/releases' }
 }
-def mtr = file(findProperty('mtrTestJar') ?: '../../forge/build/libs/neoforge-1.21.1-1.0.3.jar')
-def ylte = file(findProperty('ylteTestJar') ?: '../../../mtr-ante-1.21.1/forge/build/libs/YLTE-neoforge-1.1.1-1.21.1.jar')
+def mtr = file(findProperty('mtrTestJar') ?: '../../forge/build/libs/neoforge-1.21.1-1.0.4.jar')
+def ylte = file(findProperty('ylteTestJar') ?: '../../../mtr-ante-1.21.1/forge/build/libs/YLTE-neoforge-1.1.3-1.21.1.jar')
 def probeName = (findProperty('probeName') ?: 'candidate').toString()
 if (!(probeName ==~ /[a-zA-Z0-9-]+/)) throw new GradleException('Invalid probeName')
 if (!mtr.isFile() || !ylte.isFile()) throw new GradleException('Build the selected 1.21.1 artifacts first.')

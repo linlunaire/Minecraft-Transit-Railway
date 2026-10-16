@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mtr.client.IDrawing;
 import mtr.data.IGui;
+import mtr.data.TicketSystem;
 import mtr.mappings.ScreenMapper;
 import mtr.mappings.Text;
 import mtr.mappings.Utilities;
@@ -19,8 +20,7 @@ public class TicketMachineScreen extends ScreenMapper implements IGui, IPacket {
 	private final Button[] buttons = new Button[BUTTON_COUNT];
 	private final Component balanceText;
 
-	private static final int EMERALD_TO_DOLLAR = 10;
-	private static final int BUTTON_COUNT = 10;
+	private static final int BUTTON_COUNT = TicketSystem.TOP_UP_OPTION_COUNT;
 	private static final int BUTTON_WIDTH = 80;
 
 	public TicketMachineScreen(int balance) {
@@ -93,6 +93,6 @@ public class TicketMachineScreen extends ScreenMapper implements IGui, IPacket {
 	}
 
 	private static int getAddAmount(int index) {
-		return (int) Math.ceil(Math.pow(2, index) * (EMERALD_TO_DOLLAR + index));
+		return TicketSystem.getTopUpAmount((int) Math.pow(2, index));
 	}
 }

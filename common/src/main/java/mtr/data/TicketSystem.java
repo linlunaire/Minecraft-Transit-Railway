@@ -14,10 +14,20 @@ import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 public class TicketSystem {
 
 	public static final String BALANCE_OBJECTIVE = "mtr_balance";
+	public static final int TOP_UP_OPTION_COUNT = 10;
 	private static final String ENTRY_ZONE_OBJECTIVE = "mtr_entry_zone";
+	private static final int EMERALD_TO_DOLLAR = 10;
 	private static final int BASE_FARE = 2;
 	private static final int ZONE_FARE = 1;
 	private static final int EVASION_FINE = 500;
+
+	/** Returns the existing ticket-machine price, or zero for an unsupported payment size. */
+	public static int getTopUpAmount(int emeralds) {
+		if (emeralds <= 0 || emeralds >= (1 << TOP_UP_OPTION_COUNT) || Integer.bitCount(emeralds) != 1) {
+			return 0;
+		}
+		return emeralds * (EMERALD_TO_DOLLAR + Integer.numberOfTrailingZeros(emeralds));
+	}
 
 	public static EnumTicketBarrierOpen passThrough(Level world, BlockPos pos, Player player, boolean isEntrance, boolean isExit, SoundEvent entrySound, SoundEvent entrySoundConcessionary, SoundEvent exitSound, SoundEvent exitSoundConcessionary, SoundEvent failSound, boolean remindIfNoRecord) {
 		final RailwayData railwayData = RailwayData.getInstance(world);

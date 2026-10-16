@@ -33,9 +33,9 @@ public class ScheduleEntry implements Comparable<mtr.data.ScheduleEntry> {
 	@Override
 	public int compareTo(mtr.data.ScheduleEntry o) {
 		if (arrivalMillis == o.arrivalMillis) {
-			return routeId > o.routeId ? 1 : -1;
+			return Long.compare(routeId, o.routeId);
 		} else {
-			return arrivalMillis > o.arrivalMillis ? 1 : -1;
+			return Long.compare(arrivalMillis, o.arrivalMillis);
 		}
 	}
 }
